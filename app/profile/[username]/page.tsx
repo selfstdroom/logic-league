@@ -19,8 +19,9 @@ type TopicAnswerHistoryRow = {
 
 type CountRow = { topic_answer_id: string };
 
-export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+export default async function ProfilePage({ params, searchParams }: { params: Promise<{ username: string }>; searchParams: Promise<{ saved?: string }> }) {
   const { username } = await params;
+  const query = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -94,8 +95,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
       <Card className="p-0">
-        <div className="relative overflow-hidden p-6 sm:p-10">
+        <div className="relative overflow-hidden p-5 sm:p-10">
           <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
+          {query.saved === "profile" ? <div className="relative mb-5 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100">プロフィールを保存しました。</div> : null}
           <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               <div className="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-[2rem] border border-amber-300/35 bg-gradient-to-br from-league-gold via-white to-slate-500 text-4xl font-black text-black shadow-[0_0_60px_rgba(215,180,106,0.2)]">
@@ -108,7 +110,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 <p className="mt-4 max-w-2xl text-league-silver">{profile.bio ?? "まだbioはありません。"}</p>
               </div>
             </div>
-            <RankBadge rank={profile.rank} size="lg" showLabel />
+            <div className="flex flex-col items-start gap-3 sm:items-end">
+              <RankBadge rank={profile.rank} size="md" showLabel labelPlacement="bottom" />
+              {isOwnProfile ? <Link href="/profile/edit" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white">プロフィールを編集</Link> : null}
+            </div>
           </div>
 
           <div className="relative mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

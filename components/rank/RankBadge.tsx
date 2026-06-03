@@ -69,8 +69,9 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
 
 type RankBadgeProps = {
   rank?: RankName | string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   showLabel?: boolean;
+  labelPlacement?: "side" | "bottom";
   className?: string;
 };
 
@@ -80,19 +81,22 @@ function normalizeRank(rank?: RankName | string | null): RankName {
 }
 
 const sizes = {
+  xs: { box: "h-10 w-10", text: "text-[0.65rem]", label: "text-[0.62rem]" },
   sm: { box: "h-12 w-12", text: "text-xs", label: "text-xs" },
   md: { box: "h-20 w-20", text: "text-sm", label: "text-sm" },
   lg: { box: "h-28 w-28", text: "text-base", label: "text-base" },
 };
 
-export function RankBadge({ rank, size = "md", showLabel = false, className = "" }: RankBadgeProps) {
+export function RankBadge({ rank, size = "md", showLabel = false, labelPlacement = "side", className = "" }: RankBadgeProps) {
   const safeRank = normalizeRank(rank);
   const theme = rankThemes[safeRank];
   const id = `rank-${safeRank.toLowerCase()}`;
   const sizeClasses = sizes[size];
 
+  const isBottomLabel = labelPlacement === "bottom";
+
   return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
+    <div className={`inline-flex ${isBottomLabel ? "flex-col items-center gap-1.5" : "items-center gap-3"} ${className}`}>
       <div className={`relative ${sizeClasses.box} drop-shadow-2xl`} aria-label={`${theme.label} rank badge`}>
         <svg viewBox="-12 -12 104 116" role="img" className="h-full w-full">
           <defs>
@@ -118,9 +122,9 @@ export function RankBadge({ rank, size = "md", showLabel = false, className = ""
         <div className={`absolute inset-2 rounded-full bg-gradient-to-br ${theme.metal} opacity-20 blur-xl ${theme.glow}`} />
       </div>
       {showLabel ? (
-        <div>
+        <div className={isBottomLabel ? "text-center" : ""}>
           <p className={`${sizeClasses.label} font-black uppercase tracking-[0.24em] text-league-gold`}>{theme.label}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-league-muted">Rank Class</p>
+          <p className={`${isBottomLabel ? "mt-0.5 text-[0.55rem]" : "mt-1 text-xs"} uppercase tracking-[0.2em] text-league-muted`}>Rank Class</p>
         </div>
       ) : null}
     </div>
