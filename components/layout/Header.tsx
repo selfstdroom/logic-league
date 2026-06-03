@@ -5,6 +5,7 @@ import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 const navItems = [
   { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "◆" },
   { href: "/topics", label: "Topics", shortLabel: "Topics", icon: "◇" },
+  { href: "/timeline", label: "Timeline", shortLabel: "Time", icon: "✦" },
   { href: "/profile", label: "プロフィール", shortLabel: "Profile", icon: "◈" },
   { href: "/exam", label: "認定試験", shortLabel: "試験", icon: "△" },
 ];
@@ -44,7 +45,7 @@ export async function Header() {
           </Link>
         </div>
       </header>
-      <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
         {resolvedNavItems.map((item) => (
           <Link key={item.label} href={item.href} className="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
             <span className="text-[0.7rem] text-league-gold/80">{item.icon}</span>

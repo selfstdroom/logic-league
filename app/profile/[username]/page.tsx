@@ -26,7 +26,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("*").or(`username.eq.${username},id.eq.${username}`).maybeSingle();
   if (!profile) notFound();
 
   const isOwnProfile = user.id === profile.id;
