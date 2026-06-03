@@ -4,6 +4,7 @@ import { AnswerHistory, type AnswerHistoryItem } from "@/components/profile/Answ
 import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
 import type { TopicAnswerType } from "@/types/database";
@@ -117,18 +118,17 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
           </div>
 
           <div className="relative mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-4"><span className="block text-xs uppercase tracking-[0.22em] text-league-muted">Rating</span><span className="mt-2 block text-3xl font-black text-white">{profile.rating}</span></div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4"><span className="block text-xs uppercase tracking-[0.22em] text-league-muted">推定思考偏差値</span><span className="mt-2 block text-3xl font-black">{profile.predicted_deviation ?? "未受験"}</span></div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4"><span className="block text-xs uppercase tracking-[0.22em] text-league-muted">Daily Topic回答</span><span className="mt-2 block text-3xl font-black">{dailyAnswerCount ?? 0}</span></div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4"><span className="block text-xs uppercase tracking-[0.22em] text-league-muted">認定状態</span><span className="mt-2 block text-3xl font-black">{profile.qualified ? "認定済み" : "未認定"}</span></div>
+            <StatCard label="Rating" value={profile.rating} tone="gold" />
+            <StatCard label="推定思考偏差値" value={profile.predicted_deviation ?? "未受験"} />
+            <StatCard label="Daily Topic回答" value={dailyAnswerCount ?? 0} />
+            <StatCard label="認定状態" value={profile.qualified ? "認定済み" : "未認定"} tone={profile.qualified ? "emerald" : "silver"} />
           </div>
         </div>
       </Card>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">思考アーキタイプ</p>
-          <h2 className="mt-3 text-3xl font-black">{profile.archetype ?? "未分類"}</h2>
+          <SectionHeader eyebrow="Archetype" title={profile.archetype ?? "未分類"} />
           <p className="mt-4 text-sm leading-6 text-league-silver">認定試験から推定された思考傾向です。論点の組み立て方、リスクの見方、反論への備え方を把握するための指標です。</p>
           <div className="mt-6 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">勝利</p></div>
@@ -138,8 +138,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
         </Card>
 
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Activity</p>
-          <h2 className="mt-3 text-3xl font-black">最近の投稿</h2>
+          <SectionHeader eyebrow="Recent Activity" title="最近の投稿" />
           <div className="mt-6 space-y-4">
             {(recentAnswers ?? []).map((answer) => (
               <Link key={answer.id} href={`/topics/${answer.topic_id}`} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">

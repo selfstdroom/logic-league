@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
@@ -169,19 +170,13 @@ export default async function TimelinePage() {
     .slice(0, 36);
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
-      <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.18),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
-        <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
-        <div className="relative">
-          <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Public Timeline</p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">知的な議論が今まさに動いている場所</h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-league-silver">Recent Daily Topic answers, comments, and revealed Weekly League answers are visible to everyone. 参加アクションにはログインが必要です。</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">Topicsを見る</Link>
-            <Link href="/login" className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-white transition hover:border-amber-300/30">ログインする</Link>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <HeroPanel eyebrow="Public Timeline" title="知的な議論が今まさに動いている場所" actions={<>
+        <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">Topicsを見る</Link>
+        <Link href="/login" className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-white transition hover:border-amber-300/30">ログインする</Link>
+      </>}>
+        Recent Daily Topic answers, comments, and revealed Weekly League answers are visible to everyone. 参加アクションにはログインが必要です。
+      </HeroPanel>
 
       <section className="mt-8 space-y-5">
         {items.map((item) => (
@@ -218,6 +213,6 @@ export default async function TimelinePage() {
       </section>
 
       {items.length === 0 ? <EmptyState title="まだタイムラインはありません。">回答やコメントが投稿されると、ここに公開タイムラインとして表示されます。</EmptyState> : null}
-    </main>
+    </PageShell>
   );
 }
