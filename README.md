@@ -2,7 +2,7 @@
 
 知識ではなく、思考で競え。
 
-Logic League は、課題解決型の問いに回答し、AI 採点・ユーザー投票・ランキング・レート・ランクを通じて「思考力の実績」を蓄積する知的競技 Web アプリです。このリポジトリでは Phase 1 として、Google ログイン、プロフィール作成、初回認定試験、OpenAI API による AI 採点、推定思考偏差値・思考アーキタイプ表示、プロフィール更新を実装しています。
+Logic League は、課題解決型の問いに回答し、AI 採点・ユーザー投票・ランキング・レート・ランクを通じて「思考力の実績」を蓄積する知的競技 Web アプリです。このリポジトリでは Phase 1 として、メールアドレスとパスワードによる Supabase Auth 認証、プロフィール作成、初回認定試験、OpenAI API による AI 採点、推定思考偏差値・思考アーキタイプ表示、プロフィール更新を実装しています。
 
 ## 使用技術
 
@@ -12,7 +12,7 @@ Logic League は、課題解決型の問いに回答し、AI 採点・ユーザ�
 - TypeScript（strict mode）
 - Tailwind CSS
 - ESLint
-- Supabase Auth / PostgreSQL / RLS
+- Supabase Auth（Email/Password） / PostgreSQL / RLS
 - OpenAI API
 - Vercel
 
@@ -34,21 +34,12 @@ SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 ```
 
-任意で Google OAuth のリダイレクト生成に使うサイト URL を設定できます。
-
-```env
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
 ## Supabase SQL の実行方法
 
 1. Supabase プロジェクトを作成します。
-2. Supabase Dashboard で Authentication > Providers から Google provider を有効化します。
+2. Supabase Dashboard で Authentication > Providers から Email provider を有効化し、Email/Password 認証を利用できる状態にします。
 3. Supabase SQL Editor を開きます。
 4. `supabase/migrations/001_initial_schema.sql` の内容を貼り付けて実行します。
-5. Authentication > URL Configuration に以下を追加します。
-   - ローカル: `http://localhost:3000/auth/callback`
-   - Vercel: `https://<your-domain>/auth/callback`
 
 SQL には Phase 1 で使う `profiles` / `exam_answers` に加え、Phase 2 以降を見据えた topics、answers、comments、likes、weekly_votes、rating_histories、hall_of_fame、topic_proposals と RLS policy が含まれています。
 
@@ -65,13 +56,12 @@ npm run dev
 1. Vercel でこの GitHub リポジトリを Import します。
 2. Framework Preset は Next.js を選択します。
 3. Environment Variables に `.env.local.example` と同じキーを登録します。
-4. Supabase Auth の Redirect URL に Vercel の `/auth/callback` URL を追加します。
-5. Deploy を実行します。
+4. Deploy を実行します。
 
 ## Phase 1 実装範囲
 
-- Google ログイン
-- Supabase Auth callback 後の `profiles` 自動作成
+- メールアドレスとパスワードによるログイン
+- 新規登録時の `profiles` 自動作成
 - 認定試験ページ
 - 500 文字未満の送信ブロック
 - `POST /api/exam/submit` によるサーバーサイド OpenAI 採点
