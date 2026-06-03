@@ -33,6 +33,7 @@ export type TopicAnswer = {
   ai_total_score: number | null;
   vote_count: number;
   final_score: number | null;
+  ranking_position: number | null;
   is_anonymous: boolean;
   created_at: string;
 };
@@ -47,6 +48,14 @@ export type Comment = {
 
 export type Like = {
   id: string;
+  topic_answer_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+export type WeeklyVote = {
+  id: string;
+  topic_id: string;
   topic_answer_id: string;
   user_id: string;
   created_at: string;
@@ -89,6 +98,12 @@ export type Database = {
         Row: Like;
         Insert: Partial<Like> & { topic_answer_id: string; user_id: string };
         Update: Partial<Like>;
+        Relationships: [];
+      };
+      weekly_votes: {
+        Row: WeeklyVote;
+        Insert: Partial<WeeklyVote> & { topic_id: string; topic_answer_id: string; user_id: string };
+        Update: Partial<WeeklyVote>;
         Relationships: [];
       };
     };
