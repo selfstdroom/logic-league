@@ -104,10 +104,10 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       <section className="mt-10">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Discussion Feed</p>
-            <h2 className="mt-2 text-3xl font-black">League Responses</h2>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">議論</p>
+            <h2 className="mt-2 text-3xl font-black">みんなの回答</h2>
           </div>
-          <p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length} answers</p>
+          <p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>
         </div>
 
         <div className="space-y-5">
@@ -129,7 +129,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
               <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
 
               <div className="mt-6 border-t border-white/10 pt-5">
-                <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">Comments</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">コメント</h3>
                 <div className="mt-4 space-y-3">
                   {answer.comments.map((comment) => (
                     <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
@@ -145,7 +145,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           ))}
         </div>
 
-        {answerViews.length === 0 ? <EmptyState title="No responses yet">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
+        {answerViews.length === 0 ? <EmptyState title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
       </section>
     </main>
   );

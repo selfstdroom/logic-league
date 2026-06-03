@@ -29,7 +29,7 @@ export function TopicCard({ topic, featured = false }: TopicCardProps) {
         </h2>
         <p className="relative mt-4 flex-1 text-sm leading-6 text-league-silver">{createPreview(topic.content, featured ? 150 : 105)}</p>
         <div className="relative mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-bold uppercase tracking-[0.2em] text-league-muted">
-          <span>Open Brief</span>
+          <span>詳細を見る</span>
           <span className="text-league-gold transition group-hover:translate-x-1">→</span>
         </div>
       </article>

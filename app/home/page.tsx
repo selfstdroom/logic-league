@@ -69,12 +69,12 @@ export default async function HomePage() {
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                 <RankBadge rank={profile.rank} size="lg" />
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">League Profile</p>
+                  <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">プロフィール</p>
                   <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">{profile.display_name ?? profile.username}</h1>
                   <p className="mt-2 text-league-muted">@{profile.username} · {seasonName}</p>
                 </div>
               </div>
-              <ButtonLink href={`/profile/${profile.username}`} className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">View Profile</ButtonLink>
+              <ButtonLink href={`/profile/${profile.username}`} className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">プロフィールを見る</ButtonLink>
             </div>
 
             <div className="relative mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -87,12 +87,12 @@ export default async function HomePage() {
                 <p className="mt-2 text-2xl font-black">{profile.rating}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                <span className="text-xs uppercase tracking-[0.22em] text-league-muted">Predicted Deviation</span>
+                <span className="text-xs uppercase tracking-[0.22em] text-league-muted">推定思考偏差値</span>
                 <p className="mt-2 text-2xl font-black">{profile.predicted_deviation}</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                <span className="text-xs uppercase tracking-[0.22em] text-league-muted">Archetype</span>
-                <p className="mt-2 text-2xl font-black">{profile.archetype ?? "Unclassified"}</p>
+                <span className="text-xs uppercase tracking-[0.22em] text-league-muted">思考アーキタイプ</span>
+                <p className="mt-2 text-2xl font-black">{profile.archetype ?? "未分類"}</p>
               </div>
             </div>
           </div>
@@ -100,13 +100,13 @@ export default async function HomePage() {
 
         <Card className="flex flex-col justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Current Season</p>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">現在のシーズン</p>
             <h2 className="mt-3 text-3xl font-black">Genesis Circuit</h2>
-            <p className="mt-3 text-sm leading-6 text-league-silver">Daily arguments, public counters, and rising rating pressure. Build a record worthy of the Hall.</p>
+            <p className="mt-3 text-sm leading-6 text-league-silver">Daily Topicsで論点を磨き、CounterやSupportを重ねながらRatingを高めていきます。Hall of Fameに残る思考の記録を築きましょう。</p>
           </div>
           <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{answerCount ?? 0}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Answers</p></div>
-            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Wins</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{answerCount ?? 0}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Answer</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">勝利</p></div>
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Top 10</p></div>
           </div>
         </Card>
@@ -116,16 +116,16 @@ export default async function HomePage() {
         <div className="lg:col-span-1">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Trending Topics</p>
-              <h2 className="mt-2 text-2xl font-black">Arena Briefs</h2>
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">盛り上がっているTopic</p>
+              <h2 className="mt-2 text-2xl font-black">最新のDaily Topics</h2>
             </div>
-            <Link href="/topics" className="text-sm font-bold text-league-gold hover:text-white">All →</Link>
+            <Link href="/topics" className="text-sm font-bold text-league-gold hover:text-white">すべて見る →</Link>
           </div>
-          {featuredTopic ? <TopicCard topic={featuredTopic} featured /> : <EmptyState title="No briefs published">公開中のDaily Topicはまだありません。</EmptyState>}
+          {featuredTopic ? <TopicCard topic={featuredTopic} featured /> : <EmptyState title="公開中のDaily Topicはまだありません。">公開中のDaily Topicはまだありません。</EmptyState>}
         </div>
 
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Popular Discussions</p>
+          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">注目の議論</p>
           <div className="mt-5 space-y-4">
             {sideTopics.slice(0, 3).map((topic, index) => (
               <Link key={topic.id} href={`/topics/${topic.id}`} className="group flex gap-4 rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
@@ -136,12 +136,12 @@ export default async function HomePage() {
                 </span>
               </Link>
             ))}
-            {sideTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">More discussions will appear as new briefs enter the arena.</p> : null}
+            {sideTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">新しいTopicが公開されると、ここに議論が表示されます。</p> : null}
           </div>
         </Card>
 
         <Card>
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Recent Activity</p>
+          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">最近の活動</p>
           <div className="mt-5 space-y-4">
             {feedAnswers.slice(0, 4).map((answer) => (
               <Link key={answer.id} href={`/topics/${answer.topic_id}`} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/25 hover:bg-white/[0.06]">
@@ -150,7 +150,7 @@ export default async function HomePage() {
                 <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 76)}</p>
               </Link>
             ))}
-            {feedAnswers.length === 0 ? <p className="text-sm leading-6 text-league-muted">No public answers yet. Be the first to shape the debate.</p> : null}
+            {feedAnswers.length === 0 ? <p className="text-sm leading-6 text-league-muted">まだ投稿はありません。最初の回答を投稿して、議論を始めましょう。</p> : null}
           </div>
         </Card>
       </section>
@@ -158,10 +158,10 @@ export default async function HomePage() {
       <section className="mt-10">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Discussion Feed</p>
-            <h2 className="mt-2 text-3xl font-black">Latest Answers from the League</h2>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">議論フィード</p>
+            <h2 className="mt-2 text-3xl font-black">Logic Leagueの最新Answer</h2>
           </div>
-          <ButtonLink href="/topics" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">Enter the Arena</ButtonLink>
+          <ButtonLink href="/topics" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">すべて見る</ButtonLink>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
           {feedAnswers.map((answer) => (
@@ -180,7 +180,7 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
-        {feedAnswers.length === 0 ? <EmptyState title="The feed is quiet">最初の回答が投稿されると、ここにリーグの議論が流れます。</EmptyState> : null}
+        {feedAnswers.length === 0 ? <EmptyState title="まだ投稿はありません。">最初の回答が投稿されると、ここにリーグの議論が流れます。</EmptyState> : null}
       </section>
     </main>
   );

@@ -76,8 +76,8 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
     <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-6 py-16">
       <Card className="w-full p-8">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Create account</p>
-          <h1 className="mt-4 text-3xl font-black">アカウント作成</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">新規登録</p>
+          <h1 className="mt-4 text-3xl font-black">新規登録</h1>
           <p className="mt-4 text-league-silver">Supabase Authのメールアドレス・パスワード認証で登録します。</p>
         </div>
         {error ? (
@@ -105,7 +105,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
             <span className="text-sm font-bold text-league-silver">表示名</span>
             <input className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-league-gold" name="display_name" type="text" autoComplete="name" required />
           </label>
-          <Button type="submit" className="w-full">アカウントを作成</Button>
+          <Button type="submit" className="w-full">新規登録</Button>
         </form>
         <p className="mt-6 text-center text-sm text-league-silver">
           すでにアカウントを持っている場合は{" "}

@@ -39,7 +39,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-6 py-16">
       <Card className="w-full p-8">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Sign in</p>
+          <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">ログイン</p>
           <h1 className="mt-4 text-3xl font-black">ログイン</h1>
           <p className="mt-4 text-league-silver">メールアドレスとパスワードでログインしてください。</p>
         </div>
@@ -74,7 +74,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </form>
         <p className="mt-6 text-center text-sm text-league-silver">
           アカウントをお持ちでない場合は{" "}
-          <Link className="font-bold text-league-gold hover:text-white" href="/signup">アカウントを作成</Link>
+          <Link className="font-bold text-league-gold hover:text-white" href="/signup">新規登録</Link>
         </p>
       </Card>
     </main>
