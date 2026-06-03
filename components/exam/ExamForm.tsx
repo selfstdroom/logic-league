@@ -35,7 +35,7 @@ export function ExamForm() {
   return (
     <Card className="space-y-5 border-amber-300/20">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Answer Sheet</p>
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">答案用紙</p>
         <h2 className="mt-2 text-2xl font-black text-white">政策論述答案</h2>
         <p className="mt-2 text-sm leading-6 text-league-muted">構造、仮説、実現性、リスクを読み手が追えるように記述してください。</p>
       </div>

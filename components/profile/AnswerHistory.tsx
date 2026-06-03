@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { createPreview, formatAnswerType, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { TopicAnswerType } from "@/types/database";
 
 type SortKey = "newest" | "oldest" | "score-desc" | "score-asc";
@@ -53,10 +53,10 @@ const filterOptions: { value: FilterKey; label: string }[] = [
   { value: "all", label: "すべて" },
   { value: "exam", label: "認定試験" },
   { value: "daily", label: "Daily Topic" },
-  { value: "Answer", label: "Answer" },
-  { value: "Counter", label: "Counter" },
-  { value: "Support", label: "Support" },
-  { value: "Question", label: "Question" },
+  { value: "Answer", label: "回答" },
+  { value: "Counter", label: "反論" },
+  { value: "Support", label: "賛成・補足" },
+  { value: "Question", label: "質問" },
 ];
 
 function scoreOf(item: AnswerHistoryItem) {
@@ -125,7 +125,7 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
     <section className="mt-8">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Thought Archive</p>
+          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">思考アーカイブ</p>
           <h2 className="mt-2 text-3xl font-black">思考ログ</h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-league-silver">認定試験とDaily Topicへの回答を時系列で確認できます。スコアや回答タイプで絞り込み、思考の変化を追跡できます。</p>
         </div>
@@ -161,7 +161,7 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       <Metric label="推定思考偏差値" value={item.predicted_deviation} />
                       <Metric label="思考アーキタイプ" value={item.archetype} />
-                      <Metric label="Total Score" value={item.total_score} />
+                      <Metric label="総合スコア" value={item.total_score} />
                     </div>
                   </div>
                   <ToggleButton id={item.id} expanded={expanded} onToggle={toggle} />
@@ -172,17 +172,17 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
                 {expanded ? (
                   <div className="mt-5 space-y-5 border-t border-white/10 pt-5">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                      <Metric label="Structure" value={item.structure_score} />
-                      <Metric label="Hypothesis" value={item.hypothesis_score} />
-                      <Metric label="Originality" value={item.originality_score} />
-                      <Metric label="Feasibility" value={item.feasibility_score} />
-                      <Metric label="Risk" value={item.risk_score} />
+                      <Metric label="構造" value={item.structure_score} />
+                      <Metric label="仮説" value={item.hypothesis_score} />
+                      <Metric label="独創性" value={item.originality_score} />
+                      <Metric label="実現可能性" value={item.feasibility_score} />
+                      <Metric label="リスク" value={item.risk_score} />
                     </div>
                     <div className="grid gap-4 lg:grid-cols-2">
-                      <Detail title="summary" text={item.summary} />
-                      <Detail title="strength" text={item.strength} />
-                      <Detail title="weakness" text={item.weakness} />
-                      <Detail title="upper_gap" text={item.upper_gap} />
+                      <Detail title="総評" text={item.summary} />
+                      <Detail title="強み" text={item.strength} />
+                      <Detail title="弱み" text={item.weakness} />
+                      <Detail title="上位層との差" text={item.upper_gap} />
                     </div>
                   </div>
                 ) : null}
@@ -196,8 +196,8 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black tracking-[0.18em] text-league-gold">Daily Topic</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{item.category}</span>
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{item.answer_type ?? "Answer"}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(item.category)}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatAnswerType(item.answer_type)}</span>
                   </div>
                   <h3 className="mt-4 text-xl font-black leading-snug text-white">{item.title}</h3>
                   <p className="mt-2 text-xs text-league-muted">{formatDateTime(item.created_at)}</p>

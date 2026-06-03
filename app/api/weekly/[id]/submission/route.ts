@@ -7,15 +7,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) return NextResponse.json({ error: "Login is required." }, { status: 401 });
+  if (userError || !user) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
   const body = await request.json().catch(() => null) as { content?: unknown } | null;
   const content = typeof body?.content === "string" ? body.content.trim() : "";
-  if (content.length < 10) return NextResponse.json({ error: "Answer must be at least 10 characters." }, { status: 400 });
+  if (content.length < 10) return NextResponse.json({ error: "回答は10文字以上で入力してください。" }, { status: 400 });
 
   const { data: profile, error: profileError } = await supabase.from("profiles").select("qualified").eq("id", user.id).maybeSingle();
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
-  if (!profile?.qualified) return NextResponse.json({ error: "Weekly League requires qualification." }, { status: 403 });
+  if (!profile?.qualified) return NextResponse.json({ error: "Weekly Leagueへの参加には認定が必要です。" }, { status: 403 });
 
   const admin = createAdminClient();
   const { data: topic, error: topicError } = await admin
@@ -26,9 +26,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .eq("status", "published")
     .maybeSingle();
   if (topicError) return NextResponse.json({ error: topicError.message }, { status: 500 });
-  if (!topic) return NextResponse.json({ error: "Weekly topic not found." }, { status: 404 });
+  if (!topic) return NextResponse.json({ error: "Weekly LeagueのTopicが見つかりません。" }, { status: 404 });
   if (!topic.deadline_at || new Date(topic.deadline_at).getTime() <= Date.now()) {
-    return NextResponse.json({ error: "Submission deadline has passed." }, { status: 403 });
+    return NextResponse.json({ error: "投稿締切を過ぎています。" }, { status: 403 });
   }
 
   const scores = scoreWeeklyAnswer(content);

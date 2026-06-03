@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
 
@@ -171,11 +171,11 @@ export default async function TimelinePage() {
 
   return (
     <PageShell>
-      <HeroPanel eyebrow="Public Timeline" title="知的な議論が今まさに動いている場所" actions={<>
+      <HeroPanel eyebrow="公開タイムライン" title="知的な議論が今まさに動いている場所" actions={<>
         <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">Topicsを見る</Link>
         <Link href="/login" className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-white transition hover:border-amber-300/30">ログインする</Link>
       </>}>
-        Recent Daily Topic answers, comments, and revealed Weekly League answers are visible to everyone. 参加アクションにはログインが必要です。
+        Daily Topicの回答、コメント、公開後のWeekly League回答を誰でも閲覧できます。参加アクションにはログインが必要です。
       </HeroPanel>
 
       <section className="mt-8 space-y-5">
@@ -197,7 +197,7 @@ export default async function TimelinePage() {
 
             <Link href={topicHref(item)} className="mt-5 block rounded-[1.25rem] border border-white/10 bg-black/20 p-5 transition hover:border-amber-300/35">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{item.topic.category ?? "Topic"}</span>
+                <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatTopicCategory(item.topic.category)}</span>
                 {item.topic.type === "weekly" ? <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">Weekly League</span> : null}
               </div>
               <h2 className="mt-3 text-xl font-black leading-snug text-white">{item.topic.title ?? "Topic"}</h2>
@@ -205,7 +205,7 @@ export default async function TimelinePage() {
               <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold text-league-muted">
                 <span>いいね {item.likeCount}</span>
                 <span>コメント {item.commentCount}</span>
-                <span>Topic detail →</span>
+                <span>Topic詳細 →</span>
               </div>
             </Link>
           </Card>

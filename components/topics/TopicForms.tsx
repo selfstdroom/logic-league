@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { formatAnswerType } from "@/lib/topics/format";
 import type { TopicAnswerType } from "@/types/database";
 
 const answerTypes: TopicAnswerType[] = ["Answer", "Counter", "Support", "Question"];
@@ -59,7 +60,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
 
   return (
     <form onSubmit={onSubmit} className="rounded-3xl border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.12),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.06),rgba(8,13,26,0.72))] p-6 shadow-2xl">
-      <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Join the discussion</p>
+      <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">議論に参加</p>
       <h2 className="mt-2 text-2xl font-black">回答を投稿する</h2>
       <div className="mt-4 grid gap-4">
         <label className="text-sm font-bold text-league-silver">
@@ -69,7 +70,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
             onChange={(event) => setAnswerType(event.target.value as TopicAnswerType)}
             className="premium-input mt-2"
           >
-            {answerTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+            {answerTypes.map((type) => <option key={type} value={type}>{formatAnswerType(type)}</option>)}
           </select>
         </label>
         <label className="text-sm font-bold text-league-silver">

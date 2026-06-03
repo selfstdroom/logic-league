@@ -35,7 +35,7 @@ function errorMessage(error?: string) {
     case "required": return "表示名とユーザー名は必須です。";
     case "username": return "ユーザー名は小文字英数字、アンダースコア、ハイフンのみ使用できます。";
     case "duplicate": return "このユーザー名はすでに使われています。";
-    case "bio": return "bioは300文字以内で入力してください。";
+    case "bio": return "自己紹介は300文字以内で入力してください。";
     case "url": return "URLは http:// または https:// から始まる正しい形式で入力してください。";
     case "update": return "プロフィールを更新できませんでした。時間をおいて再度お試しください。";
     default: return null;
@@ -98,7 +98,7 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
 
   return (
     <PageShell className="max-w-3xl">
-      <HeroPanel eyebrow="Profile Edit" title="プロフィールを編集">
+      <HeroPanel eyebrow="プロフィール編集" title="プロフィールを編集">
         Rank、Rating、推定思考偏差値、思考アーキタイプは認定試験とリーグ結果から管理されます。
       </HeroPanel>
 
@@ -116,7 +116,7 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
             <span className="mt-2 block text-xs text-league-muted">小文字英数字、_、- のみ使用できます。</span>
           </label>
           <label className="block">
-            <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">bio</span>
+            <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">自己紹介</span>
             <textarea name="bio" maxLength={300} defaultValue={profile.bio ?? ""} rows={5} className="premium-input mt-2" />
             <span className="mt-2 block text-xs text-league-muted">300文字以内</span>
           </label>

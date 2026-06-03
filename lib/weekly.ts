@@ -16,10 +16,10 @@ export function getWeeklyPhase(topic: Pick<Topic, "publish_at" | "deadline_at" |
 }
 
 export function getWeeklyStatusLabel(phase: WeeklyPhase) {
-  if (phase === "submission") return "Submission Open";
-  if (phase === "voting") return "Voting Open";
-  if (phase === "completed") return "Completed";
-  return "Upcoming";
+  if (phase === "submission") return "投稿受付中";
+  if (phase === "voting") return "投票受付中";
+  if (phase === "completed") return "終了";
+  return "公開予定";
 }
 
 export function calculateFinalScore(aiTotalScore: number | null, voteCount: number, maxVoteCount: number) {
@@ -29,8 +29,8 @@ export function calculateFinalScore(aiTotalScore: number | null, voteCount: numb
 }
 
 export function buildAiScoreSummary(answer: { ai_total_score: number | null; ai_structure_score: number | null; ai_logic_score: number | null; ai_originality_score: number | null; ai_feasibility_score: number | null; ai_risk_score: number | null }) {
-  if (answer.ai_total_score == null) return "AI score pending";
-  return `AI ${answer.ai_total_score}/100 · Structure ${answer.ai_structure_score ?? 0} · Logic ${answer.ai_logic_score ?? 0} · Originality ${answer.ai_originality_score ?? 0} · Feasibility ${answer.ai_feasibility_score ?? 0} · Risk ${answer.ai_risk_score ?? 0}`;
+  if (answer.ai_total_score == null) return "AIスコア集計中";
+  return `AI ${answer.ai_total_score}/100 · 構造 ${answer.ai_structure_score ?? 0} · 論理 ${answer.ai_logic_score ?? 0} · 独創性 ${answer.ai_originality_score ?? 0} · 実現可能性 ${answer.ai_feasibility_score ?? 0} · リスク ${answer.ai_risk_score ?? 0}`;
 }
 
 export async function finalizeWeeklyLeague(topicId: string) {
@@ -43,9 +43,9 @@ export async function finalizeWeeklyLeague(topicId: string) {
     .maybeSingle();
 
   if (topicError) throw topicError;
-  if (!topic) throw new Error("Weekly topic not found.");
+  if (!topic) throw new Error("Weekly LeagueのTopicが見つかりません。");
   if (!topic.vote_deadline_at || new Date(topic.vote_deadline_at).getTime() > Date.now()) {
-    throw new Error("Weekly results are not available yet.");
+    throw new Error("Weekly Leagueの結果はまだ公開されていません。");
   }
 
   const { data: answers, error: answersError } = await admin

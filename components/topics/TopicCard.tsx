@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 
 type TopicCardProps = {
   topic: {
@@ -20,7 +20,7 @@ export function TopicCard({ topic, featured = false }: TopicCardProps) {
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-200/10 blur-3xl transition group-hover:bg-amber-200/20" />
         <div className="relative flex items-start justify-between gap-4">
           <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.22em] text-league-gold">
-            {topic.category}
+            {formatTopicCategory(topic.category)}
           </span>
           {topic.publish_at ? <time className="text-right text-xs leading-5 text-league-muted">{formatDateTime(topic.publish_at)}</time> : null}
         </div>

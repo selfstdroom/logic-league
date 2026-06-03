@@ -124,7 +124,7 @@ export function RankBadge({ rank, size = "md", showLabel = false, labelPlacement
       {showLabel ? (
         <div className={isBottomLabel ? "text-center" : ""}>
           <p className={`${sizeClasses.label} font-black uppercase tracking-[0.24em] text-league-gold`}>{theme.label}</p>
-          <p className={`${isBottomLabel ? "mt-0.5 text-[0.55rem]" : "mt-1 text-xs"} uppercase tracking-[0.2em] text-league-muted`}>Rank Class</p>
+          <p className={`${isBottomLabel ? "mt-0.5 text-[0.55rem]" : "mt-1 text-xs"} uppercase tracking-[0.2em] text-league-muted`}>Rank区分</p>
         </div>
       ) : null}
     </div>
