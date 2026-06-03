@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { AnswerForm, CommentForm, LikeButton } from "@/components/topics/TopicForms";
+import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { formatDateTime } from "@/lib/topics/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +11,7 @@ import type { Comment, Like, TopicAnswer } from "@/types/database";
 
 type CommentWithProfile = Comment & { profile?: Pick<Profile, "display_name" | "username"> };
 type AnswerView = TopicAnswer & {
-  profile?: Pick<Profile, "display_name" | "username">;
+  profile?: Pick<Profile, "display_name" | "username" | "rank">;
   comments: CommentWithProfile[];
   likeCount: number;
   likedByCurrentUser: boolean;
@@ -54,8 +56,8 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const { data: profiles } = userIds.size > 0
-    ? await profileClient.from("profiles").select("id, display_name, username").in("id", Array.from(userIds))
-    : { data: [] as Pick<Profile, "id" | "display_name" | "username">[] };
+    ? await profileClient.from("profiles").select("id, display_name, username, rank").in("id", Array.from(userIds))
+    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank">[] };
 
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
   const commentsByAnswerId = new Map<string, CommentWithProfile[]>();
@@ -84,14 +86,15 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
   });
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <article className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-10">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-gold">{topic.category}</span>
+    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
+      <article className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(215,180,106,0.12),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
+        <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
+        <div className="relative flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-league-gold">{topic.category}</span>
           <time className="text-sm text-league-muted">{formatDateTime(topic.publish_at)}</time>
         </div>
-        <h1 className="mt-5 text-4xl font-black leading-tight sm:text-5xl">{topic.title}</h1>
-        <div className="mt-8 whitespace-pre-wrap leading-8 text-league-silver">{topic.content}</div>
+        <h1 className="relative mt-5 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
+        <div className="relative mt-8 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
       </article>
 
       <section className="mt-8">
@@ -99,31 +102,37 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       </section>
 
       <section className="mt-10">
-        <div className="mb-5 flex items-end justify-between">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Discussion</p>
-            <h2 className="mt-2 text-3xl font-black">Existing Answers</h2>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Discussion Feed</p>
+            <h2 className="mt-2 text-3xl font-black">League Responses</h2>
           </div>
-          <p className="text-sm text-league-muted">{answerViews.length} answers</p>
+          <p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length} answers</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {answerViews.map((answer) => (
-            <Card key={answer.id}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white">{answer.answer_type ?? "Answer"}</span>
-                  <span className="ml-3 text-sm text-league-muted">by {displayName(answer.profile)} · {formatDateTime(answer.created_at)}</span>
+            <Card key={answer.id} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <RankBadge rank={answer.profile?.rank} size="sm" />
+                  <div>
+                    <p className="font-black text-white">{displayName(answer.profile)}</p>
+                    <p className="mt-1 text-xs text-league-muted">{formatDateTime(answer.created_at)}</p>
+                  </div>
                 </div>
-                <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
+                  <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
+                </div>
               </div>
-              <p className="mt-5 whitespace-pre-wrap leading-7 text-league-silver">{answer.content}</p>
+              <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
 
               <div className="mt-6 border-t border-white/10 pt-5">
-                <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-league-muted">Comments</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">Comments</h3>
                 <div className="mt-4 space-y-3">
                   {answer.comments.map((comment) => (
-                    <div key={comment.id} className="rounded-2xl bg-black/25 p-4">
+                    <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
                       <p className="text-sm font-bold text-white">{displayName(comment.profile)} <span className="font-normal text-league-muted">· {formatDateTime(comment.created_at)}</span></p>
                       <p className="mt-2 text-sm leading-6 text-league-silver">{comment.content}</p>
                     </div>
@@ -136,7 +145,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           ))}
         </div>
 
-        {answerViews.length === 0 ? <Card className="text-league-silver">まだ回答はありません。最初の回答を投稿しましょう。</Card> : null}
+        {answerViews.length === 0 ? <EmptyState title="No responses yet">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
       </section>
     </main>
   );
