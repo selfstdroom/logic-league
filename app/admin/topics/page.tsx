@@ -6,7 +6,7 @@ import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/topics/auth";
-import { formatDateTime } from "@/lib/topics/format";
+import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { TopicCategory } from "@/types/database";
 
 const categories: TopicCategory[] = ["AI", "Business", "Economics", "Society", "Psychology", "Science"];
@@ -30,8 +30,8 @@ function parseTopicForm(formData: FormData): TopicFormPayload {
   const content = String(formData.get("content") ?? "").trim();
   const publishAt = String(formData.get("publish_at") ?? "").trim();
 
-  if (!categories.includes(category as TopicCategory)) throw new Error("Invalid category.");
-  if (!title || !content) throw new Error("Title and content are required.");
+  if (!categories.includes(category as TopicCategory)) throw new Error("カテゴリーが不正です。");
+  if (!title || !content) throw new Error("タイトル and content are required.");
 
   return {
     category: category as TopicCategory,
@@ -96,47 +96,47 @@ export default async function AdminTopicsPage() {
 
   return (
     <PageShell className="max-w-6xl">
-      <HeroPanel eyebrow="Admin" title="Daily Topic Management">
+      <HeroPanel eyebrow="管理" title="Daily Topic管理">
         ADMIN_EMAILに一致する管理者だけがDaily Topicを作成・編集・削除できます。
       </HeroPanel>
 
       <Card className="mt-8">
-        <h2 className="text-2xl font-black">Create topic</h2>
+        <h2 className="text-2xl font-black">Topicを作成</h2>
         <form action={createTopic} className="mt-5 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-sm font-bold text-league-silver">Category<SelectCategory /></label>
-            <label className="text-sm font-bold text-league-silver">Publish at<input name="publish_at" type="datetime-local" className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+            <label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory /></label>
+            <label className="text-sm font-bold text-league-silver">公開日時<input name="publish_at" type="datetime-local" className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
           </div>
-          <label className="text-sm font-bold text-league-silver">Title<input name="title" required className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-          <label className="text-sm font-bold text-league-silver">Content<textarea name="content" required rows={6} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-          <Button className="w-fit">Create Daily Topic</Button>
+          <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+          <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={6} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+          <Button className="w-fit">Daily Topicを作成</Button>
         </form>
       </Card>
 
       <section className="mt-8 space-y-5">
-        <h2 className="text-2xl font-black">Existing daily topics</h2>
+        <h2 className="text-2xl font-black">既存のDaily Topic</h2>
         {error ? <Card className="text-red-300">トピックの取得に失敗しました: {error.message}</Card> : null}
         {(topics ?? []).map((topic) => (
           <Card key={topic.id}>
             <form action={updateTopic} className="grid gap-4">
               <input type="hidden" name="id" value={topic.id} />
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-league-muted">Published: {formatDateTime(topic.publish_at)}</p>
+                <p className="text-sm text-league-muted">公開日時: {formatDateTime(topic.publish_at)}</p>
                 <p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">{topic.status}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="text-sm font-bold text-league-silver">Category<SelectCategory value={topic.category as TopicCategory} /></label>
-                <label className="text-sm font-bold text-league-silver">Publish at<input name="publish_at" type="datetime-local" defaultValue={toDateTimeLocal(topic.publish_at)} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+                <label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory value={topic.category as TopicCategory} /></label>
+                <label className="text-sm font-bold text-league-silver">公開日時<input name="publish_at" type="datetime-local" defaultValue={toDateTimeLocal(topic.publish_at)} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
               </div>
-              <label className="text-sm font-bold text-league-silver">Title<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-              <label className="text-sm font-bold text-league-silver">Content<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+              <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+              <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
               <div className="flex flex-wrap gap-3">
-                <Button>Save changes</Button>
+                <Button>変更を保存</Button>
               </div>
             </form>
             <form action={deleteTopic} className="mt-3">
               <input type="hidden" name="id" value={topic.id} />
-              <Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">Delete topic</Button>
+              <Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">Topicを削除</Button>
             </form>
           </Card>
         ))}
@@ -148,7 +148,7 @@ export default async function AdminTopicsPage() {
 function SelectCategory({ value = "AI" }: { value?: TopicCategory }) {
   return (
     <select name="category" defaultValue={value} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white">
-      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+      {categories.map((category) => <option key={category} value={category}>{formatTopicCategory(category)}</option>)}
     </select>
   );
 }

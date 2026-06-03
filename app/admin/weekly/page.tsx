@@ -6,7 +6,7 @@ import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/topics/auth";
-import { formatDateTime } from "@/lib/topics/format";
+import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { TopicCategory } from "@/types/database";
 
 const categories: TopicCategory[] = ["AI", "Business", "Economics", "Society", "Psychology", "Science"];
@@ -36,8 +36,8 @@ function parseWeeklyTopicForm(formData: FormData): WeeklyTopicFormPayload {
   const category = formData.get("category");
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
-  if (!categories.includes(category as TopicCategory)) throw new Error("Invalid category.");
-  if (!title || !content) throw new Error("Title and content are required.");
+  if (!categories.includes(category as TopicCategory)) throw new Error("カテゴリーが不正です。");
+  if (!title || !content) throw new Error("タイトル and content are required.");
 
   return {
     category: category as TopicCategory,
@@ -105,7 +105,7 @@ function DateField({ name, label, value }: { name: string; label: string; value?
 function SelectCategory({ value = "Society" }: { value?: TopicCategory }) {
   return (
     <select name="category" defaultValue={value} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white">
-      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+      {categories.map((category) => <option key={category} value={category}>{formatTopicCategory(category)}</option>)}
     </select>
   );
 }
@@ -122,39 +122,39 @@ export default async function AdminWeeklyPage() {
 
   return (
     <PageShell className="max-w-6xl">
-      <HeroPanel eyebrow="Admin" title="Weekly League Management">
-        Create, edit, and delete weekly competitive topics. Topic type is always weekly.
+      <HeroPanel eyebrow="管理" title="Weekly League管理">
+        Weekly League用のTopicを作成・編集・削除できます。Topic種別は常にweeklyです。
       </HeroPanel>
 
       <Card className="mt-8">
-        <h2 className="text-2xl font-black">Create weekly topic</h2>
+        <h2 className="text-2xl font-black">Weekly League Topicを作成</h2>
         <form action={createWeeklyTopic} className="mt-5 grid gap-4">
-          <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">Category<SelectCategory /></label><DateField name="publish_at" label="Publish at" /></div>
-          <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="Submission deadline" /><DateField name="reveal_at" label="Reveal at" /><DateField name="vote_deadline_at" label="Vote deadline" /></div>
-          <label className="text-sm font-bold text-league-silver">Title<input name="title" required className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-          <label className="text-sm font-bold text-league-silver">Content<textarea name="content" required rows={6} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-          <Button className="w-fit">Create Weekly Topic</Button>
+          <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory /></label><DateField name="publish_at" label="公開日時" /></div>
+          <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="投稿締切" /><DateField name="reveal_at" label="公開日時" /><DateField name="vote_deadline_at" label="投票締切" /></div>
+          <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+          <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={6} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+          <Button className="w-fit">Weekly League Topicを作成</Button>
         </form>
       </Card>
 
       <section className="mt-8 space-y-5">
-        <h2 className="text-2xl font-black">Existing weekly topics</h2>
-        {error ? <Card className="text-red-300">Weekly topics could not be loaded: {error.message}</Card> : null}
+        <h2 className="text-2xl font-black">既存のWeekly League Topic</h2>
+        {error ? <Card className="text-red-300">Weekly LeagueのTopic取得に失敗しました: {error.message}</Card> : null}
         {(topics ?? []).map((topic) => (
           <Card key={topic.id}>
             <form action={updateWeeklyTopic} className="grid gap-4">
               <input type="hidden" name="id" value={topic.id} />
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-league-muted">Publish: {formatDateTime(topic.publish_at)} · Deadline: {formatDateTime(topic.deadline_at)}</p>
+                <p className="text-sm text-league-muted">公開日時: {formatDateTime(topic.publish_at)} · 締切: {formatDateTime(topic.deadline_at)}</p>
                 <p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">{topic.status}</p>
               </div>
-              <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">Category<SelectCategory value={topic.category as TopicCategory} /></label><DateField name="publish_at" label="Publish at" value={topic.publish_at} /></div>
-              <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="Submission deadline" value={topic.deadline_at} /><DateField name="reveal_at" label="Reveal at" value={topic.reveal_at} /><DateField name="vote_deadline_at" label="Vote deadline" value={topic.vote_deadline_at} /></div>
-              <label className="text-sm font-bold text-league-silver">Title<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-              <label className="text-sm font-bold text-league-silver">Content<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-              <Button className="w-fit">Save changes</Button>
+              <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory value={topic.category as TopicCategory} /></label><DateField name="publish_at" label="公開日時" value={topic.publish_at} /></div>
+              <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="投稿締切" value={topic.deadline_at} /><DateField name="reveal_at" label="公開日時" value={topic.reveal_at} /><DateField name="vote_deadline_at" label="投票締切" value={topic.vote_deadline_at} /></div>
+              <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+              <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
+              <Button className="w-fit">変更を保存</Button>
             </form>
-            <form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">Delete topic</Button></form>
+            <form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">Topicを削除</Button></form>
           </Card>
         ))}
       </section>

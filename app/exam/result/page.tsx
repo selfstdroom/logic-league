@@ -26,7 +26,7 @@ export default async function ResultPage() {
 
   return (
     <PageShell className="max-w-5xl">
-      <HeroPanel eyebrow="Certification Result" title="認定結果">
+      <HeroPanel eyebrow="認定結果" title="認定結果">
         あなたの答案から推定された思考特性とスコアです。結果を次の議論参加の起点にしてください。
       </HeroPanel>
       <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -49,7 +49,7 @@ export default async function ResultPage() {
         </Card>
       </div>
       <Card className="mt-6">
-        <SectionHeader eyebrow="Score Breakdown" title="能力スコア" />
+        <SectionHeader eyebrow="スコア内訳" title="能力スコア" />
         <div className="grid gap-4 sm:grid-cols-2">
           {scores.map(([label, score]) => <MetricBar key={label} label={label} value={score} />)}
         </div>

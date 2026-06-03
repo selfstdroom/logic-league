@@ -5,8 +5,8 @@ import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 const navItems = [
   { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "◆" },
   { href: "/topics", label: "Topics", shortLabel: "Topics", icon: "◇" },
-  { href: "/timeline", label: "Timeline", shortLabel: "Time", icon: "✦" },
-  { href: "/profile", label: "プロフィール", shortLabel: "Profile", icon: "◈" },
+  { href: "/timeline", label: "タイムライン", shortLabel: "時系列", icon: "✦" },
+  { href: "/profile", label: "プロフィール", shortLabel: "自分", icon: "◈" },
   { href: "/exam", label: "認定試験", shortLabel: "試験", icon: "△" },
 ];
 
@@ -37,11 +37,11 @@ export async function Header() {
             {resolvedNavItems.map((item) => (
               <Link key={item.label} className="rounded-full px-3 py-2 transition hover:bg-white/10 hover:text-white" href={item.href}>{item.label}</Link>
             ))}
-            <Link className="rounded-full px-3 py-2 transition hover:bg-white/10 hover:text-white" href="/weekly">Weekly</Link>
+            <Link className="rounded-full px-3 py-2 transition hover:bg-white/10 hover:text-white" href="/weekly">Weekly League</Link>
             {data.user ? <span className="hidden max-w-48 truncate rounded-full border border-white/10 px-3 py-2 text-league-muted lg:inline">{data.user.email}</span> : <Link className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 font-bold text-league-gold transition hover:bg-amber-300/20" href="/login">ログイン</Link>}
           </nav>
           <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white md:hidden" href={data.user ? profileHref : "/login"}>
-            {data.user ? "Profile" : "ログイン"}
+            {data.user ? "プロフィール" : "ログイン"}
           </Link>
         </div>
       </header>

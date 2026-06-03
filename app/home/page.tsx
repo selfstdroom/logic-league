@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import { getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
@@ -30,7 +30,7 @@ type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type
 };
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
-  return profile?.display_name || profile?.username || "Logic Player";
+  return profile?.display_name || profile?.username || "Logic Leagueユーザー";
 }
 
 function profileHref(profile?: Pick<Profile, "id" | "username">) {
@@ -144,9 +144,9 @@ export default async function HomePage() {
         <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.16),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.76))] p-5 sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Discussion Command</p>
+              <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">議論コマンド</p>
               <h1 className="mt-3 max-w-4xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl">今、どの議論に参加するか</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">Active Topicsから論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">公開中のTopicから論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
             </div>
             <ButtonLink href={todaysTopic ? `/topics/${todaysTopic.id}` : "/topics"} className="shrink-0 px-5 py-3">議論に参加する</ButtonLink>
           </div>
@@ -163,7 +163,7 @@ export default async function HomePage() {
           <div className="mt-4 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3"><p className="text-xs text-league-muted">Rank</p><p className="mt-1 font-black text-league-gold">{profile.rank}</p></div>
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Rating</p><p className="mt-1 font-black">{profile.rating}</p></div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Answer</p><p className="mt-1 font-black">{answerCount ?? 0}</p></div>
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">回答</p><p className="mt-1 font-black">{answerCount ?? 0}</p></div>
           </div>
         </Card>
       </section>
@@ -185,7 +185,7 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-3">コメント {todaysTopic.commentCount}</div>
               </div>
             </div>
-          ) : <EmptyState title="公開中のDaily Topicはまだありません。">公開中のDaily Topicがない場合も、Timelineから最近の議論を確認できます。</EmptyState>}
+          ) : <EmptyState title="公開中のDaily Topicはまだありません。">公開中のDaily Topicがない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
         </div>
 
         <Card className="p-4 sm:p-6">
@@ -197,7 +197,7 @@ export default async function HomePage() {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl font-black text-white/20">0{index + 1}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{topic.category}</span>
+                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic.category)}</span>
                     <span className="mt-1 block font-black leading-snug group-hover:text-league-gold">{topic.title}</span>
                     <span className="mt-2 block text-xs text-league-muted">回答 {topic.answerCount} · コメント {topic.commentCount}</span>
                   </span>
@@ -217,7 +217,7 @@ export default async function HomePage() {
                 <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Weekly League</p>
                 <h2 className="mt-2 text-xl font-black sm:text-3xl">{activeWeeklyTopic.title}</h2>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-league-silver sm:text-sm">
-                  <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">Phase: {getWeeklyStatusLabel(getWeeklyPhase(activeWeeklyTopic))}</span>
+                  <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">現在の段階: {getWeeklyStatusLabel(getWeeklyPhase(activeWeeklyTopic))}</span>
                   <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">締切: {formatDateTime(activeWeeklyTopic.deadline_at)}</span>
                 </div>
               </div>
@@ -230,10 +230,10 @@ export default async function HomePage() {
       <section className="mt-6 lg:mt-10">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Recent active discussions</p>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">最近動いている議論</p>
             <h2 className="mt-1 text-2xl font-black sm:mt-2 sm:text-3xl">いま動いている議論</h2>
           </div>
-          <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">Timelineを見る</ButtonLink>
+          <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">タイムラインを見る</ButtonLink>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
           {feedAnswers.slice(0, 6).map((answer) => {
@@ -251,7 +251,7 @@ export default async function HomePage() {
                   <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{activityLabel(answer.answer_type)}</span>
                 </div>
                 <Link href={`/topics/${answer.topic_id}`} className="mt-4 block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">{topic?.category ?? "Topic"}</p>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
                   <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "Daily Topic"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
                   <p className="mt-3 text-xs text-league-muted">{formatDateTime(answer.created_at)} · いいね {answer.likeCount} · コメント {answer.commentCount}</p>

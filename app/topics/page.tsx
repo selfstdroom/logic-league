@@ -30,7 +30,7 @@ export default async function TopicsPage() {
         <section className="mt-8 mb-8 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <TopicCard topic={featured} featured />
           <Card>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Guide</p>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">参加ガイド</p>
             <h2 className="mt-3 text-3xl font-black">参加の流れ</h2>
             <div className="mt-6 space-y-4 text-sm leading-6 text-league-silver">
               <p className="rounded-2xl border border-white/10 bg-black/25 p-4">1. 前提を明確にし、立場を示す。</p>
@@ -41,7 +41,7 @@ export default async function TopicsPage() {
         </section>
       ) : null}
 
-      {rest.length > 0 ? <SectionHeader eyebrow="Archive" title="公開中の論点" /> : null}
+      {rest.length > 0 ? <SectionHeader eyebrow="アーカイブ" title="公開中の論点" /> : null}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {rest.map((topic) => <TopicCard key={topic.id} topic={topic} />)}
       </div>

@@ -5,7 +5,7 @@ import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
-import { formatDateTime } from "@/lib/topics/format";
+import { formatAnswerType, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/logic-league";
@@ -20,7 +20,7 @@ type AnswerView = TopicAnswer & {
 };
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
-  return profile?.display_name || profile?.username || "Logic Player";
+  return profile?.display_name || profile?.username || "Logic Leagueユーザー";
 }
 
 function profileHref(profile: Pick<Profile, "id" | "username"> | undefined, userId: string) {
@@ -93,7 +93,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   return (
     <PageShell>
-      <HeroPanel eyebrow={topic.category} title={topic.title}>
+      <HeroPanel eyebrow={formatTopicCategory(topic.category)} title={topic.title}>
         <time className="block text-sm text-league-muted">{formatDateTime(topic.publish_at)}</time>
         <div className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
       </HeroPanel>
@@ -103,7 +103,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       </section>
 
       <section className="mt-10">
-        <SectionHeader eyebrow="Discussion" title="みんなの回答" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>} />
+        <SectionHeader eyebrow="議論" title="みんなの回答" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>} />
 
         <div className="space-y-5">
           {answerViews.map((answer) => (
@@ -117,7 +117,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
                   </span>
                 </Link>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
                   <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
                 </div>
               </div>

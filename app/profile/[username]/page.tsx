@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { createPreview, formatAnswerType, formatDateTime } from "@/lib/topics/format";
 import type { TopicAnswerType } from "@/types/database";
 
 type TopicAnswerHistoryRow = {
@@ -108,7 +108,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
                 <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">プロフィール</p>
                 <h1 className="mt-3 text-4xl font-black leading-tight sm:text-5xl">{profile.display_name ?? profile.username}</h1>
                 <p className="mt-2 text-league-muted">@{profile.username}</p>
-                <p className="mt-4 max-w-2xl text-league-silver">{profile.bio ?? "まだbioはありません。"}</p>
+                <p className="mt-4 max-w-2xl text-league-silver">{profile.bio ?? "自己紹介はまだありません。"}</p>
               </div>
             </div>
             <div className="flex flex-col items-start gap-3 sm:items-end">
@@ -128,7 +128,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <Card>
-          <SectionHeader eyebrow="Archetype" title={profile.archetype ?? "未分類"} />
+          <SectionHeader eyebrow="思考タイプ" title={profile.archetype ?? "未分類"} />
           <p className="mt-4 text-sm leading-6 text-league-silver">認定試験から推定された思考傾向です。論点の組み立て方、リスクの見方、反論への備え方を把握するための指標です。</p>
           <div className="mt-6 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">勝利</p></div>
@@ -138,12 +138,12 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
         </Card>
 
         <Card>
-          <SectionHeader eyebrow="Recent Activity" title="最近の投稿" />
+          <SectionHeader eyebrow="最近の活動" title="最近の投稿" />
           <div className="mt-6 space-y-4">
             {(recentAnswers ?? []).map((answer) => (
               <Link key={answer.id} href={`/topics/${answer.topic_id}`} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
                   <time className="text-xs text-league-muted">{formatDateTime(answer.created_at)}</time>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-league-silver">{createPreview(answer.content, 150)}</p>

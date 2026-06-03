@@ -11,11 +11,11 @@ export default async function ExamPage() {
 
   return (
     <PageShell className="max-w-5xl">
-      <HeroPanel eyebrow="Phase 1 Certification" title="第1回 認定試験">
+      <HeroPanel eyebrow="第1段階 認定" title="第1回 認定試験">
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Duration" value="30分" />
-          <StatCard label="Questions" value="1問" tone="gold" />
-          <StatCard label="Minimum" value="500字" />
+          <StatCard label="所要時間" value="30分" />
+          <StatCard label="問題数" value="1問" tone="gold" />
+          <StatCard label="最低文字数" value="500字" />
         </div>
       </HeroPanel>
       <Card className="mb-8 mt-8">
