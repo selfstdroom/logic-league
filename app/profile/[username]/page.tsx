@@ -11,6 +11,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   const { data: profile } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
   if (!profile) notFound();
 
+  const { count: dailyAnswerCount } = await supabase
+    .from("topic_answers")
+    .select("id, topics!inner(type)", { count: "exact", head: true })
+    .eq("user_id", profile.id)
+    .eq("topics.type", "daily");
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
       <Card className="overflow-hidden">
@@ -24,11 +30,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             <p className="mt-4 text-league-silver">{profile.bio ?? "まだbioはありません。"}</p>
           </div>
         </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <p className="rounded-2xl bg-white/[0.04] p-4"><span className="block text-sm text-league-muted">Rank</span><span className="text-xl font-bold text-league-gold">{profile.rank}</span></p>
           <p className="rounded-2xl bg-white/[0.04] p-4"><span className="block text-sm text-league-muted">Rating</span><span className="text-xl font-bold">{profile.rating}</span></p>
           <p className="rounded-2xl bg-white/[0.04] p-4"><span className="block text-sm text-league-muted">偏差値</span><span className="text-xl font-bold">{profile.predicted_deviation ?? "未受験"}</span></p>
           <p className="rounded-2xl bg-white/[0.04] p-4"><span className="block text-sm text-league-muted">Archetype</span><span className="text-xl font-bold">{profile.archetype ?? "-"}</span></p>
+          <p className="rounded-2xl bg-white/[0.04] p-4"><span className="block text-sm text-league-muted">Daily Answers</span><span className="text-xl font-bold">{dailyAnswerCount ?? 0}</span></p>
         </div>
       </Card>
     </main>
