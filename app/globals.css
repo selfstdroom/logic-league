@@ -43,3 +43,9 @@ body::before {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 5.75rem;
+  }
+}
