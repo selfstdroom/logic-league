@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AnswerForm, CommentForm, LikeButton } from "@/components/topics/TopicForms";
 import { RankBadge } from "@/components/rank/RankBadge";
@@ -9,9 +10,9 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/logic-league";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 
-type CommentWithProfile = Comment & { profile?: Pick<Profile, "display_name" | "username"> };
+type CommentWithProfile = Comment & { profile?: Pick<Profile, "id" | "display_name" | "username" | "rank"> };
 type AnswerView = TopicAnswer & {
-  profile?: Pick<Profile, "display_name" | "username" | "rank">;
+  profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">;
   comments: CommentWithProfile[];
   likeCount: number;
   likedByCurrentUser: boolean;
@@ -19,6 +20,10 @@ type AnswerView = TopicAnswer & {
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
   return profile?.display_name || profile?.username || "Logic Player";
+}
+
+function profileHref(profile: Pick<Profile, "id" | "username"> | undefined, userId: string) {
+  return profile?.username ? `/profile/${profile.username}` : `/profile/${profile?.id ?? userId}`;
 }
 
 export default async function TopicDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -114,13 +119,13 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           {answerViews.map((answer) => (
             <Card key={answer.id} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-center gap-3">
+                <Link href={profileHref(answer.profile, answer.user_id)} className="flex items-center gap-3 rounded-xl transition hover:text-league-gold">
                   <RankBadge rank={answer.profile?.rank} size="sm" />
-                  <div>
-                    <p className="font-black text-white">{displayName(answer.profile)}</p>
-                    <p className="mt-1 text-xs text-league-muted">{formatDateTime(answer.created_at)}</p>
-                  </div>
-                </div>
+                  <span>
+                    <span className="block font-black text-white">{displayName(answer.profile)}</span>
+                    <span className="mt-1 block text-xs text-league-muted">@{answer.profile?.username ?? answer.user_id} · {formatDateTime(answer.created_at)}</span>
+                  </span>
+                </Link>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
                   <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
@@ -133,7 +138,11 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
                 <div className="mt-4 space-y-3">
                   {answer.comments.map((comment) => (
                     <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <p className="text-sm font-bold text-white">{displayName(comment.profile)} <span className="font-normal text-league-muted">· {formatDateTime(comment.created_at)}</span></p>
+                      <Link href={profileHref(comment.profile, comment.user_id)} className="inline-flex items-center gap-2 text-sm font-bold text-white transition hover:text-league-gold">
+                        <RankBadge rank={comment.profile?.rank} size="sm" />
+                        <span>{displayName(comment.profile)}</span>
+                        <span className="font-normal text-league-muted">@{comment.profile?.username ?? comment.user_id} · {formatDateTime(comment.created_at)}</span>
+                      </Link>
                       <p className="mt-2 text-sm leading-6 text-league-silver">{comment.content}</p>
                     </div>
                   ))}

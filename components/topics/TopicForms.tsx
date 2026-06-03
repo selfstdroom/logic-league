@@ -50,8 +50,9 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
   if (!canAnswer) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-league-silver">
-        <h2 className="text-xl font-bold text-white">回答</h2>
+        <h2 className="text-xl font-bold text-white">ログインすると議論に参加できます</h2>
         <p className="mt-3">Daily Topicsへの回答は、ログイン済みかつ認定試験に合格したユーザーのみ投稿できます。</p>
+        <a href="/login" className="mt-5 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">ログインする</a>
       </div>
     );
   }
@@ -118,7 +119,14 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
     router.refresh();
   }
 
-  if (!canComment) return <p className="text-sm text-league-muted">ログインするとコメントできます。</p>;
+  if (!canComment) {
+    return (
+      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <p className="text-sm font-bold text-white">ログインすると議論に参加できます</p>
+        <a href="/login" className="mt-3 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-xs font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">ログインする</a>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -166,7 +174,7 @@ export function LikeButton({ answerId, likeCount, liked, canLike }: { answerId: 
       >
         {liked ? "取り消す" : "いいね"} · {likeCount}
       </button>
-      {!canLike ? <span className="ml-3 text-xs text-league-muted">ログインするといいねできます</span> : null}
+      {!canLike ? <a href="/login" className="ml-3 text-xs font-bold text-league-gold hover:text-white">ログインすると議論に参加できます</a> : null}
       <Message message={message} />
     </div>
   );
