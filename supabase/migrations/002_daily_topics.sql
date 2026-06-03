@@ -71,8 +71,22 @@ insert into public.topics (type, category, title, content, status, publish_at)
 select 'daily', seed.category, seed.title, seed.content, 'published', now() - seed.offset_interval
 from (
   values
-    ('AI', 'Will AI create more jobs than it destroys?', 'AI is changing the labor market at software speed. Consider whether productivity gains, new industries, displacement costs, and retraining realities make net job creation more likely than net job loss.', interval '2 days'),
-    ('Business', 'Should companies adopt a 4-day work week?', 'A 4-day work week promises better focus and well-being, but may create customer coverage, coordination, and wage trade-offs. Argue when it should or should not become standard.', interval '1 day'),
-    ('Society', 'Should university education be free?', 'Free university education could expand opportunity and human capital, while raising questions about public budgets, fairness to non-students, and institutional incentives. Evaluate the strongest policy design.', interval '0 days')
+    ('AI', 'AIは人間の仕事を増やすのか、奪うのか', '生成AIの発展によって、事務職・企画職・エンジニア・クリエイターなど多くの仕事が変化しています。AIは人間の仕事を奪う存在なのか、それとも新しい仕事を生み出す存在なのか。短期的な失業、長期的な産業変化、教育や再訓練の現実性を踏まえて考えてください。', interval '2 days'),
+    ('Business', '週4日勤務は企業にとって本当に合理的か', '週4日勤務は、従業員の集中力や幸福度を高める可能性があります。一方で、顧客対応・チーム連携・給与水準・生産性維持の問題もあります。どのような企業なら週4日勤務が成立し、どのような企業では失敗しやすいのかを考えてください。', interval '1 day'),
+    ('Society', '大学教育は無償化すべきか', '大学教育の無償化は、教育機会の平等や人材育成につながる可能性があります。一方で、財源負担、大学の質、進学しない人との公平性、学歴偏重の強化といった問題もあります。大学教育を無償化するべきか、するとしたらどのような制度設計が必要かを考えてください。', interval '0 days')
 ) as seed(category, title, content, offset_interval)
 where not exists (select 1 from public.topics);
+
+update public.topics as topic
+set
+  title = seed.title,
+  content = seed.content
+from (
+  values
+    ('AI', 'Will AI create more jobs than it destroys?', 'AIは人間の仕事を増やすのか、奪うのか', '生成AIの発展によって、事務職・企画職・エンジニア・クリエイターなど多くの仕事が変化しています。AIは人間の仕事を奪う存在なのか、それとも新しい仕事を生み出す存在なのか。短期的な失業、長期的な産業変化、教育や再訓練の現実性を踏まえて考えてください。'),
+    ('Business', 'Should companies adopt a 4-day work week?', '週4日勤務は企業にとって本当に合理的か', '週4日勤務は、従業員の集中力や幸福度を高める可能性があります。一方で、顧客対応・チーム連携・給与水準・生産性維持の問題もあります。どのような企業なら週4日勤務が成立し、どのような企業では失敗しやすいのかを考えてください。'),
+    ('Society', 'Should university education be free?', '大学教育は無償化すべきか', '大学教育の無償化は、教育機会の平等や人材育成につながる可能性があります。一方で、財源負担、大学の質、進学しない人との公平性、学歴偏重の強化といった問題もあります。大学教育を無償化するべきか、するとしたらどのような制度設計が必要かを考えてください。')
+) as seed(category, old_title, title, content)
+where topic.type = 'daily'
+  and topic.category = seed.category
+  and topic.title = seed.old_title;
