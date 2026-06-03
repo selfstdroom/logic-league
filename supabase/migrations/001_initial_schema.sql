@@ -145,14 +145,15 @@ create trigger profiles_updated_at before update on public.profiles for each row
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
+declare
+  requested_username text := lower(regexp_replace(coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1), 'player'), '[^a-zA-Z0-9_]', '_', 'g'));
 begin
-  insert into public.profiles (id, email, username, display_name, avatar_url)
+  insert into public.profiles (id, email, username, display_name)
   values (
     new.id,
     new.email,
-    lower(regexp_replace(coalesce(split_part(new.email, '@', 1), 'player'), '[^a-zA-Z0-9_]', '_', 'g')) || '_' || substr(new.id::text, 1, 8),
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1), 'Logic Player'),
-    new.raw_user_meta_data->>'avatar_url'
+    left(requested_username, 20),
+    coalesce(nullif(new.raw_user_meta_data->>'display_name', ''), split_part(new.email, '@', 1), 'Logic Player')
   )
   on conflict (id) do nothing;
   return new;

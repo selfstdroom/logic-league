@@ -14,7 +14,7 @@ export default function Page() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <ButtonLink href="/exam">認定試験を受ける</ButtonLink>
-            <ButtonLink href="/login" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">Googleでログイン</ButtonLink>
+            <ButtonLink href="/login" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">ログイン</ButtonLink>
           </div>
           <p className="mt-6 text-sm text-league-muted">本結果はAIによる推定であり、正式なIQ検査・心理検査・学術的知能検査ではありません。</p>
         </section>
