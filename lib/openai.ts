@@ -40,7 +40,30 @@ Architect, Strategist, Analyst, Challenger, Builder, Oracle, Diplomat, Explorer,
   "upper_gap": "上位層との差"
 }`;
 
+const mockExamEvaluation: ExamEvaluation = {
+  structure_score: 14,
+  hypothesis_score: 13,
+  originality_score: 12,
+  feasibility_score: 15,
+  risk_score: 11,
+  total_score: 65,
+  archetype: "Architect",
+  headline: "あなたは、問題を構造から捉えるタイプです。",
+  summary: "回答は人口減少を単なる現象ではなく、若者流出と地域経済の構造問題として捉えています。",
+  strength: "問題を分解し、施策に優先順位をつけている点。",
+  weakness: "失敗時の検証設計がやや弱い点。",
+  upper_gap: "上位層との差は、撤退基準と効果測定の具体性です。",
+};
+
+function isMockAiScoringEnabled() {
+  return process.env.MOCK_AI_SCORING === "true";
+}
+
 export async function gradeExamAnswer(answer: string): Promise<ExamEvaluation> {
+  if (isMockAiScoringEnabled()) {
+    return mockExamEvaluation;
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
 
