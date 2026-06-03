@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { getOrCreateOwnProfile } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ProfileIndexPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
@@ -7,8 +8,7 @@ export default async function ProfileIndexPage({ searchParams }: { searchParams:
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  if (!profile) redirect("/home");
+  const profile = await getOrCreateOwnProfile(supabase, user);
 
   const query = await searchParams;
   return <ProfileView profile={profile} viewerId={user.id} saved={query.saved} />;
