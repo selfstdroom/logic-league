@@ -4,13 +4,12 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
+import { getOrCreateOwnProfile } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{ error?: string; saved?: string }>;
 
 const usernamePattern = /^[a-z0-9_-]+$/;
-const editableFields = "display_name, username, bio, x_url, youtube_url, github_url";
-
 function normalizeString(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -47,8 +46,7 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select(`id, ${editableFields}`).eq("id", user.id).maybeSingle();
-  if (!profile) redirect("/home");
+  const profile = await getOrCreateOwnProfile(supabase, user);
 
   const params = await searchParams;
   const message = errorMessage(params.error);

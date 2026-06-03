@@ -27,10 +27,21 @@ type ProfileViewProps = {
 };
 
 const snsLinks = [
-  { key: "x_url", label: "X" },
-  { key: "youtube_url", label: "YouTube" },
-  { key: "github_url", label: "GitHub" },
+  { key: "x_url", label: "X URL" },
+  { key: "youtube_url", label: "YouTube URL" },
+  { key: "github_url", label: "GitHub URL" },
 ] as const;
+
+function ProfileField({ label, value, href }: { label: string; value: string | number; href?: string | null }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+      <dt className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-league-muted">{label}</dt>
+      <dd className="mt-1 break-words text-sm font-bold text-league-silver">
+        {href ? <Link href={href} target="_blank" rel="noreferrer" className="text-league-gold hover:text-white">{value}</Link> : value}
+      </dd>
+    </div>
+  );
+}
 
 export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps) {
   const supabase = await createClient();
@@ -147,15 +158,29 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
         </Card>
 
         <Card>
-          <SectionHeader eyebrow="SNS links" title="リンク" />
-          <div className="mt-6 flex flex-wrap gap-3">
-            {availableSnsLinks.map((link) => (
-              <Link key={link.key} href={link.href} target="_blank" rel="noreferrer" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/40 hover:text-league-gold">
-                {link.label}
-              </Link>
-            ))}
-          </div>
-          {availableSnsLinks.length === 0 ? <EmptyState title="SNSリンクは未設定です。">プロフィール編集からX、YouTube、GitHubのリンクを追加できます。</EmptyState> : null}
+          <SectionHeader eyebrow="プロフィール詳細" title="基本情報・リンク" />
+          <dl className="mt-6 space-y-3">
+            <ProfileField label="display_name" value={profile.display_name ?? "未設定"} />
+            <ProfileField label="username" value={`@${profile.username}`} />
+            <ProfileField label="bio" value={profile.bio ?? "自己紹介はまだありません。"} />
+            <ProfileField label="rank" value={profile.rank} />
+            <ProfileField label="rating" value={profile.rating} />
+            <ProfileField label="predicted_deviation" value={profile.predicted_deviation ?? "未受験"} />
+            <ProfileField label="archetype" value={profile.archetype ?? "未分類"} />
+            {snsLinks.map((item) => {
+              const href = profile[item.key];
+              return <ProfileField key={item.key} label={item.key} value={href ?? "未設定"} href={href} />;
+            })}
+          </dl>
+          {availableSnsLinks.length > 0 ? (
+            <div className="mt-6 flex flex-wrap gap-3">
+              {availableSnsLinks.map((link) => (
+                <Link key={link.key} href={link.href} target="_blank" rel="noreferrer" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/40 hover:text-league-gold">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          ) : <EmptyState title="SNSリンクは未設定です。">プロフィール編集からX、YouTube、GitHubのリンクを追加できます。</EmptyState>}
         </Card>
       </section>
 
