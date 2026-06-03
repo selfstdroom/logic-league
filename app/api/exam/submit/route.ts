@@ -1,7 +1,61 @@
 import { NextResponse } from "next/server";
+import type { User } from "@supabase/supabase-js";
 import { gradeExamAnswer } from "@/lib/openai";
 import { buildExamResult, MIN_EXAM_ANSWER_LENGTH } from "@/lib/scoring";
 import { createClient } from "@/lib/supabase/server";
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+function getEmailPrefix(email?: string) {
+  return email?.split("@")[0]?.trim() || "Logic Player";
+}
+
+function buildFallbackUsername(email?: string) {
+  const prefix = getEmailPrefix(email).toLowerCase().replace(/[^a-z0-9_]/g, "_").replace(/^_+|_+$/g, "") || "user";
+  const randomDigits = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0");
+
+  return `${prefix}${randomDigits}`;
+}
+
+async function ensureProfile(supabase: SupabaseClient, user: User) {
+  const { data: profile, error: selectError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (selectError) throw selectError;
+  if (profile) return;
+
+  const emailPrefix = getEmailPrefix(user.email);
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { error: insertError } = await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email ?? null,
+      username: buildFallbackUsername(user.email),
+      display_name: emailPrefix,
+      qualified: false,
+      rating: 0,
+      rank: "Visitor",
+    });
+
+    if (!insertError) return;
+
+    if (insertError.code !== "23505") throw insertError;
+
+    const { data: existingProfile, error: existingProfileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (existingProfileError) throw existingProfileError;
+    if (existingProfile) return;
+  }
+
+  throw new Error("プロフィールの自動作成に失敗しました。もう一度お試しください。");
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -17,6 +71,8 @@ export async function POST(request: Request) {
   }
 
   try {
+    await ensureProfile(supabase, user);
+
     const evaluation = await gradeExamAnswer(answer);
     const result = buildExamResult(evaluation);
 
