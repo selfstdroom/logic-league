@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HeroPanel, MetricBar, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
 import { archetypes } from "@/lib/archetypes";
 import { getUpperPercentile } from "@/lib/scoring";
 import { createClient } from "@/lib/supabase/server";
@@ -24,19 +25,16 @@ export default async function ResultPage() {
   ] as const;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="mb-8 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Certification Result</p>
-        <h1 className="mt-3 text-4xl font-black">認定結果</h1>
-      </div>
-      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+    <PageShell className="max-w-5xl">
+      <HeroPanel eyebrow="Certification Result" title="認定結果">
+        あなたの答案から推定された思考特性とスコアです。結果を次の議論参加の起点にしてください。
+      </HeroPanel>
+      <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <Card className="text-center">
           <p className="text-league-muted">推定思考偏差値</p>
           <div className="my-4 text-8xl font-black text-league-gold">{result.predicted_deviation}</div>
           <p className="text-league-silver">上位目安：{getUpperPercentile(result.predicted_deviation)}</p>
-          <p className={`mt-4 rounded-full px-4 py-2 text-sm font-bold ${result.qualified ? "bg-emerald-400/15 text-emerald-200" : "bg-white/10 text-league-silver"}`}>
-            参加資格：{result.qualified ? "獲得" : "未獲得"}
-          </p>
+          <PremiumBadge tone={result.qualified ? "emerald" : "silver"} className="mt-4">参加資格：{result.qualified ? "獲得" : "未獲得"}</PremiumBadge>
           <p className="mt-6 text-2xl font-bold text-white">{result.headline}</p>
         </Card>
         <Card>
@@ -51,14 +49,9 @@ export default async function ResultPage() {
         </Card>
       </div>
       <Card className="mt-6">
-        <h2 className="mb-5 text-2xl font-black">能力スコア</h2>
-        <div className="space-y-4">
-          {scores.map(([label, score]) => (
-            <div key={label}>
-              <div className="mb-2 flex justify-between text-sm"><span>{label}</span><span className="text-league-gold">{score}/20</span></div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-league-gold" style={{ width: `${(score / 20) * 100}%` }} /></div>
-            </div>
-          ))}
+        <SectionHeader eyebrow="Score Breakdown" title="能力スコア" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {scores.map(([label, score]) => <MetricBar key={label} label={label} value={score} />)}
         </div>
       </Card>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -69,6 +62,6 @@ export default async function ResultPage() {
       </div>
       <p className="mt-8 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">本結果はAIによる推定であり、正式なIQ検査・心理検査・学術的知能検査ではありません。</p>
       <div className="mt-8 text-center"><ButtonLink href="/home">Logic Leagueへ進む</ButtonLink></div>
-    </main>
+    </PageShell>
   );
 }

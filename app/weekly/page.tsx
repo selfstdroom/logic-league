@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/topics/format";
 import { getWeeklyPhase, getWeeklyStatusLabel, type WeeklyPhase } from "@/lib/weekly";
@@ -45,12 +46,10 @@ export default async function WeeklyPage() {
   const topicList = topics ?? [];
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-12">
-      <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.22),transparent_32%),linear-gradient(135deg,rgba(13,18,34,0.98),rgba(0,0,0,0.72))] p-6 shadow-2xl sm:p-10">
-        <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Weekly League</p>
-        <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">Anonymous debate. Public ranking. Prestige on the line.</h1>
-        <p className="mt-5 max-w-2xl text-base leading-7 text-league-silver">Submit before the deadline, enter an anonymous reveal, cast up to three votes, and climb the weekly leaderboard.</p>
-      </div>
+    <PageShell className="max-w-7xl">
+      <HeroPanel eyebrow="Weekly League" title="Anonymous debate. Public ranking. Prestige on the line.">
+        Submit before the deadline, enter an anonymous reveal, cast up to three votes, and climb the weekly leaderboard.
+      </HeroPanel>
 
       {error ? <Card className="mt-8 text-red-300">Weekly topics could not be loaded: {error.message}</Card> : null}
 
@@ -59,13 +58,7 @@ export default async function WeeklyPage() {
           const groupTopics = topicList.filter((topic) => group.phases.includes(getWeeklyPhase(topic)));
           return (
             <section key={group.title}>
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">{group.title}</p>
-                  <h2 className="mt-2 text-3xl font-black">{group.description}</h2>
-                </div>
-                <ButtonLink href="/home" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">Dashboard</ButtonLink>
-              </div>
+              <SectionHeader eyebrow={group.title} title={group.description} action={<ButtonLink href="/home" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">Dashboard</ButtonLink>} />
               <div className="grid gap-5 lg:grid-cols-2">
                 {groupTopics.map((topic) => <WeeklyTopicCard key={topic.id} topic={topic} />)}
               </div>
@@ -74,6 +67,6 @@ export default async function WeeklyPage() {
           );
         })}
       </div>
-    </main>
+    </PageShell>
   );
 }

@@ -4,6 +4,7 @@ import { AnswerForm, CommentForm, LikeButton } from "@/components/topics/TopicFo
 import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
 import { formatDateTime } from "@/lib/topics/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -91,29 +92,18 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
   });
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
-      <article className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(215,180,106,0.12),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
-        <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
-        <div className="relative flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-league-gold">{topic.category}</span>
-          <time className="text-sm text-league-muted">{formatDateTime(topic.publish_at)}</time>
-        </div>
-        <h1 className="relative mt-5 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
-        <div className="relative mt-8 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
-      </article>
+    <PageShell>
+      <HeroPanel eyebrow={topic.category} title={topic.title}>
+        <time className="block text-sm text-league-muted">{formatDateTime(topic.publish_at)}</time>
+        <div className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
+      </HeroPanel>
 
       <section className="mt-8">
         <AnswerForm topicId={topic.id} canAnswer={Boolean(user && currentProfile?.qualified)} />
       </section>
 
       <section className="mt-10">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">議論</p>
-            <h2 className="mt-2 text-3xl font-black">みんなの回答</h2>
-          </div>
-          <p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>
-        </div>
+        <SectionHeader eyebrow="Discussion" title="みんなの回答" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>} />
 
         <div className="space-y-5">
           {answerViews.map((answer) => (
@@ -127,7 +117,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
                   </span>
                 </Link>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
+                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{answer.answer_type ?? "Answer"}</span>
                   <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
                 </div>
               </div>
@@ -146,7 +136,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
                       <p className="mt-2 text-sm leading-6 text-league-silver">{comment.content}</p>
                     </div>
                   ))}
-                  {answer.comments.length === 0 ? <p className="text-sm text-league-muted">コメントはまだありません。</p> : null}
+                  {answer.comments.length === 0 ? <p className="text-sm text-league-muted">まだコメントはありません。質の高い問いや補足が届くと、ここに蓄積されます。</p> : null}
                 </div>
                 <CommentForm answerId={answer.id} canComment={Boolean(user)} />
               </div>
@@ -156,6 +146,6 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
         {answerViews.length === 0 ? <EmptyState title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
       </section>
-    </main>
+    </PageShell>
   );
 }

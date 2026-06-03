@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { PremiumBadge } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 
 function getFormString(formData: FormData, key: string) {
@@ -36,10 +37,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { error, message } = await searchParams;
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-6 py-16">
-      <Card className="w-full p-8">
+    <main className="mx-auto flex min-h-[76vh] max-w-xl items-center px-5 py-12 sm:px-6">
+      <Card className="w-full border-amber-300/20 p-6 sm:p-8">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">ログイン</p>
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/35 bg-amber-300/10 text-sm font-black tracking-[0.2em] text-league-gold shadow-glow">LL</div>
+          <PremiumBadge tone="gold">LOGIC LEAGUE</PremiumBadge>
           <h1 className="mt-4 text-3xl font-black">ログイン</h1>
           <p className="mt-4 text-league-silver">メールアドレスとパスワードでログインしてください。</p>
         </div>
@@ -53,7 +55,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <label className="block">
             <span className="text-sm font-bold text-league-silver">メールアドレス</span>
             <input
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-league-gold"
+              className="premium-input mt-2"
               name="email"
               type="email"
               autoComplete="email"
@@ -63,7 +65,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <label className="block">
             <span className="text-sm font-bold text-league-silver">パスワード</span>
             <input
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition focus:border-league-gold"
+              className="premium-input mt-2"
               name="password"
               type="password"
               autoComplete="current-password"

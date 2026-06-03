@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/topics/auth";
@@ -94,14 +95,12 @@ export default async function AdminTopicsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Admin</p>
-        <h1 className="mt-3 text-4xl font-black">Daily Topic Management</h1>
-        <p className="mt-4 text-league-silver">ADMIN_EMAILに一致する管理者だけがDaily Topicを作成・編集・削除できます。</p>
-      </div>
+    <PageShell className="max-w-6xl">
+      <HeroPanel eyebrow="Admin" title="Daily Topic Management">
+        ADMIN_EMAILに一致する管理者だけがDaily Topicを作成・編集・削除できます。
+      </HeroPanel>
 
-      <Card>
+      <Card className="mt-8">
         <h2 className="text-2xl font-black">Create topic</h2>
         <form action={createTopic} className="mt-5 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -142,7 +141,7 @@ export default async function AdminTopicsPage() {
           </Card>
         ))}
       </section>
-    </main>
+    </PageShell>
   );
 }
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{ error?: string; saved?: string }>;
@@ -96,43 +97,41 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
-      <div className="mb-4">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Profile Edit</p>
-        <h1 className="mt-2 text-3xl font-black sm:text-4xl">プロフィールを編集</h1>
-        <p className="mt-2 text-sm leading-6 text-league-silver">Rank、Rating、推定思考偏差値、思考アーキタイプは認定試験とリーグ結果から管理されます。</p>
-      </div>
+    <PageShell className="max-w-3xl">
+      <HeroPanel eyebrow="Profile Edit" title="プロフィールを編集">
+        Rank、Rating、推定思考偏差値、思考アーキタイプは認定試験とリーグ結果から管理されます。
+      </HeroPanel>
 
-      <Card className="p-4 sm:p-6">
+      <Card className="mt-6 p-4 sm:p-6">
         {message ? <div className="mb-5 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-100">{message}</div> : null}
         {params.saved ? <div className="mb-5 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100">保存しました。</div> : null}
         <form action={updateProfile} className="space-y-5">
           <label className="block">
             <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">表示名</span>
-            <input name="display_name" required defaultValue={profile.display_name ?? ""} className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+            <input name="display_name" required defaultValue={profile.display_name ?? ""} className="premium-input mt-2" />
           </label>
           <label className="block">
             <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">ユーザー名</span>
-            <input name="username" required pattern="[a-z0-9_-]+" defaultValue={profile.username} className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+            <input name="username" required pattern="[a-z0-9_-]+" defaultValue={profile.username} className="premium-input mt-2" />
             <span className="mt-2 block text-xs text-league-muted">小文字英数字、_、- のみ使用できます。</span>
           </label>
           <label className="block">
             <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">bio</span>
-            <textarea name="bio" maxLength={300} defaultValue={profile.bio ?? ""} rows={5} className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+            <textarea name="bio" maxLength={300} defaultValue={profile.bio ?? ""} rows={5} className="premium-input mt-2" />
             <span className="mt-2 block text-xs text-league-muted">300文字以内</span>
           </label>
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">X URL</span>
-              <input name="x_url" type="url" defaultValue={profile.x_url ?? ""} placeholder="https://x.com/..." className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+              <input name="x_url" type="url" defaultValue={profile.x_url ?? ""} placeholder="https://x.com/..." className="premium-input mt-2" />
             </label>
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">YouTube URL</span>
-              <input name="youtube_url" type="url" defaultValue={profile.youtube_url ?? ""} placeholder="https://youtube.com/..." className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+              <input name="youtube_url" type="url" defaultValue={profile.youtube_url ?? ""} placeholder="https://youtube.com/..." className="premium-input mt-2" />
             </label>
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">GitHub URL</span>
-              <input name="github_url" type="url" defaultValue={profile.github_url ?? ""} placeholder="https://github.com/..." className="mt-2 w-full rounded-xl border-white/10 bg-black/30 text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-amber-300/30" />
+              <input name="github_url" type="url" defaultValue={profile.github_url ?? ""} placeholder="https://github.com/..." className="premium-input mt-2" />
             </label>
           </div>
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
@@ -141,6 +140,6 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
           </div>
         </form>
       </Card>
-    </main>
+    </PageShell>
   );
 }

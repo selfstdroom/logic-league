@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ExamForm } from "@/components/exam/ExamForm";
 import { Card } from "@/components/ui/Card";
+import { HeroPanel, PageShell, StatCard } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ExamPage() {
@@ -9,13 +10,15 @@ export default async function ExamPage() {
   if (!user) redirect("/login");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Phase 1 Certification</p>
-        <h1 className="mt-3 text-4xl font-black">第1回 認定試験</h1>
-        <p className="mt-4 text-league-silver">目安：30分 / 1問のみ / 最低500文字</p>
-      </div>
-      <Card className="mb-8">
+    <PageShell className="max-w-5xl">
+      <HeroPanel eyebrow="Phase 1 Certification" title="第1回 認定試験">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatCard label="Duration" value="30分" />
+          <StatCard label="Questions" value="1問" tone="gold" />
+          <StatCard label="Minimum" value="500字" />
+        </div>
+      </HeroPanel>
+      <Card className="mb-8 mt-8">
         <p className="mb-4 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">
           本結果はAIによる推定であり、正式なIQ検査・心理検査・学術的知能検査ではありません。
         </p>
@@ -33,6 +36,6 @@ export default async function ExamPage() {
         </div>
       </Card>
       <ExamForm />
-    </main>
+    </PageShell>
   );
 }

@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/topics/auth";
@@ -120,14 +121,12 @@ export default async function AdminWeeklyPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-sm font-bold uppercase tracking-[0.3em] text-league-gold">Admin</p>
-        <h1 className="mt-3 text-4xl font-black">Weekly League Management</h1>
-        <p className="mt-4 text-league-silver">Create, edit, and delete weekly competitive topics. Topic type is always weekly.</p>
-      </div>
+    <PageShell className="max-w-6xl">
+      <HeroPanel eyebrow="Admin" title="Weekly League Management">
+        Create, edit, and delete weekly competitive topics. Topic type is always weekly.
+      </HeroPanel>
 
-      <Card>
+      <Card className="mt-8">
         <h2 className="text-2xl font-black">Create weekly topic</h2>
         <form action={createWeeklyTopic} className="mt-5 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">Category<SelectCategory /></label><DateField name="publish_at" label="Publish at" /></div>
@@ -159,6 +158,6 @@ export default async function AdminWeeklyPage() {
           </Card>
         ))}
       </section>
-    </main>
+    </PageShell>
   );
 }
