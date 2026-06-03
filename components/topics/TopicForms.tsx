@@ -50,7 +50,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
   if (!canAnswer) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-league-silver">
-        <h2 className="text-xl font-bold text-white">Answer</h2>
+        <h2 className="text-xl font-bold text-white">回答</h2>
         <p className="mt-3">Daily Topicsへの回答は、ログイン済みかつ認定試験に合格したユーザーのみ投稿できます。</p>
       </div>
     );
@@ -58,10 +58,10 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
 
   return (
     <form onSubmit={onSubmit} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-      <h2 className="text-xl font-bold">Post your answer</h2>
+      <h2 className="text-xl font-bold">回答を投稿する</h2>
       <div className="mt-4 grid gap-4">
         <label className="text-sm font-bold text-league-silver">
-          Type
+          種類
           <select
             value={answerType}
             onChange={(event) => setAnswerType(event.target.value as TopicAnswerType)}
@@ -71,7 +71,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
           </select>
         </label>
         <label className="text-sm font-bold text-league-silver">
-          Content
+          本文
           <textarea
             value={content}
             onChange={(event) => setContent(event.target.value)}
@@ -83,7 +83,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
           />
         </label>
       </div>
-      <Button className="mt-4" disabled={isSubmitting}>{isSubmitting ? "Posting..." : "Post Answer"}</Button>
+      <Button className="mt-4" disabled={isSubmitting}>{isSubmitting ? "投稿中..." : "回答を投稿する"}</Button>
       <Message message={message} />
     </form>
   );
@@ -130,7 +130,7 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
         className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-league-muted"
         placeholder="コメントを書く"
       />
-      <Button disabled={isSubmitting} className="px-5 py-2 shadow-none">Comment</Button>
+      <Button disabled={isSubmitting} className="px-5 py-2 shadow-none">コメントする</Button>
       <Message message={message} />
     </form>
   );
@@ -149,7 +149,7 @@ export function LikeButton({ answerId, likeCount, liked, canLike }: { answerId: 
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setMessage({ type: "error", text: result?.error ?? "Likeの更新に失敗しました。" });
+      setMessage({ type: "error", text: result?.error ?? "いいねの更新に失敗しました。" });
       return;
     }
 
@@ -164,9 +164,9 @@ export function LikeButton({ answerId, likeCount, liked, canLike }: { answerId: 
         disabled={!canLike || isSubmitting}
         className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-league-silver transition hover:border-amber-300/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {liked ? "Unlike" : "Like"} · {likeCount}
+        {liked ? "取り消す" : "いいね"} · {likeCount}
       </button>
-      {!canLike ? <span className="ml-3 text-xs text-league-muted">ログインするとLikeできます</span> : null}
+      {!canLike ? <span className="ml-3 text-xs text-league-muted">ログインするといいねできます</span> : null}
       <Message message={message} />
     </div>
   );
