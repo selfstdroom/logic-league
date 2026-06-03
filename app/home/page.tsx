@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
 import type { TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
 
@@ -26,7 +27,7 @@ export default async function HomePage() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (!profile?.predicted_deviation) redirect("/exam");
 
-  const [{ data: latestTopics }, { data: latestAnswers }, { count: answerCount }] = await Promise.all([
+  const [{ data: latestTopics }, { data: weeklyTopics }, { data: latestAnswers }, { count: answerCount }] = await Promise.all([
     supabase
       .from("topics")
       .select("id, category, title, content, publish_at")
@@ -36,8 +37,17 @@ export default async function HomePage() {
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
+      .from("topics")
+      .select("id, category, title, deadline_at, vote_deadline_at, publish_at")
+      .eq("type", "weekly")
+      .eq("status", "published")
+      .order("publish_at", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
       .from("topic_answers")
-      .select("id, topic_id, user_id, answer_type, content, created_at")
+      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(type)")
+      .eq("topics.type", "daily")
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
@@ -46,7 +56,7 @@ export default async function HomePage() {
       .eq("user_id", user.id),
   ]);
 
-  const answerRows = latestAnswers ?? [];
+  const answerRows = (latestAnswers ?? []) as FeedAnswer[];
   const userIds = Array.from(new Set(answerRows.map((answer) => answer.user_id)));
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const { data: answerProfiles } = userIds.length > 0
@@ -57,6 +67,7 @@ export default async function HomePage() {
   const topics = latestTopics ?? [];
   const featuredTopic = topics[0];
   const sideTopics = topics.slice(1, 5);
+  const activeWeeklyTopic = (weeklyTopics ?? []).find((topic) => ["submission", "voting"].includes(getWeeklyPhase(topic))) ?? (weeklyTopics ?? [])[0];
   const seasonName = "Season 01 · Genesis Circuit";
 
   return (
@@ -108,6 +119,25 @@ export default async function HomePage() {
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{answerCount ?? 0}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Answer</p></div>
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">勝利</p></div>
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">0</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Top 10</p></div>
+          </div>
+        </Card>
+      </section>
+
+
+      <section className="mt-10">
+        <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.18),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.72))]">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Weekly League</p>
+              <h2 className="mt-3 text-3xl font-black">{activeWeeklyTopic ? activeWeeklyTopic.title : "No active weekly topic"}</h2>
+              {activeWeeklyTopic ? (
+                <div className="mt-4 flex flex-wrap gap-3 text-sm text-league-silver">
+                  <span className="rounded-full border border-white/10 bg-black/25 px-4 py-2">Phase: {getWeeklyStatusLabel(getWeeklyPhase(activeWeeklyTopic))}</span>
+                  <span className="rounded-full border border-white/10 bg-black/25 px-4 py-2">Submission deadline: {formatDateTime(activeWeeklyTopic.deadline_at)}</span>
+                </div>
+              ) : <p className="mt-3 text-league-silver">Weekly League fixtures will appear here when scheduled.</p>}
+            </div>
+            <ButtonLink href={activeWeeklyTopic ? `/weekly/${activeWeeklyTopic.id}` : "/weekly"}>Enter Weekly League</ButtonLink>
           </div>
         </Card>
       </section>
