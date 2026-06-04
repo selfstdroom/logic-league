@@ -15,10 +15,16 @@ type TopicAnswerHistoryRow = {
   answer_type: TopicAnswerType | null;
   content: string;
   created_at: string;
-  topics: { category?: string | null; title?: string | null } | { category?: string | null; title?: string | null }[] | null;
+  topics: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null;
 };
 
 type CountRow = { topic_answer_id: string };
+type AchievementRow = { created_at: string; achievements?: { title?: string | null; description?: string | null; icon?: string | null } | { title?: string | null; description?: string | null; icon?: string | null }[] | null };
+type RatingHistoryRow = { old_rating: number | null; new_rating: number | null; delta: number | null; created_at: string; topics?: { title?: string | null } | { title?: string | null }[] | null };
+
+function first<T>(value: T | T[] | null | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 type ProfileViewProps = {
   profile: Profile;
@@ -47,30 +53,44 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
   const supabase = await createClient();
   const isOwnProfile = viewerId === profile.id;
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? (await import("@/lib/supabase/admin")).createAdminClient() : supabase;
+  const readClient = profileClient;
 
-  const [{ count: dailyAnswerCount }, { data: recentAnswers }, { data: examAnswers }, { data: topicAnswers }] = await Promise.all([
-    supabase
+  const [{ count: totalAnswerCount }, { count: weeklyWins }, { count: top10Count }, { data: achievements }, { data: ratingHistories }, { data: examAnswers }, { data: topicAnswers }] = await Promise.all([
+    readClient
+      .from("topic_answers")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", profile.id),
+    profileClient
+      .from("hall_of_fame")
+      .select("id", { count: "exact", head: true })
+      .eq("winner_user_id", profile.id),
+    profileClient
       .from("topic_answers")
       .select("id, topics!inner(type)", { count: "exact", head: true })
       .eq("user_id", profile.id)
-      .eq("topics.type", "daily"),
-    supabase
-      .from("topic_answers")
-      .select("id, topic_id, answer_type, content, created_at")
+      .eq("topics.type", "weekly")
+      .lte("ranking_position", 10),
+    profileClient
+      .from("user_achievements")
+      .select("created_at, achievements(title, description, icon)")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false }),
+    profileClient
+      .from("rating_histories")
+      .select("old_rating, new_rating, delta, created_at, topics(title)")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(8),
     profileClient
       .from("exam_answers")
       .select("id, answer, created_at, predicted_deviation, archetype, total_score, structure_score, hypothesis_score, originality_score, feasibility_score, risk_score, summary, strength, weakness, upper_gap")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(30),
-    supabase
+    readClient
       .from("topic_answers")
       .select("id, topic_id, answer_type, content, created_at, topics!inner(id, type, category, title)")
       .eq("user_id", profile.id)
-      .eq("topics.type", "daily")
       .order("created_at", { ascending: false })
       .limit(60),
   ]);
@@ -78,8 +98,8 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
   const topicAnswerRows = (topicAnswers ?? []) as TopicAnswerHistoryRow[];
   const topicAnswerIds = topicAnswerRows.map((answer) => answer.id);
   const [{ data: likes }, { data: comments }] = await Promise.all([
-    topicAnswerIds.length > 0 ? supabase.from("likes").select("topic_answer_id").in("topic_answer_id", topicAnswerIds) : Promise.resolve({ data: [] as CountRow[] }),
-    topicAnswerIds.length > 0 ? supabase.from("comments").select("topic_answer_id").in("topic_answer_id", topicAnswerIds) : Promise.resolve({ data: [] as CountRow[] }),
+    topicAnswerIds.length > 0 ? readClient.from("likes").select("topic_answer_id").in("topic_answer_id", topicAnswerIds) : Promise.resolve({ data: [] as CountRow[] }),
+    topicAnswerIds.length > 0 ? readClient.from("comments").select("topic_answer_id").in("topic_answer_id", topicAnswerIds) : Promise.resolve({ data: [] as CountRow[] }),
   ]);
   const likeRows = (likes ?? []) as CountRow[];
   const commentRows = (comments ?? []) as CountRow[];
@@ -101,7 +121,8 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
         answer_type: answer.answer_type,
         content: answer.content,
         category: topic?.category ?? "Topic",
-        title: topic?.title ?? "Daily Topic",
+        title: topic?.title ?? "Topic",
+        topicType: topic?.type ?? "daily",
         likeCount: likeCounts.get(answer.id) ?? 0,
         commentCount: commentCounts.get(answer.id) ?? 0,
       };
@@ -140,8 +161,8 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
           <div className="relative mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Rating" value={profile.rating} tone="gold" />
             <StatCard label="推定思考偏差値" value={profile.predicted_deviation ?? "未受験"} />
-            <StatCard label="Daily Topic回答履歴" value={dailyAnswerCount ?? 0} />
-            <StatCard label="認定試験回答履歴" value={(examAnswers ?? []).length} tone={profile.qualified ? "emerald" : "silver"} />
+            <StatCard label="総回答数" value={totalAnswerCount ?? 0} />
+            <StatCard label="Weekly wins" value={weeklyWins ?? 0} tone={profile.qualified ? "emerald" : "silver"} />
           </div>
         </div>
       </Card>
@@ -153,7 +174,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
           <div className="mt-6 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{profile.rank}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Rank</p></div>
             <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{profile.rating}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Rating</p></div>
-            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{profile.qualified ? "済" : "未"}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">認定</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{top10Count ?? 0}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">Top10</p></div>
           </div>
         </Card>
 
@@ -188,17 +209,53 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
         <Card>
           <SectionHeader eyebrow="最近の活動" title="最近の投稿" />
           <div className="mt-6 space-y-4">
-            {(recentAnswers ?? []).map((answer) => (
-              <Link key={answer.id} href={`/topics/${answer.topic_id}`} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
+            {historyItems.filter((item) => item.kind === "topic").slice(0, 5).map((item) => item.kind === "topic" ? (
+              <Link key={item.id} href={item.topicType === "weekly" ? `/weekly/${item.topic_id}` : `/topics/${item.topic_id}`} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
-                  <time className="text-xs text-league-muted">{formatDateTime(answer.created_at)}</time>
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(item.answer_type)}</span>
+                  <time className="text-xs text-league-muted">{formatDateTime(item.created_at)}</time>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-league-silver">{createPreview(answer.content, 150)}</p>
+                <p className="mt-3 text-sm leading-6 text-league-silver">{createPreview(item.content, 150)}</p>
               </Link>
-            ))}
+            ) : null)}
           </div>
-          {(recentAnswers ?? []).length === 0 ? <EmptyState title="まだ投稿はありません。">回答が投稿されると、ここにアクティビティが表示されます。</EmptyState> : null}
+          {historyItems.filter((item) => item.kind === "topic").length === 0 ? <EmptyState title="まだ投稿はありません。">回答が投稿されると、ここにアクティビティが表示されます。</EmptyState> : null}
+        </Card>
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <SectionHeader eyebrow="Achievements" title="獲得バッジ" />
+          <div className="mt-5 flex flex-wrap gap-3">
+            {((achievements ?? []) as AchievementRow[]).map((row, index) => {
+              const achievement = first(row.achievements);
+              return (
+                <span key={`${achievement?.title ?? "achievement"}-${index}`} className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold">
+                  <span>{achievement?.icon ?? "◆"}</span>
+                  <span>{achievement?.title ?? "Achievement"}</span>
+                </span>
+              );
+            })}
+          </div>
+          {(achievements ?? []).length === 0 ? <EmptyState title="Achievementsはまだありません。">Weekly Leagueへの参加やRank到達でバッジが増えていきます。</EmptyState> : null}
+        </Card>
+        <Card>
+          <SectionHeader eyebrow="Rating History" title="Rating変動" />
+          <div className="mt-5 space-y-3">
+            {((ratingHistories ?? []) as RatingHistoryRow[]).map((history, index) => {
+              const topic = first(history.topics);
+              return (
+                <div key={`${history.created_at}-${index}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="min-w-0 truncate text-sm font-bold text-white">{topic?.title ?? "Weekly League"}</p>
+                    <span className="rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200">+{history.delta ?? 0}</span>
+                  </div>
+                  <p className="mt-2 text-xs text-league-muted">{history.old_rating ?? 0} → {history.new_rating ?? 0} · {formatDateTime(history.created_at)}</p>
+                </div>
+              );
+            })}
+          </div>
+          {(ratingHistories ?? []).length === 0 ? <EmptyState title="Rating変動はまだありません。">Weekly League完了後にold rating / new rating / delta / topicが保存されます。</EmptyState> : null}
         </Card>
       </section>
 

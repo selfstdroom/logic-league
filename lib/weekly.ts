@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { applyRatingChange, evaluateAchievements, getRatingDelta, snapshotCurrentSeason } from "@/lib/competitive";
 import type { Topic } from "@/types/database";
 
 export type WeeklyPhase = "upcoming" | "submission" | "voting" | "completed";
@@ -64,7 +65,7 @@ export async function finalizeWeeklyLeague(topicId: string) {
 
   const { data: answers, error: answersError } = await admin
     .from("topic_answers")
-    .select("id, ai_total_score, vote_count")
+    .select("id, user_id, ai_structure_score, ai_logic_score, ai_originality_score, ai_feasibility_score, ai_risk_score, ai_total_score, vote_count, content")
     .eq("topic_id", topicId);
 
   if (answersError) throw answersError;
@@ -74,6 +75,7 @@ export async function finalizeWeeklyLeague(topicId: string) {
   const ranked = rows
     .map((answer) => ({
       id: answer.id,
+      user_id: answer.user_id,
       ai_total_score: answer.ai_total_score ?? 0,
       vote_count: answer.vote_count ?? 0,
       final_score: calculateFinalScore(answer.ai_total_score ?? 0, answer.vote_count ?? 0, maxVoteCount),
@@ -81,12 +83,36 @@ export async function finalizeWeeklyLeague(topicId: string) {
     .sort((a, b) => b.final_score - a.final_score || b.ai_total_score - a.ai_total_score || b.vote_count - a.vote_count);
 
   for (const [index, answer] of ranked.entries()) {
+    const rankingPosition = index + 1;
     const { error } = await admin
       .from("topic_answers")
-      .update({ final_score: answer.final_score, ranking_position: index + 1 })
+      .update({ final_score: answer.final_score, ranking_position: rankingPosition })
       .eq("id", answer.id);
     if (error) throw error;
+
+    if (answer.user_id) {
+      await applyRatingChange(answer.user_id, topicId, getRatingDelta(rankingPosition));
+    }
   }
+
+  const winner = ranked[0];
+  if (winner?.user_id) {
+    const { error: hallError } = await admin.from("hall_of_fame").upsert({
+      topic_id: topicId,
+      winner_user_id: winner.user_id,
+      winner_answer_id: winner.id,
+      final_score: winner.final_score,
+      ai_total_score: winner.ai_total_score,
+      vote_count: winner.vote_count,
+    }, { onConflict: "topic_id" });
+    if (hallError) throw hallError;
+  }
+
+  const participantIds = Array.from(new Set(ranked.map((answer) => answer.user_id).filter((userId): userId is string => Boolean(userId))));
+  for (const userId of participantIds) {
+    await evaluateAchievements(userId);
+  }
+  await snapshotCurrentSeason();
 
   return ranked;
 }
