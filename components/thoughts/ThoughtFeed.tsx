@@ -6,7 +6,7 @@ import { RankBadge } from "@/components/rank/RankBadge";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 import { createPreview, formatDateTime, formatDiscussionType } from "@/lib/topics/format";
 
-type ThoughtType = "ANSWER" | "COUNTER" | "SUPPORT" | "QUESTION";
+type ThoughtType = "ANSWER" | "COUNTER" | "REBUTTAL" | "SUPPORT" | "QUESTION";
 
 export type ThoughtFeedItem = {
   id: string;
@@ -32,7 +32,8 @@ export type ThoughtFeedItem = {
 const typeStyles: Record<ThoughtType, { label: string; icon: LeagueIconName; tone: string }> = {
   ANSWER: { label: "回答", icon: "answer", tone: "border-sky-300/30 bg-sky-300/10 text-sky-100" },
   COUNTER: { label: "反論", icon: "counter", tone: "border-red-300/30 bg-red-300/10 text-red-100" },
-  SUPPORT: { label: "賛成・補足", icon: "support", tone: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100" },
+  REBUTTAL: { label: "再反論", icon: "counter", tone: "border-orange-300/30 bg-orange-300/10 text-orange-100" },
+  SUPPORT: { label: "補足", icon: "support", tone: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100" },
   QUESTION: { label: "質問", icon: "question", tone: "border-purple-300/30 bg-purple-300/10 text-purple-100" },
 };
 
@@ -65,7 +66,7 @@ export function ThoughtFeed({ items, initialCount = 14 }: { items: ThoughtFeedIt
 function ThoughtCard({ item }: { item: ThoughtFeedItem }) {
   const style = typeStyles[item.type];
   return (
-    <article id={`feed-${item.answerId}`} className="border-b border-white/10 bg-white/[0.018] px-4 py-4 transition hover:bg-white/[0.045] sm:px-5 sm:py-5">
+    <article id={`feed-${item.id}`} className="border-b border-white/10 bg-white/[0.018] px-4 py-4 transition hover:bg-white/[0.045] sm:px-5 sm:py-5">
       <Link href={item.href} className="block rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-300/35">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-league-gold/25 bg-league-gold/10 px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-league-gold">{formatDiscussionType(item.discussionType)}</span>

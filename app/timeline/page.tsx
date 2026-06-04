@@ -2,7 +2,7 @@ import { PageShell } from "@/components/ui/DesignSystem";
 import { ThoughtFeed, type ThoughtFeedItem } from "@/components/thoughts/ThoughtFeed";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { Comment, Like, TopicAnswer } from "@/types/database";
+import type { Comment, DebateReplyType, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +10,9 @@ export const dynamic = "force-dynamic";
 type ProfileLite = Pick<Profile, "id" | "display_name" | "username" | "rank">;
 type TopicLite = { id?: string | null; type?: string | null; category?: string | null; title?: string | null; status?: string | null; reveal_at?: string | null };
 type AnswerRow = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at"> & { topics?: TopicLite | TopicLite[] | null };
+type ReplyRow = Pick<Comment, "id" | "topic_answer_id" | "parent_reply_id" | "user_id" | "reply_type" | "content" | "created_at"> & {
+  topic_answers?: ({ id?: string | null; topic_id?: string | null; topics?: TopicLite | TopicLite[] | null } | { id?: string | null; topic_id?: string | null; topics?: TopicLite | TopicLite[] | null }[]) | null;
+};
 
 type ThoughtType = ThoughtFeedItem["type"];
 
@@ -38,8 +41,25 @@ function answerThoughtType(answerType: TopicAnswer["answer_type"]): ThoughtType 
   }
 }
 
-function discussionHref(topic: TopicLite, answer: AnswerRow) {
+function replyThoughtType(replyType: DebateReplyType): ThoughtType {
+  switch (replyType) {
+    case "counter":
+      return "COUNTER";
+    case "rebuttal":
+      return "REBUTTAL";
+    case "question":
+      return "QUESTION";
+    default:
+      return "SUPPORT";
+  }
+}
+
+function discussionHref(topic: TopicLite, answer: Pick<AnswerRow, "topic_id" | "id">) {
   return topic.type === "weekly" ? `/weekly/${answer.topic_id}` : `/topics/${answer.topic_id}#answer-${answer.id}`;
+}
+
+function replyHref(topic: TopicLite, topicId: string, replyId: string) {
+  return topic.type === "weekly" ? `/weekly/${topicId}` : `/topics/${topicId}#reply-${replyId}`;
 }
 
 function thoughtScore(item: ThoughtFeedItem) {
@@ -55,37 +75,57 @@ export default async function TimelinePage() {
   const readClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const now = new Date().toISOString();
 
-  const { data: answers } = await readClient
-    .from("topic_answers")
-    .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(id, type, category, title, status, reveal_at)")
-    .eq("topics.status", "published")
-    .filter("topics.type", "in", "(daily,weekly,special)")
-    .order("created_at", { ascending: false })
-    .limit(96);
+  const [{ data: answers }, { data: replies }] = await Promise.all([
+    readClient
+      .from("topic_answers")
+      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(id, type, category, title, status, reveal_at)")
+      .eq("topics.status", "published")
+      .filter("topics.type", "in", "(daily,weekly,special)")
+      .order("created_at", { ascending: false })
+      .limit(96),
+    readClient
+      .from("comments")
+      .select("id, topic_answer_id, parent_reply_id, user_id, reply_type, content, created_at, topic_answers!inner(id, topic_id, topics!inner(id, type, category, title, status, reveal_at))")
+      .eq("topic_answers.topics.status", "published")
+      .filter("topic_answers.topics.type", "in", "(daily,weekly,special)")
+      .order("created_at", { ascending: false })
+      .limit(96),
+  ]);
 
   const answerRows = ((answers ?? []) as AnswerRow[]).filter((answer) => {
     const topic = first(answer.topics);
     return topic?.type !== "weekly" || !topic.reveal_at || topic.reveal_at <= now;
   });
+  const replyRows = ((replies ?? []) as ReplyRow[]).filter((reply) => {
+    const answer = first(reply.topic_answers);
+    const topic = first(answer?.topics);
+    return topic?.type !== "weekly" || !topic.reveal_at || topic.reveal_at <= now;
+  });
   const answerIds = answerRows.map((answer) => answer.id);
+  const replyAnswerIds = replyRows.map((reply) => reply.topic_answer_id);
+  const allAnswerIds = Array.from(new Set([...answerIds, ...replyAnswerIds]));
 
-  const [{ data: likes }, { data: comments }] = await Promise.all([
-    answerIds.length > 0 ? readClient.from("likes").select("topic_answer_id").in("topic_answer_id", answerIds) : Promise.resolve({ data: [] as Pick<Like, "topic_answer_id">[] }),
-    answerIds.length > 0 ? readClient.from("comments").select("topic_answer_id").in("topic_answer_id", answerIds) : Promise.resolve({ data: [] as Pick<Comment, "topic_answer_id">[] }),
+  const [{ data: likes }, { data: commentsForCounts }] = await Promise.all([
+    allAnswerIds.length > 0 ? readClient.from("likes").select("topic_answer_id").in("topic_answer_id", allAnswerIds) : Promise.resolve({ data: [] as Pick<Like, "topic_answer_id">[] }),
+    allAnswerIds.length > 0 ? readClient.from("comments").select("topic_answer_id, parent_reply_id").in("topic_answer_id", allAnswerIds) : Promise.resolve({ data: [] as Pick<Comment, "topic_answer_id" | "parent_reply_id">[] }),
   ]);
 
   const likeCounts = new Map<string, number>();
   for (const like of likes ?? []) likeCounts.set(like.topic_answer_id, (likeCounts.get(like.topic_answer_id) ?? 0) + 1);
   const commentCounts = new Map<string, number>();
-  for (const comment of comments ?? []) commentCounts.set(comment.topic_answer_id, (commentCounts.get(comment.topic_answer_id) ?? 0) + 1);
+  const childReplyCounts = new Map<string, number>();
+  for (const comment of commentsForCounts ?? []) {
+    commentCounts.set(comment.topic_answer_id, (commentCounts.get(comment.topic_answer_id) ?? 0) + 1);
+    if (comment.parent_reply_id) childReplyCounts.set(comment.parent_reply_id, (childReplyCounts.get(comment.parent_reply_id) ?? 0) + 1);
+  }
 
-  const userIds = Array.from(new Set(answerRows.map((answer) => answer.user_id)));
+  const userIds = Array.from(new Set([...answerRows.map((answer) => answer.user_id), ...replyRows.map((reply) => reply.user_id)]));
   const { data: profiles } = userIds.length > 0
     ? await readClient.from("profiles").select("id, display_name, username, rank").in("id", userIds)
     : { data: [] as ProfileLite[] };
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
-  const items: ThoughtFeedItem[] = answerRows.map((answer) => {
+  const answerItems: ThoughtFeedItem[] = answerRows.map((answer) => {
     const topic = first(answer.topics) ?? {};
     const profile = profilesById.get(answer.user_id);
     return {
@@ -108,14 +148,46 @@ export default async function TimelinePage() {
         href: profileHref(profile),
       },
     };
-  }).sort((a, b) => thoughtScore(b) - thoughtScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  });
+
+  const replyItems: ThoughtFeedItem[] = replyRows.map((reply) => {
+    const answer = first(reply.topic_answers) ?? {};
+    const topic = first(answer.topics) ?? {};
+    const topicId = answer.topic_id ?? "";
+    const answerId = answer.id ?? reply.topic_answer_id;
+    const profile = profilesById.get(reply.user_id);
+    return {
+      id: `reply-${reply.id}`,
+      type: replyThoughtType(reply.reply_type),
+      topicId,
+      answerId,
+      href: replyHref(topic, topicId, reply.id),
+      discussionTitle: topic.title ?? "議論",
+      discussionType: topic.type,
+      content: reply.content,
+      createdAt: reply.created_at,
+      likeCount: 0,
+      commentCount: childReplyCounts.get(reply.id) ?? 0,
+      author: {
+        id: reply.user_id,
+        displayName: displayName(profile),
+        username: profile?.username,
+        rank: profile?.rank,
+        href: profileHref(profile),
+      },
+    };
+  });
+
+  const items = [...answerItems, ...replyItems]
+    .sort((a, b) => thoughtScore(b) - thoughtScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 140);
 
   return (
     <PageShell className="max-w-2xl pb-32">
       <header className="sticky top-0 z-10 -mx-4 border-b border-white/10 bg-league-black/88 px-4 py-3 backdrop-blur sm:-mx-5 sm:px-5">
         <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Thought Feed</p>
         <h1 className="mt-1 text-xl font-black text-white">思考フィード</h1>
-        <p className="mt-1 text-sm font-bold text-league-muted">回答・反論・賛成補足・質問だけを流します。主役はユーザーではなく、議論に投げ込まれたアイデアです。</p>
+        <p className="mt-1 text-sm font-bold text-league-muted">回答・反論・再反論・補足・質問だけを流します。主役はユーザーではなく、議論に投げ込まれたアイデアです。</p>
       </header>
 
       <ThoughtFeed items={items} />

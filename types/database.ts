@@ -4,6 +4,7 @@ export type TopicCategory = "AI" | "Business" | "Economics" | "Society" | "Psych
 export type TopicType = "daily" | "weekly";
 export type TopicStatus = "published" | "draft";
 export type TopicAnswerType = "Answer" | "Counter" | "Support" | "Question";
+export type DebateReplyType = "counter" | "rebuttal" | "support" | "question";
 
 export type Topic = {
   id: string;
@@ -41,7 +42,9 @@ export type TopicAnswer = {
 export type Comment = {
   id: string;
   topic_answer_id: string;
+  parent_reply_id: string | null;
   user_id: string;
+  reply_type: DebateReplyType;
   content: string;
   created_at: string;
 };

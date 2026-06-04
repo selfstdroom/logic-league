@@ -33,6 +33,21 @@ export function formatAnswerType(value: string | null | undefined) {
   }
 }
 
+export function formatReplyType(value: string | null | undefined) {
+  switch (value) {
+    case "counter":
+      return "反論";
+    case "rebuttal":
+      return "再反論";
+    case "support":
+      return "補足";
+    case "question":
+      return "質問";
+    default:
+      return "補足";
+  }
+}
+
 export function formatDiscussionType(value: string | null | undefined) {
   switch (value) {
     case "weekly":

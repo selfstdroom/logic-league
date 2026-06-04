@@ -3,10 +3,11 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { formatAnswerType } from "@/lib/topics/format";
-import type { TopicAnswerType } from "@/types/database";
+import { formatAnswerType, formatReplyType } from "@/lib/topics/format";
+import type { DebateReplyType, TopicAnswerType } from "@/types/database";
 
 const answerTypes: TopicAnswerType[] = ["Answer", "Counter", "Support", "Question"];
+const debateReplyTypes: DebateReplyType[] = ["counter", "rebuttal", "support", "question"];
 
 type MessageState = { type: "success" | "error"; text: string } | null;
 type UnlockedAchievement = { key: string; title: string; badgeIcon: string };
@@ -111,15 +112,26 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
   );
 }
 
-export function CommentForm({ answerId, canComment }: { answerId: string; canComment: boolean }) {
+type DebateReplyComposerProps = {
+  answerId: string;
+  parentReplyId?: string;
+  canReply: boolean;
+  blockedReason?: string;
+  compact?: boolean;
+};
+
+export function DebateReplyComposer({ answerId, parentReplyId, canReply, blockedReason, compact = false }: DebateReplyComposerProps) {
   const router = useRouter();
+  const [selectedType, setSelectedType] = useState<DebateReplyType | null>(null);
   const [content, setContent] = useState("");
   const [message, setMessage] = useState<MessageState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievement[]>([]);
+  const availableTypes = parentReplyId ? (["rebuttal"] as DebateReplyType[]) : debateReplyTypes;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!selectedType) return;
     setIsSubmitting(true);
     setMessage(null);
     setUnlockedAchievements([]);
@@ -127,46 +139,76 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
     const response = await fetch(`/api/topic-answers/${answerId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, reply_type: selectedType, parent_reply_id: parentReplyId ?? null }),
     });
     const result = await response.json().catch(() => null) as { error?: string; unlockedAchievements?: UnlockedAchievement[] } | null;
 
     setIsSubmitting(false);
     if (!response.ok) {
-      setMessage({ type: "error", text: result?.error ?? "コメントの投稿に失敗しました。" });
+      setMessage({ type: "error", text: result?.error ?? "投稿に失敗しました。" });
       return;
     }
 
     setContent("");
-    setMessage({ type: "success", text: "コメントを投稿しました。" });
+    setSelectedType(null);
+    setMessage({ type: "success", text: `${formatReplyType(selectedType)}を投稿しました。` });
     setUnlockedAchievements(result?.unlockedAchievements ?? []);
     router.refresh();
   }
 
-  if (!canComment) {
-    return (
-      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-        <p className="text-sm font-bold text-white">ログインすると議論に参加できます</p>
-        <a href="/login" className="mt-3 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-xs font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">ログインする</a>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
-      <input
-        value={content}
-        onChange={(event) => setContent(event.target.value)}
-        required
-        minLength={2}
-        className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-league-muted focus:border-amber-300/50 focus:ring-2 focus:ring-amber-300/20"
-        placeholder="コメントを書く"
-      />
-      <Button disabled={isSubmitting} className="px-5 py-2 shadow-none">コメントする</Button>
+    <div className={compact ? "mt-3" : "mt-5"}>
+      <div className="flex flex-wrap gap-2">
+        {availableTypes.map((type) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => {
+              setSelectedType(type);
+              setMessage(null);
+            }}
+            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black text-league-silver transition hover:border-amber-300/35 hover:bg-white/[0.08] hover:text-white"
+          >
+            {formatReplyType(type)}する
+          </button>
+        ))}
+      </div>
+
+      {!canReply && selectedType ? (
+        <div className="mt-3 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
+          <p className="text-sm font-bold text-league-gold">{blockedReason ?? "ログインすると議論に参加できます"}</p>
+          {blockedReason?.includes("ログイン") ? <a href="/login" className="mt-3 inline-flex rounded-full border border-amber-300/30 bg-black/25 px-4 py-2 text-xs font-black text-white transition hover:bg-amber-300/20">ログインする</a> : null}
+        </div>
+      ) : null}
+
+      {canReply && selectedType ? (
+        <form onSubmit={onSubmit} className="mt-3 rounded-2xl border border-amber-300/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),rgba(0,0,0,0.28))] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-white">{formatReplyType(selectedType)}を投稿</p>
+            <button type="button" onClick={() => setSelectedType(null)} className="text-xs font-bold text-league-muted transition hover:text-white">閉じる</button>
+          </div>
+          <textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            required
+            minLength={2}
+            rows={compact ? 3 : 4}
+            className="premium-textarea mt-3"
+            placeholder="論点と根拠を明確に書いてください。"
+          />
+          <Button disabled={isSubmitting} className="mt-3 px-5 py-2 shadow-none">{isSubmitting ? "投稿中..." : `${formatReplyType(selectedType)}を投稿`}</Button>
+          <Message message={message} />
+          <AchievementNotice achievements={unlockedAchievements} />
+        </form>
+      ) : null}
+
       <Message message={message} />
-      <AchievementNotice achievements={unlockedAchievements} />
-    </form>
+    </div>
   );
+}
+
+export function CommentForm({ answerId, canComment }: { answerId: string; canComment: boolean }) {
+  return <DebateReplyComposer answerId={answerId} canReply={canComment} blockedReason="ログインすると議論に参加できます" />;
 }
 
 export function LikeButton({ answerId, likeCount, liked, canLike }: { answerId: string; likeCount: number; liked: boolean; canLike: boolean }) {
