@@ -1,4 +1,4 @@
-import type { Profile, ExamAnswer } from "./logic-league";
+import type { Profile, ExamAnswer, UserSettings } from "./logic-league";
 
 export type TopicCategory = "AI" | "Business" | "Economics" | "Society" | "Psychology" | "Science";
 export type TopicType = "daily" | "weekly";
@@ -127,6 +127,12 @@ export type Database = {
         Row: ExamAnswer;
         Insert: Partial<ExamAnswer> & { user_id: string; answer: string };
         Update: Partial<ExamAnswer>;
+        Relationships: [];
+      };
+      user_settings: {
+        Row: UserSettings;
+        Insert: Partial<UserSettings> & { user_id: string };
+        Update: Partial<UserSettings>;
         Relationships: [];
       };
       topics: {

@@ -74,3 +74,22 @@ export type ExamAnswer = {
   answer: string;
   created_at: string;
 } & ExamResult;
+
+export type UserSettings = {
+  user_id: string;
+  privacy_profile_public: boolean;
+  privacy_thought_log_public: boolean;
+  privacy_exam_results_public: boolean;
+  privacy_stats_public: boolean;
+  privacy_achievements_public: boolean;
+  notify_comments: boolean;
+  notify_likes: boolean;
+  notify_weekly_results: boolean;
+  notify_rank_up: boolean;
+  notify_achievement_unlocked: boolean;
+  notify_hall_of_fame: boolean;
+  theme: "dark" | "light" | "system";
+  display_density: "standard" | "compact";
+  created_at: string;
+  updated_at: string;
+};
