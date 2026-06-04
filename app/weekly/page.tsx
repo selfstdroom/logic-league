@@ -17,7 +17,8 @@ const groups: TopicGroup[] = [
 
 function WeeklyTopicCard({ topic }: { topic: Topic }) {
   const phase = getWeeklyPhase(topic);
-  const href = phase === "completed" ? `/weekly/${topic.id}/results` : `/weekly/${topic.id}`;
+  const href = `/weekly/${topic.id}`;
+  const isCompleted = phase === "completed";
 
   return (
     <Card className="group flex h-full flex-col border-white/10 bg-white/[0.04] p-5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]">
@@ -32,7 +33,12 @@ function WeeklyTopicCard({ topic }: { topic: Topic }) {
         <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">公開日時</span>{formatDateTime(topic.reveal_at)}</p>
         <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">投票締切</span>{formatDateTime(topic.vote_deadline_at)}</p>
       </div>
-      <ButtonLink href={href} className="mt-5 w-fit px-5 py-2 text-xs">{getWeeklyCtaLabel(phase)}</ButtonLink>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <ButtonLink href={href} className="w-fit px-5 py-2 text-xs">{isCompleted ? "詳細を見る" : getWeeklyCtaLabel(phase)}</ButtonLink>
+        {isCompleted ? (
+          <ButtonLink href={`/weekly/${topic.id}/results`} className="w-fit bg-none bg-white/10 px-5 py-2 text-xs text-white shadow-none ring-1 ring-white/15">結果を見る</ButtonLink>
+        ) : null}
+      </div>
     </Card>
   );
 }

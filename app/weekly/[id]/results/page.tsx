@@ -1,8 +1,4 @@
 import Link from "next/link";
-
-export const dynamic = "force-dynamic";
-import { notFound } from "next/navigation";
-import { RankBadge } from "@/components/rank/RankBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -10,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
 import { buildAiScoreSummary, finalizeWeeklyLeague } from "@/lib/weekly";
 import type { Profile } from "@/types/logic-league";
+
+export const dynamic = "force-dynamic";
 
 type ResultAnswer = {
   id: string;
@@ -34,7 +32,18 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const admin = createAdminClient();
   const { data: topic } = await admin.from("topics").select("*").eq("id", id).eq("type", "weekly").eq("status", "published").maybeSingle();
-  if (!topic) notFound();
+  if (!topic) {
+    return (
+      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
+        <Card className="border-red-300/20 bg-red-950/20">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">Weekly League結果</p>
+          <h1 className="mt-3 text-4xl font-black">Weekly LeagueのTopicが見つかりません。</h1>
+          <p className="mt-4 text-league-silver">指定されたTopicは存在しないか、公開されていません。</p>
+          <ButtonLink href="/weekly" className="mt-6">Weekly Leagueに戻る</ButtonLink>
+        </Card>
+      </main>
+    );
+  }
 
   if (!topic.vote_deadline_at || new Date(topic.vote_deadline_at).getTime() > Date.now()) {
     return (
@@ -60,8 +69,8 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
   const rows = (answers ?? []) as ResultAnswer[];
   const userIds = Array.from(new Set(rows.map((answer) => answer.user_id)));
   const { data: profiles } = userIds.length > 0
-    ? await admin.from("profiles").select("id, display_name, username, rank, rating").in("id", userIds)
-    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "rating">[] };
+    ? await admin.from("profiles").select("id, display_name, username").in("id", userIds)
+    : { data: [] as Pick<Profile, "id" | "display_name" | "username">[] };
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
   const topAnswers = rows.slice(0, 3);
 
@@ -70,7 +79,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
       <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
         <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Weekly League結果</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
-        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。結果確定時にRatingとRankが自動更新され、rating_historiesに保存されます。</p>
+        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。このMVPではRating、Rank、Hall of Fameは更新しません。</p>
       </div>
 
       <section className="mt-10">
@@ -87,12 +96,9 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
             return (
               <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <RankBadge rank={profile?.rank} size="sm" />
-                  <div className="min-w-0">
-                    <p className="truncate font-black text-white">{displayName(profile)}</p>
-                    <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · Rating {profile?.rating ?? "—"}</p>
-                  </div>
+                <div className="mt-3 min-w-0">
+                  <p className="truncate font-black text-white">{displayName(profile)}</p>
+                  <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
                 </div>
                 <p className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/25 p-4 text-sm leading-7 text-league-silver">{answer.content}</p>
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-league-silver">
@@ -120,13 +126,10 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
                   <p className="text-xs uppercase tracking-[0.18em] text-league-muted">順位</p>
                   <p className="mt-1 text-4xl font-black text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <RankBadge rank={profile?.rank} size="sm" />
-                  <div className="min-w-0">
-                    <p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
-                    <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · Rating {profile?.rating ?? "—"}</p>
-                    <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
+                  <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                  <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p>
                 </div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">最終スコア</p><p className="mt-1 text-2xl font-black">{answer.final_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">AIスコア</p><p className="mt-1 text-2xl font-black">{answer.ai_total_score ?? 0}</p></div>

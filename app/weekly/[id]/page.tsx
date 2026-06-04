@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { WeeklySubmissionForm, WeeklyVoteButton } from "@/components/weekly/WeeklyForms";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -19,7 +18,18 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
     user ? supabase.from("profiles").select("qualified").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
 
-  if (!topic) notFound();
+  if (!topic) {
+    return (
+      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
+        <Card className="border-red-300/20 bg-red-950/20">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">Weekly League</p>
+          <h1 className="mt-3 text-4xl font-black">Weekly LeagueのTopicが見つかりません。</h1>
+          <p className="mt-4 text-league-silver">指定されたTopicは存在しないか、公開されていません。</p>
+          <ButtonLink href="/weekly" className="mt-6">Weekly Leagueに戻る</ButtonLink>
+        </Card>
+      </main>
+    );
+  }
 
   const phase = getWeeklyPhase(topic);
   const [{ data: answers }, { data: votes }, { data: ownSubmission }] = await Promise.all([
@@ -64,6 +74,17 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
         </div>
       </Card>
 
+      {user && !currentProfile?.qualified ? (
+        <Card className="mt-8 flex flex-col gap-4 border-amber-300/20 bg-amber-300/10 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">参加資格が必要です</p>
+            <h2 className="mt-2 text-2xl font-black">認定試験に合格すると投稿・投票できます。</h2>
+            <p className="mt-2 text-sm text-league-silver">Daily Topicsは引き続き利用できます。Weekly League参加には認定が必要です。</p>
+          </div>
+          <ButtonLink href="/exam">認定試験を受ける</ButtonLink>
+        </Card>
+      ) : null}
+
       {phase === "submission" ? (
         <section className="mt-8">
           <WeeklySubmissionForm topicId={topic.id} canSubmit={canSubmit} initialContent={ownSubmission?.content ?? ""} blockReason={submissionBlockReason} />
@@ -84,7 +105,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
               <Card key={answer.id} className="hover:border-amber-300/35 hover:bg-white/[0.06]">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">匿名投稿 #{index + 1}</p>
+                    <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">Anonymous Entry #{index + 1}</p>
                     <p className="mt-2 text-sm text-league-muted">{buildAiScoreSummary(answer)}</p>
                   </div>
                   <div className="flex flex-col items-start gap-3 sm:items-end">
