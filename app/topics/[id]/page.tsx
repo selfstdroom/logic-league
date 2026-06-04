@@ -23,8 +23,8 @@ function displayName(profile?: Pick<Profile, "display_name" | "username">) {
   return profile?.display_name || profile?.username || "Logic Leagueユーザー";
 }
 
-function profileHref(profile: Pick<Profile, "id" | "username"> | undefined, userId: string) {
-  return profile?.username ? `/profile/${profile.username}` : `/profile/${profile?.id ?? userId}`;
+function profileHref(profile: Pick<Profile, "username"> | undefined) {
+  return profile?.username ? `/profile/${profile.username}` : "/profile";
 }
 
 function AnswerCard({ answer, canInteract, idPrefix = "answer" }: { answer: AnswerView; canInteract: boolean; idPrefix?: string }) {
@@ -40,7 +40,7 @@ function AnswerCard({ answer, canInteract, idPrefix = "answer" }: { answer: Answ
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
         <RankBadge rank={answer.profile?.rank} size="xs" />
-        <Link href={profileHref(answer.profile, answer.user_id)} className="truncate font-black text-white transition hover:text-league-gold">{displayName(answer.profile)}</Link>
+        <Link href={profileHref(answer.profile)} className="truncate font-black text-white transition hover:text-league-gold">{displayName(answer.profile)}</Link>
         <span className="truncate">@{answer.profile?.username ?? answer.user_id}</span>
       </div>
 
@@ -50,7 +50,7 @@ function AnswerCard({ answer, canInteract, idPrefix = "answer" }: { answer: Answ
           {answer.comments.map((comment) => (
             <div key={comment.id} id={`comment-${comment.id}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
               <p className="text-sm leading-6 text-league-silver">{comment.content}</p>
-              <Link href={profileHref(comment.profile, comment.user_id)} className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
+              <Link href={profileHref(comment.profile)} className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
                 <RankBadge rank={comment.profile?.rank} size="xs" />
                 <span>{displayName(comment.profile)}</span>
                 <span className="font-normal text-league-muted">@{comment.profile?.username ?? comment.user_id} · {formatDateTime(comment.created_at)}</span>

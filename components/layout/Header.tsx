@@ -25,7 +25,8 @@ export async function Header() {
     }
   }
 
-  const profileHref = data.username ? `/profile/${data.username}` : "/profile";
+  const profileHref = "/profile";
+  const publicProfileHref = data.username ? `/profile/${data.username}` : "/profile";
   const primaryNavItems = [...navItems, myPageItem(profileHref)];
 
   return (
@@ -44,7 +45,12 @@ export async function Header() {
               <input name="q" aria-label="検索" placeholder="検索" className="w-24 bg-transparent text-xs font-bold text-white outline-none placeholder:text-league-muted xl:w-36" />
               <button className="text-xs font-black text-league-gold">検索</button>
             </form>
-            {data.user ? <span className="hidden max-w-48 truncate rounded-full border border-white/10 px-3 py-2 text-league-muted lg:inline">{data.user.email}</span> : <Link className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 font-bold text-league-gold transition hover:bg-amber-300/20" href="/login">ログイン</Link>}
+            {data.user ? (
+              <>
+                <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white" href="/settings">設定</Link>
+                <Link className="hidden rounded-full border border-white/10 px-3 py-2 font-bold text-league-muted transition hover:border-amber-300/30 hover:text-white lg:inline" href={publicProfileHref}>{data.user.email}</Link>
+              </>
+            ) : <Link className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 font-bold text-league-gold transition hover:bg-amber-300/20" href="/login">ログイン</Link>}
           </nav>
           <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white md:hidden" href={data.user ? profileHref : "/login"}>
             {data.user ? "プロフィール" : "ログイン"}
