@@ -1,11 +1,10 @@
-import Link from "next/link";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
-import { getWeeklyPhase, getWeeklyStatusLabel, type WeeklyPhase } from "@/lib/weekly";
+import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { getWeeklyCtaLabel, getWeeklyPhase, getWeeklyStatusLabel, type WeeklyPhase } from "@/lib/weekly";
 import type { Topic } from "@/types/database";
 
 type TopicGroup = { title: string; description: string; phases: WeeklyPhase[] };
@@ -18,18 +17,23 @@ const groups: TopicGroup[] = [
 
 function WeeklyTopicCard({ topic }: { topic: Topic }) {
   const phase = getWeeklyPhase(topic);
+  const href = phase === "completed" ? `/weekly/${topic.id}/results` : `/weekly/${topic.id}`;
+
   return (
-    <Link href={`/weekly/${topic.id}`} className="group block rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]">
+    <Card className="group flex h-full flex-col border-white/10 bg-white/[0.04] p-5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatTopicCategory(topic.category)}</span>
         <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">{getWeeklyStatusLabel(phase)}</span>
       </div>
       <h3 className="mt-4 text-2xl font-black leading-tight group-hover:text-league-gold">{topic.title}</h3>
-      <div className="mt-5 grid gap-3 text-sm text-league-silver sm:grid-cols-2">
+      <p className="mt-3 flex-1 text-sm leading-7 text-league-silver">{createPreview(topic.content, 150)}</p>
+      <div className="mt-5 grid gap-3 text-sm text-league-silver sm:grid-cols-3">
         <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">投稿締切</span>{formatDateTime(topic.deadline_at)}</p>
         <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">公開日時</span>{formatDateTime(topic.reveal_at)}</p>
+        <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">投票締切</span>{formatDateTime(topic.vote_deadline_at)}</p>
       </div>
-    </Link>
+      <ButtonLink href={href} className="mt-5 w-fit px-5 py-2 text-xs">{getWeeklyCtaLabel(phase)}</ButtonLink>
+    </Card>
   );
 }
 

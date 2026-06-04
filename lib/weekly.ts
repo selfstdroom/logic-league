@@ -16,10 +16,24 @@ export function getWeeklyPhase(topic: Pick<Topic, "publish_at" | "deadline_at" |
 }
 
 export function getWeeklyStatusLabel(phase: WeeklyPhase) {
-  if (phase === "submission") return "投稿受付中";
+  if (phase === "submission") return "回答受付中";
   if (phase === "voting") return "投票受付中";
-  if (phase === "completed") return "終了";
-  return "公開予定";
+  if (phase === "completed") return "結果発表済み";
+  return "開始前";
+}
+
+export function getWeeklyPhaseDescription(phase: WeeklyPhase) {
+  if (phase === "submission") return "回答を投稿できます。投稿締切までは自分の回答を編集できます。";
+  if (phase === "voting") return "投稿は匿名で公開されています。認定済みユーザーは最大3票まで投票できます。";
+  if (phase === "completed") return "投票は終了しました。最終Rankingと上位回答を確認できます。";
+  return "このWeekly League Topicはまだ開始前です。公開日時をお待ちください。";
+}
+
+export function getWeeklyCtaLabel(phase: WeeklyPhase) {
+  if (phase === "completed") return "結果を見る";
+  if (phase === "voting") return "投票する";
+  if (phase === "upcoming") return "詳細を見る";
+  return "Weekly Leagueに参加する";
 }
 
 export function calculateFinalScore(aiTotalScore: number | null, voteCount: number, maxVoteCount: number) {
