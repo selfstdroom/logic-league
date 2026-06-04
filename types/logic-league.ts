@@ -60,6 +60,10 @@ export type Profile = {
   x_url: string | null;
   youtube_url: string | null;
   github_url: string | null;
+  show_thought_log_public?: boolean | null;
+  show_exam_result_public?: boolean | null;
+  show_competitive_history_public?: boolean | null;
+  show_achievements_public?: boolean | null;
   created_at: string;
   updated_at: string;
 };
