@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
-import { Card } from "@/components/ui/Card";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
-import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
+import { PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
@@ -67,45 +66,8 @@ function first<T>(value: T | T[] | null | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-const exampleActivities: Array<{ type: ActivityType; title: string; body: string }> = [
-  { type: "ANSWER", title: "回答", body: "公開議論に回答すると、論点と投稿時刻がここに流れます。" },
-  { type: "COUNTER", title: "反論", body: "他の回答への反論や別視点の提示も活動として表示されます。" },
-  { type: "COMMENT", title: "コメント", body: "議論を深めるコメントが投稿されるとタイムラインに反映されます。" },
-  { type: "RANK_UP", title: "昇格", body: "競技議論の結果によるRank更新が公開プロフィールと連動します。" },
-  { type: "ACHIEVEMENT", title: "実績獲得", body: "初参加や勝利など、実績を解除した瞬間が記録されます。" },
-  { type: "HALL_OF_FAME", title: "Hall of Fame入り", body: "Weekly Leagueの勝者は殿堂入りとして保存されます。" },
-];
-
-function TimelineWelcomeEmptyState() {
-  return (
-    <Card className="border-dashed border-amber-300/25 bg-[radial-gradient(circle_at_top,rgba(215,180,106,0.1),transparent_30%),rgba(255,255,255,0.035)] p-5 sm:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Activity examples</p>
-          <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Logic Leagueへようこそ</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-league-silver">このタイムラインには以下の活動が表示されます。下のカードは実データではなく、表示される活動種類を説明するための例です。</p>
-        </div>
-        <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">最初の議論を見る</Link>
-      </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {exampleActivities.map((example) => {
-          const style = activityStyles[example.type];
-          return (
-            <div key={example.type} className="rounded-2xl border border-white/10 bg-black/20 p-4 opacity-85">
-              <div className="flex items-center gap-3">
-                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${style.tone}`}><LeagueIcon name={style.icon} size={19} /></span>
-                <div>
-                  <p className="text-sm font-black text-white">{example.title}</p>
-                  <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-league-muted">Example / not real data</p>
-                </div>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-league-muted">{example.body}</p>
-            </div>
-          );
-        })}
-      </div>
-    </Card>
-  );
+function TimelineEmptyState() {
+  return <p className="py-8 text-center text-sm font-bold text-league-muted">まだ活動はありません</p>;
 }
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
@@ -133,44 +95,52 @@ function Avatar({ profile }: { profile?: ProfileLite }) {
   const initial = displayName(profile).slice(0, 1).toUpperCase();
   if (profile?.avatar_url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={profile.avatar_url} alt="" className="h-11 w-11 rounded-2xl object-cover ring-1 ring-white/10" />;
+    return <img src={profile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />;
   }
-  return <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-sm font-black text-league-gold">{initial}</span>;
+  return <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-sm font-black text-league-gold">{initial}</span>;
 }
 
 function ActivityCard({ item }: { item: TimelineItem }) {
   const style = activityStyles[item.type];
   return (
-    <Card className="hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <Link href={profileHref(item.profile, item.userId)} className="flex min-w-0 items-center gap-3 rounded-xl transition hover:text-league-gold">
+    <article className="border-b border-white/10 px-4 py-4 transition hover:bg-white/[0.035] sm:px-5">
+      <div className="flex gap-3">
+        <Link href={profileHref(item.profile, item.userId)} className="shrink-0 rounded-full transition hover:opacity-80">
           <Avatar profile={item.profile} />
-          <span className="min-w-0">
-            <span className="flex items-center gap-2 truncate font-black text-white"><span className="truncate">{displayName(item.profile)}</span><RankBadge rank={item.profile?.rank} size="xs" /></span>
-            <span className="block truncate text-xs text-league-muted">@{item.profile?.username ?? item.userId} · Rank {item.profile?.rank ?? "—"}</span>
-          </span>
         </Link>
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-league-silver">
-          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 ${style.tone}`}><LeagueIcon name={style.icon} size={14} />{style.label}</span>
-          <time className="rounded-full border border-white/10 px-3 py-1">{formatDateTime(item.createdAt)}</time>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <Link href={profileHref(item.profile, item.userId)} className="flex min-w-0 items-center gap-1.5 font-black text-white transition hover:text-league-gold">
+              <span className="truncate">{displayName(item.profile)}</span>
+              <RankBadge rank={item.profile?.rank} size="xs" />
+            </Link>
+            <span className="truncate text-league-muted">@{item.profile?.username ?? item.userId}</span>
+            <span className="text-league-muted">·</span>
+            <time className="text-league-muted">{formatDateTime(item.createdAt)}</time>
+          </div>
+
+          <Link href={item.href} className="mt-1 block rounded-xl transition focus:outline-none focus:ring-2 focus:ring-amber-300/35">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[0.7rem] font-bold ${style.tone}`}>
+                <LeagueIcon name={style.icon} size={13} />
+                {style.label}
+              </span>
+              {item.topic ? <span className="text-xs font-bold text-league-gold">{formatDiscussionType(item.topic.type)}</span> : null}
+              {item.topic?.category ? <span className="text-xs font-bold text-league-muted">{formatTopicCategory(item.topic.category)}</span> : null}
+              {item.meta ? <span className="text-xs font-bold text-league-muted">{item.meta}</span> : null}
+            </div>
+            <h2 className="mt-2 line-clamp-2 text-base font-black leading-snug text-white">{item.topic?.title ?? style.label}</h2>
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-league-silver">{createPreview(item.content, 180)}</p>
+            <div className="mt-3 flex flex-wrap gap-5 text-xs font-bold text-league-muted">
+              {typeof item.likeCount === "number" ? <span>いいね {item.likeCount}</span> : null}
+              {typeof item.commentCount === "number" ? <span>コメント {item.commentCount}</span> : null}
+              <span>詳細を見る →</span>
+            </div>
+          </Link>
         </div>
       </div>
-
-      <Link href={item.href} className="mt-5 block rounded-[1.25rem] border border-white/10 bg-black/20 p-5 transition hover:border-amber-300/35">
-        <div className="flex flex-wrap items-center gap-2">
-          {item.topic ? <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatDiscussionType(item.topic.type)}</span> : null}
-          {item.topic?.category ? <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(item.topic.category)}</span> : null}
-          {item.meta ? <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{item.meta}</span> : null}
-        </div>
-        <h2 className="mt-3 text-xl font-black leading-snug text-white">{item.topic?.title ?? style.label}</h2>
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-league-silver">{createPreview(item.content, 220)}</p>
-        <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold text-league-muted">
-          {typeof item.likeCount === "number" ? <span>いいね {item.likeCount}</span> : null}
-          {typeof item.commentCount === "number" ? <span>コメント {item.commentCount}</span> : null}
-          <span>詳細を見る →</span>
-        </div>
-      </Link>
-    </Card>
+    </article>
   );
 }
 
@@ -303,19 +273,19 @@ export default async function TimelinePage() {
     .slice(0, 48);
 
   return (
-    <PageShell>
-      <HeroPanel eyebrow="公開タイムライン" title="知的な議論が今まさに動いている場所" actions={<>
-        <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">議論に参加する</Link>
-        <Link href="/login" className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-white transition hover:border-amber-300/30">ログインする</Link>
-      </>}>
-        回答、反論、補足、コメント、入賞、実績、Rank昇格が一つの活動フィードとして流れます。閲覧は誰でも可能、参加アクションにはログインが必要です。
-      </HeroPanel>
+    <PageShell className="max-w-2xl pb-28">
+      <header className="sticky top-0 z-10 -mx-4 border-b border-white/10 bg-league-black/85 px-4 py-3 backdrop-blur sm:-mx-5 sm:px-5">
+        <h1 className="text-xl font-black text-white">タイムライン</h1>
+      </header>
 
-      <section className="mt-8 space-y-5">
+      <section className="-mx-4 border-x border-white/10 sm:-mx-5">
         {items.map((item) => <ActivityCard key={item.id} item={item} />)}
+        {items.length === 0 ? <TimelineEmptyState /> : null}
       </section>
 
-      {items.length === 0 ? <TimelineWelcomeEmptyState /> : null}
+      <Link href="/topics" className="fixed bottom-5 right-5 z-30 rounded-full bg-league-gold px-5 py-4 text-sm font-black text-league-black shadow-[0_14px_45px_rgba(215,180,106,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-100 sm:bottom-7 sm:right-7">
+        議論を探す
+      </Link>
     </PageShell>
   );
 }
