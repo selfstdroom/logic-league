@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
+import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 
 const navItems = [
-  { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "🏠" },
-  { href: "/timeline", label: "タイムライン", shortLabel: "タイムライン", icon: "📰" },
-  { href: "/search", label: "検索", shortLabel: "検索", icon: "🔍" },
+  { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "home" as LeagueIconName },
+  { href: "/timeline", label: "タイムライン", shortLabel: "タイムライン", icon: "timeline" as LeagueIconName },
+  { href: "/search", label: "検索", shortLabel: "検索", icon: "search" as LeagueIconName },
 ];
 
 function myPageItem(href: string) {
-  return { href, label: "マイページ", shortLabel: "マイページ", icon: "👤" };
+  return { href, label: "マイページ", shortLabel: "マイページ", icon: "profile" as LeagueIconName };
 }
 
 export async function Header() {
@@ -37,7 +38,7 @@ export async function Header() {
           </Link>
           <nav className="hidden items-center gap-1 text-sm text-league-silver md:flex md:justify-end">
             {primaryNavItems.map((item) => (
-              <Link key={item.label} className="rounded-full px-2.5 py-2 transition hover:bg-white/10 hover:text-white lg:px-3" href={item.href}>{item.label}</Link>
+              <Link key={item.label} className="inline-flex items-center gap-2 rounded-full px-2.5 py-2 transition hover:bg-white/10 hover:text-white lg:px-3" href={item.href}><LeagueIcon name={item.icon} size={17} className="text-league-gold/80" />{item.label}</Link>
             ))}
             <form action="/search" className="hidden items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 lg:flex">
               <input name="q" aria-label="検索" placeholder="検索" className="w-24 bg-transparent text-xs font-bold text-white outline-none placeholder:text-league-muted xl:w-36" />
@@ -53,7 +54,7 @@ export async function Header() {
       <nav className="fixed inset-x-3 bottom-3 z-50 flex overflow-x-auto rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
         {primaryNavItems.map((item) => (
           <Link key={item.label} href={item.href} className="flex min-w-16 flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
-            <span className="text-[0.7rem] text-league-gold/80">{item.icon}</span>
+            <LeagueIcon name={item.icon} size={19} className="text-league-gold/80" />
             <span className="mt-0.5">{item.shortLabel}</span>
           </Link>
         ))}

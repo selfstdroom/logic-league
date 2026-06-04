@@ -46,7 +46,7 @@ export default async function TopicsPage() {
         {rest.map((topic) => <TopicCard key={topic.id} topic={topic} />)}
       </div>
 
-      {!error && topicList.length === 0 ? <EmptyState title="公開中の議論はまだありません。">公開中の議論はまだありません。</EmptyState> : null}
+      {!error && topicList.length === 0 ? <EmptyState kind="discussions" title="公開中の議論はまだありません。">公開中の議論はまだありません。</EmptyState> : null}
     </PageShell>
   );
 }

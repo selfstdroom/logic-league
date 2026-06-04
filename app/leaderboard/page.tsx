@@ -29,21 +29,21 @@ export default async function LeaderboardPage() {
       <section className="mt-10">
         <SectionHeader eyebrow="Global" title="総合Leaderboard" />
         <Card className="overflow-hidden p-0">
-          <div className="grid grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted">
+          <div className="hidden grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:grid">
             <span>順位</span><span>ユーザー</span><span>Rank</span><span>Rating</span><span>勝利数</span>
           </div>
           {((profiles ?? []) as LeaderProfile[]).map((profile, index) => {
             const topThreeClass = index === 0 ? "border-amber-300/35 bg-amber-300/10" : index === 1 ? "border-slate-200/25 bg-white/[0.07]" : index === 2 ? "border-orange-300/25 bg-orange-400/10" : "";
             return (
-            <div key={profile.id} className={`grid grid-cols-[4rem_1.5fr_1fr_1fr_1fr] items-center gap-3 border-b border-white/10 px-5 py-4 last:border-b-0 ${topThreeClass}`}>
+            <div key={profile.id} className={`grid grid-cols-[3rem_1fr] items-center gap-3 border-b border-white/10 px-4 py-4 last:border-b-0 md:grid-cols-[4rem_1.5fr_1fr_1fr_1fr] md:px-5 ${topThreeClass}`}>
               <span className="text-2xl font-black text-league-gold">#{index + 1}</span>
               <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
                 <span className="block truncate">{profile.display_name ?? profile.username}</span>
                 <span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span>
               </Link>
-              <RankBadge rank={profile.rank} size="xs" showLabel />
-              <span className="font-black text-white">{profile.rating}</span>
-              <span className="font-black text-white">{winCounts.get(profile.id) ?? 0}</span>
+              <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:col-span-1 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="xs" showLabel /></div>
+              <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rating</span>{profile.rating}</span>
+              <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">勝利数</span>{winCounts.get(profile.id) ?? 0}</span>
               <div className="col-span-full md:col-start-2 md:col-span-4">
                 <RankProgress rating={profile.rating} compact />
               </div>

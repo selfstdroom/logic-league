@@ -106,8 +106,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </form>
       </HeroPanel>
 
-      {!query ? <EmptyState title="検索語を入力してください。">ヘッダーの検索バーから、知的資産をすばやく横断検索できます。</EmptyState> : null}
-      {query && totalResults === 0 ? <EmptyState title="検索結果が見つかりませんでした">別のキーワードや短い語句で試してください。</EmptyState> : null}
+      {!query ? <EmptyState kind="search" title="検索語を入力してください。">ヘッダーの検索バーから、知的資産をすばやく横断検索できます。</EmptyState> : null}
+      {query && totalResults === 0 ? <EmptyState kind="search" title="検索結果が見つかりませんでした">別のキーワードや短い語句で試してください。</EmptyState> : null}
 
       {query ? (
         <div className="mt-10 space-y-10">

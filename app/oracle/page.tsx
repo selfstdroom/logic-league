@@ -46,7 +46,7 @@ export default async function OraclePage() {
             </Card>
           ))}
         </div>
-        {(profiles ?? []).length === 0 ? <EmptyState title="Oracleはまだいません。">最初のOracle到達者は、ここに特別な存在として表示されます。</EmptyState> : null}
+        {(profiles ?? []).length === 0 ? <EmptyState kind="achievements" title="Oracleはまだいません。">最初のOracle到達者は、ここに特別な存在として表示されます。</EmptyState> : null}
       </section>
     </PageShell>
   );

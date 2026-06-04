@@ -16,17 +16,17 @@ export function PremiumCard({ children, className = "" }: { children: ReactNode;
 }
 
 export function PageShell({ children, className = "max-w-6xl" }: { children: ReactNode; className?: string }) {
-  return <main className={`mx-auto px-5 py-8 sm:px-6 lg:py-12 ${className}`}>{children}</main>;
+  return <main className={`mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:py-12 ${className}`}>{children}</main>;
 }
 
 export function HeroPanel({ eyebrow, title, children, actions, className = "" }: { eyebrow: string; title: ReactNode; children?: ReactNode; actions?: ReactNode; className?: string }) {
   return (
-    <section className={`relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.075),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10 ${className}`}>
+    <section className={`relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.075),rgba(8,13,26,0.78))] p-5 shadow-2xl sm:p-8 lg:p-10 ${className}`}>
       <div className="pointer-events-none absolute -right-14 -top-16 h-64 w-64 rounded-full bg-amber-300/12 blur-3xl" />
       <div className="pointer-events-none absolute left-8 top-0 h-px w-2/3 bg-gradient-to-r from-amber-200/80 via-white/20 to-transparent" />
       <div className="relative">
         <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">{eyebrow}</p>
-        <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight text-white sm:text-6xl">{title}</h1>
+        <h1 className="mt-4 max-w-4xl text-3xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">{title}</h1>
         {children ? <div className="mt-5 max-w-3xl text-base leading-7 text-league-silver">{children}</div> : null}
         {actions ? <div className="mt-7 flex flex-wrap gap-3">{actions}</div> : null}
       </div>
@@ -39,7 +39,7 @@ export function SectionHeader({ eyebrow, title, children, action }: { eyebrow: s
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">{eyebrow}</p>
-        <h2 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">{title}</h2>
+        <h2 className="mt-2 text-2xl font-black leading-tight text-white sm:text-4xl">{title}</h2>
         {children ? <div className="mt-3 max-w-2xl text-sm leading-6 text-league-silver">{children}</div> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

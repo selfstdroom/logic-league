@@ -166,7 +166,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           ))}
         </div>
 
-        {answerViews.length === 0 ? <EmptyState title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
+        {answerViews.length === 0 ? <EmptyState kind="discussions" title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
       </section>
 
       <section className="mt-10">

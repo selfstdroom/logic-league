@@ -120,7 +120,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
             );
           })}
         </div>
-        {topAnswers.length === 0 ? <EmptyState title="上位回答はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
+        {topAnswers.length === 0 ? <EmptyState kind="discussions" title="上位回答はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
       </section>
 
       <section className="mt-10 space-y-4">
@@ -163,7 +163,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
           );
         })}
       </section>
-      {rows.length === 0 ? <EmptyState title="結果はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
+      {rows.length === 0 ? <EmptyState kind="discussions" title="結果はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
       <Link href={`/weekly/${topic.id}`} className="mt-8 inline-block text-sm font-bold text-league-gold hover:text-white">← 議論に戻る</Link>
     </main>
   );

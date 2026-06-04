@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnswerHistory, type AnswerHistoryItem } from "@/components/profile/AnswerHistory";
+import { AchievementBadge } from "@/components/ui/AchievementBadge";
 import { achievementDefinitions } from "@/lib/achievements";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
@@ -232,7 +233,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
               </Link>
             ) : null)}
           </div>
-          {historyItems.filter((item) => item.kind === "topic").length === 0 ? <EmptyState title="まだ投稿はありません。">回答が投稿されると、ここにアクティビティが表示されます。</EmptyState> : null}
+          {historyItems.filter((item) => item.kind === "topic").length === 0 ? <EmptyState kind="timeline" title="まだ投稿はありません。">回答が投稿されると、ここにアクティビティが表示されます。</EmptyState> : null}
         </Card>
       </section>
 
@@ -245,7 +246,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
             {profileAchievements.slice(0, 8).map((achievement) => (
               <div key={achievement.key} className={`rounded-2xl border p-4 ${achievement.earned ? "border-amber-300/25 bg-amber-300/10" : "border-white/10 bg-white/[0.035] opacity-70 grayscale"}`}>
                 <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/25 text-sm font-black text-league-gold">{achievement.earned ? achievement.badgeIcon : "🔒"}</span>
+                  <AchievementBadge label={achievement.badgeIcon} unlocked={achievement.earned} size="sm" />
                   <span>
                     <span className="block font-black text-white">{achievement.title}</span>
                     <span className="mt-1 block text-xs leading-5 text-league-muted">{achievement.description}</span>
@@ -277,7 +278,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
               );
             })}
           </div>
-          {(ratingHistories ?? []).length === 0 ? <EmptyState title="Rating変動はまだありません。">競技議論完了後にRating変動が保存されます。</EmptyState> : null}
+          {(ratingHistories ?? []).length === 0 ? <EmptyState kind="timeline" title="Rating変動はまだありません。">競技議論完了後にRating変動が保存されます。</EmptyState> : null}
         </Card>
       </section>
 
