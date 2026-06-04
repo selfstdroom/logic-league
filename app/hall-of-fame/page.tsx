@@ -42,26 +42,34 @@ export default async function HallOfFamePage() {
             const answer = first(row.topic_answers);
             return (
               <Link key={row.id} href={`/hall-of-fame/${row.id}`} className="block">
-                <Card className="h-full border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.12),rgba(255,255,255,0.04))] transition hover:-translate-y-1 hover:border-amber-300/45">
-                  <p className="text-xs font-black uppercase tracking-[0.26em] text-league-gold">Week · {formatDateTime(topic?.publish_at ?? row.created_at)}</p>
-                  <h2 className="mt-3 text-2xl font-black text-white">{topic?.title ?? "Weekly League"}</h2>
-                  <div className="mt-5 flex items-center gap-3">
-                    <RankBadge rank={profile?.rank} size="sm" />
-                    <div><p className="font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</p><p className="text-sm text-league-muted">@{profile?.username ?? "unknown"}</p></div>
-                    <p className="ml-auto text-2xl font-black text-league-gold">{row.final_score ?? "—"}</p>
+                <Card className="h-full border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(255,215,128,0.18),transparent_34%),linear-gradient(145deg,rgba(215,180,106,0.16),rgba(255,255,255,0.045))] p-0 transition hover:-translate-y-1 hover:border-amber-300/55">
+                  <div className="relative overflow-hidden p-5 sm:p-6">
+                    <div className="pointer-events-none absolute right-5 top-5 rounded-full border border-amber-200/25 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.24em] text-amber-100/70">Champion</div>
+                    <p className="text-xs font-black uppercase tracking-[0.26em] text-league-gold">Week · {formatDateTime(topic?.publish_at ?? row.created_at)}</p>
+                    <h2 className="mt-3 pr-20 text-2xl font-black text-white sm:text-3xl">{topic?.title ?? "Weekly League"}</h2>
+                    <div className="mt-6 rounded-[1.5rem] border border-amber-300/25 bg-black/25 p-4">
+                      <div className="flex items-center gap-3">
+                        <RankBadge rank={profile?.rank} size="md" />
+                        <div className="min-w-0"><p className="truncate text-lg font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</p><p className="text-sm text-league-muted">@{profile?.username ?? "unknown"}</p></div>
+                        <div className="ml-auto text-right"><p className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-league-muted">Final</p><p className="text-3xl font-black text-league-gold">{row.final_score ?? "—"}</p></div>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid grid-cols-3 gap-3 text-center text-sm">
+                      <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3"><p className="font-black text-white">{row.final_score ?? "—"}</p><p className="text-xs text-league-muted">Final Score</p></div>
+                      <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.ai_total_score ?? "—"}</p><p className="text-xs text-league-muted">AI Score</p></div>
+                      <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.vote_count ?? 0}</p><p className="text-xs text-league-muted">得票</p></div>
+                    </div>
+                    <div className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4">
+                      <p className="text-[0.62rem] font-black uppercase tracking-[0.24em] text-league-gold">Winning Answer Preview</p>
+                      <p className="mt-2 text-sm leading-7 text-league-silver">{createPreview(answer?.content ?? "", 180)}</p>
+                    </div>
                   </div>
-                  <div className="mt-5 grid grid-cols-3 gap-3 text-center text-sm">
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.final_score ?? "—"}</p><p className="text-xs text-league-muted">Final Score</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.ai_total_score ?? "—"}</p><p className="text-xs text-league-muted">AI Score</p></div>
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.vote_count ?? 0}</p><p className="text-xs text-league-muted">得票</p></div>
-                  </div>
-                  <p className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm leading-7 text-league-silver">{createPreview(answer?.content ?? "", 180)}</p>
                 </Card>
               </Link>
             );
           })}
         </div>
-        {rows.length === 0 ? <EmptyState title="Hall of Fameはまだありません。">完了したWeekly Leagueの勝者がここに保存されます。</EmptyState> : null}
+        {rows.length === 0 ? <EmptyState kind="achievements" title="Hall of Fameはまだありません。">完了したWeekly Leagueの勝者がここに保存されます。</EmptyState> : null}
       </section>
     </PageShell>
   );

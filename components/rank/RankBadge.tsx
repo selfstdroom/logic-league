@@ -1,11 +1,13 @@
+import { useId } from "react";
 import type { RankName } from "@/types/logic-league";
 
-const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolean; points: string; label: string; rim: string; core: string; accent: string }> = {
+const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolean; points: string; label: string; rim: string; core: string; accent: string; mark: string }> = {
   Visitor: {
     metal: "from-slate-700 via-slate-400 to-slate-900",
     glow: "shadow-slate-400/20",
     points: "42,6 76,18 86,52 64,86 22,86 0,52 10,18",
     label: "Visitor",
+    mark: "V",
     rim: "#94a3b8",
     core: "#1e293b",
     accent: "#cbd5e1",
@@ -15,6 +17,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     glow: "shadow-orange-400/25",
     points: "42,5 73,17 84,48 61,84 25,84 2,48 13,17",
     label: "Challenger",
+    mark: "C",
     rim: "#b45309",
     core: "#431407",
     accent: "#f59e0b",
@@ -24,6 +27,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     glow: "shadow-white/20",
     points: "42,4 76,18 84,52 61,86 23,86 0,52 8,18",
     label: "Analyst",
+    mark: "A",
     rim: "#e5e7eb",
     core: "#27272a",
     accent: "#f8fafc",
@@ -33,6 +37,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     glow: "shadow-blue-300/25",
     points: "42,3 79,17 88,50 64,88 22,88 -4,50 5,17",
     label: "Strategist",
+    mark: "S",
     rim: "#93c5fd",
     core: "#0f172a",
     accent: "#60a5fa",
@@ -42,6 +47,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     glow: "shadow-cyan-100/25",
     points: "42,2 80,16 90,49 67,90 19,90 -6,49 4,16",
     label: "Architect",
+    mark: "AR",
     rim: "#f8fafc",
     core: "#164e63",
     accent: "#bae6fd",
@@ -51,6 +57,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     glow: "shadow-amber-300/30",
     points: "42,1 82,15 92,48 68,91 18,91 -8,48 2,15",
     label: "Mastermind",
+    mark: "M",
     rim: "#fde68a",
     core: "#422006",
     accent: "#d7b46a",
@@ -61,6 +68,7 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     crown: true,
     points: "42,0 83,14 94,48 70,92 16,92 -10,48 1,14",
     label: "Oracle",
+    mark: "O",
     rim: "#fef3c7",
     core: "#451a03",
     accent: "#facc15",
@@ -90,7 +98,7 @@ const sizes = {
 export function RankBadge({ rank, size = "md", showLabel = false, labelPlacement = "side", className = "" }: RankBadgeProps) {
   const safeRank = normalizeRank(rank);
   const theme = rankThemes[safeRank];
-  const id = `rank-${safeRank.toLowerCase()}`;
+  const id = `${useId().replace(/:/g, "")}-rank-${safeRank.toLowerCase()}`;
   const sizeClasses = sizes[size];
 
   const isBottomLabel = labelPlacement === "bottom";
@@ -112,11 +120,13 @@ export function RankBadge({ rank, size = "md", showLabel = false, labelPlacement
               <stop offset="100%" stopColor={theme.core} stopOpacity="0.96" />
             </radialGradient>
           </defs>
+          <path d="M-2 80 C9 95 27 101 42 101 C57 101 75 95 86 80" fill="none" stroke={theme.rim} strokeOpacity="0.35" strokeWidth="3" strokeLinecap="round" />
           {theme.crown ? <path d="M14 10 L28 -5 L42 12 L56 -5 L70 10 L66 25 L18 25 Z" fill="#d7b46a" stroke="#fff4c4" strokeWidth="2" /> : null}
-          <polygon points={theme.points} fill={`url(#${id}-core)`} stroke={theme.rim} strokeOpacity="0.75" strokeWidth="2" />
+          <polygon points={theme.points} fill={`url(#${id}-core)`} stroke={`url(#${id}-metal)`} strokeOpacity="0.95" strokeWidth="3" />
           <polygon points="42,14 68,25 75,50 58,76 26,76 9,50 16,25" fill="none" stroke={theme.accent} strokeOpacity="0.9" strokeWidth="2" />
-          <path d="M24 52 L42 24 L60 52 L42 67 Z" fill="none" stroke="#f8fafc" strokeOpacity="0.72" strokeWidth="3" strokeLinejoin="round" />
-          <circle cx="42" cy="51" r="7" fill={theme.accent} stroke="#fff8dc" strokeWidth="2" />
+          <path d="M18 34 H66 M19 60 H65" stroke="#f8fafc" strokeOpacity="0.22" strokeWidth="2" strokeLinecap="round" />
+          <path d="M25 52 L42 24 L59 52 L42 69 Z" fill="rgba(5,7,13,0.32)" stroke="#f8fafc" strokeOpacity="0.72" strokeWidth="3" strokeLinejoin="round" />
+          <text x="42" y="56" textAnchor="middle" className="fill-white text-[17px] font-black tracking-widest" style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>{theme.mark}</text>
           <path d="M21 83 H63" stroke="#f8fafc" strokeOpacity="0.55" strokeWidth="3" strokeLinecap="round" />
         </svg>
         <div className={`absolute inset-2 rounded-full bg-gradient-to-br ${theme.metal} opacity-20 blur-xl ${theme.glow}`} />

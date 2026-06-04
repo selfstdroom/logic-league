@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -51,16 +52,16 @@ type TimelineItem = {
   meta?: string;
 };
 
-const activityStyles: Record<ActivityType, { label: string; tone: string; icon: string }> = {
-  ANSWER: { label: "回答しました", tone: "border-sky-300/30 bg-sky-300/10 text-sky-200", icon: "✍️" },
-  COUNTER: { label: "反論しました", tone: "border-red-300/30 bg-red-300/10 text-red-200", icon: "⚔️" },
-  SUPPORT: { label: "賛成・補足しました", tone: "border-emerald-300/30 bg-emerald-300/10 text-emerald-200", icon: "🤝" },
-  QUESTION: { label: "質問しました", tone: "border-purple-300/30 bg-purple-300/10 text-purple-200", icon: "❓" },
-  COMMENT: { label: "コメントしました", tone: "border-white/15 bg-white/[0.06] text-league-silver", icon: "💬" },
-  RANK_UP: { label: "Rankが昇格しました", tone: "border-amber-300/30 bg-amber-300/10 text-league-gold", icon: "⬆️" },
-  ACHIEVEMENT: { label: "実績を獲得しました", tone: "border-amber-300/30 bg-amber-300/10 text-league-gold", icon: "🏅" },
-  HALL_OF_FAME: { label: "Hall of Fame入りしました", tone: "border-yellow-300/30 bg-yellow-300/10 text-yellow-100", icon: "🏛️" },
-  WEEKLY_WIN: { label: "Weekly Leagueで入賞しました", tone: "border-orange-300/30 bg-orange-300/10 text-orange-100", icon: "🏆" },
+const activityStyles: Record<ActivityType, { label: string; tone: string; icon: LeagueIconName }> = {
+  ANSWER: { label: "回答しました", tone: "border-sky-300/30 bg-sky-300/10 text-sky-200", icon: "answer" },
+  COUNTER: { label: "反論しました", tone: "border-red-300/30 bg-red-300/10 text-red-200", icon: "counter" },
+  SUPPORT: { label: "賛成・補足しました", tone: "border-emerald-300/30 bg-emerald-300/10 text-emerald-200", icon: "support" },
+  QUESTION: { label: "質問しました", tone: "border-purple-300/30 bg-purple-300/10 text-purple-200", icon: "question" },
+  COMMENT: { label: "コメントしました", tone: "border-white/15 bg-white/[0.06] text-league-silver", icon: "comment" },
+  RANK_UP: { label: "Rankが昇格しました", tone: "border-amber-300/30 bg-amber-300/10 text-league-gold", icon: "rankUp" },
+  ACHIEVEMENT: { label: "実績を獲得しました", tone: "border-amber-300/30 bg-amber-300/10 text-league-gold", icon: "achievements" },
+  HALL_OF_FAME: { label: "Hall of Fame入りしました", tone: "border-yellow-300/30 bg-yellow-300/10 text-yellow-100", icon: "hallOfFame" },
+  WEEKLY_WIN: { label: "Weekly Leagueで入賞しました", tone: "border-orange-300/30 bg-orange-300/10 text-orange-100", icon: "weeklyLeague" },
 };
 
 function first<T>(value: T | T[] | null | undefined) {
@@ -110,7 +111,7 @@ function ActivityCard({ item }: { item: TimelineItem }) {
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-league-silver">
-          <span className={`rounded-full border px-3 py-1 ${style.tone}`}>{style.icon} {style.label}</span>
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 ${style.tone}`}><LeagueIcon name={style.icon} size={14} />{style.label}</span>
           <time className="rounded-full border border-white/10 px-3 py-1">{formatDateTime(item.createdAt)}</time>
         </div>
       </div>
@@ -274,7 +275,7 @@ export default async function TimelinePage() {
         {items.map((item) => <ActivityCard key={item.id} item={item} />)}
       </section>
 
-      {items.length === 0 ? <EmptyState title="まだタイムラインはありません。">回答やコメントが投稿されると、ここに公開タイムラインとして表示されます。</EmptyState> : null}
+      {items.length === 0 ? <EmptyState kind="timeline" title="まだタイムラインはありません。">回答やコメントが投稿されると、ここに公開タイムラインとして表示されます。</EmptyState> : null}
     </PageShell>
   );
 }

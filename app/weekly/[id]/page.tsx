@@ -123,7 +123,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
               </Card>
             ))}
           </div>
-          {(answers ?? []).length === 0 ? <EmptyState title="公開された投稿はまだありません。">投稿が集まると、ここに表示されます。</EmptyState> : null}
+          {(answers ?? []).length === 0 ? <EmptyState kind="discussions" title="公開された投稿はまだありません。">投稿が集まると、ここに表示されます。</EmptyState> : null}
         </section>
       ) : null}
 

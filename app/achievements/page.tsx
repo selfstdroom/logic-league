@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AchievementBadge } from "@/components/ui/AchievementBadge";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { achievementDefinitions, ensureAchievementsSeeded } from "@/lib/achievements";
@@ -55,7 +56,7 @@ export default async function AchievementsPage() {
                   return (
                     <Card key={achievement.key} className={isEarned ? "border-amber-300/25" : "opacity-75 grayscale"}>
                       <div className="flex items-start gap-4">
-                        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-lg font-black ${isEarned ? "border-amber-300/35 bg-amber-300/15 text-league-gold shadow-glow" : "border-white/10 bg-white/[0.04] text-league-muted"}`}>{isEarned ? achievement.badgeIcon : "🔒"}</div>
+                        <AchievementBadge label={achievement.badgeIcon} unlocked={isEarned} />
                         <div>
                           <p className="font-black text-white">{achievement.title}</p>
                           <p className="mt-2 text-sm leading-6 text-league-silver">{achievement.description}</p>

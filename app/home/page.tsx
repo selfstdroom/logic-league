@@ -262,7 +262,7 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-3">コメント {todaysTopic.commentCount}</div>
               </div>
             </div>
-          ) : <EmptyState title="公開中の議論はまだありません。">公開中の議論がない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
+          ) : <EmptyState kind="discussions" title="公開中の議論はまだありません。">公開中の議論がない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
         </div>
 
         <Card className="p-4 sm:p-6">
@@ -337,7 +337,7 @@ export default async function HomePage() {
             );
           })}
         </div>
-        {feedAnswers.length === 0 ? <EmptyState title="まだ投稿はありません。">最初の回答が投稿されると、ここにリーグの議論が流れます。</EmptyState> : null}
+        {feedAnswers.length === 0 ? <EmptyState kind="timeline" title="まだ投稿はありません。">最初の回答が投稿されると、ここにリーグの議論が流れます。</EmptyState> : null}
       </section>
     </main>
   );

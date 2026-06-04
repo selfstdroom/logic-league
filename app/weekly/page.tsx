@@ -72,7 +72,7 @@ export default async function WeeklyPage() {
               <div className="grid gap-5 lg:grid-cols-2">
                 {groupTopics.map((topic) => <WeeklyTopicCard key={topic.id} topic={topic} />)}
               </div>
-              {groupTopics.length === 0 ? <EmptyState title="この区分の議論はまだありません。">競技議論が予定されると、ここに表示されます。</EmptyState> : null}
+              {groupTopics.length === 0 ? <EmptyState kind="discussions" title="この区分の議論はまだありません。">競技議論が予定されると、ここに表示されます。</EmptyState> : null}
             </section>
           );
         })}
