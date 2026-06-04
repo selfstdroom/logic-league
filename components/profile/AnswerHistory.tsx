@@ -53,7 +53,7 @@ const sortOptions: { value: SortKey; label: string }[] = [
 const filterOptions: { value: FilterKey; label: string }[] = [
   { value: "all", label: "すべて" },
   { value: "exam", label: "認定試験" },
-  { value: "topic", label: "Topics" },
+  { value: "topic", label: "議論" },
   { value: "Answer", label: "回答" },
   { value: "Counter", label: "反論" },
   { value: "Support", label: "賛成・補足" },
@@ -128,7 +128,7 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
         <div>
           <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">思考アーカイブ</p>
           <h2 className="mt-2 text-3xl font-black">思考ログ</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-league-silver">認定試験、Daily Topics、Weekly Leagueへの回答を時系列で確認できます。スコアや回答タイプで絞り込み、思考の変化を追跡できます。</p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-league-silver">認定試験、Dailyの議論、競技議論への回答を時系列で確認できます。スコアや回答タイプで絞り込み、思考の変化を追跡できます。</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[28rem]">
           <label className="text-xs font-bold text-league-muted">
@@ -196,14 +196,14 @@ export function AnswerHistory({ items, isOwnProfile }: { items: AnswerHistoryIte
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black tracking-[0.18em] text-league-gold">{item.topicType === "weekly" ? "Weekly League" : "Daily Topic"}</span>
+                    <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black tracking-[0.18em] text-league-gold">{item.topicType === "weekly" ? "Competitive" : "Daily"}</span>
                     <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(item.category)}</span>
                     <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatAnswerType(item.answer_type)}</span>
                   </div>
                   <h3 className="mt-4 text-xl font-black leading-snug text-white">{item.title}</h3>
                   <p className="mt-2 text-xs text-league-muted">{formatDateTime(item.created_at)}</p>
                 </div>
-                <Link href={item.topicType === "weekly" ? `/weekly/${item.topic_id}` : `/topics/${item.topic_id}`} className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/40 hover:text-league-gold">Topicを見る</Link>
+                <Link href={item.topicType === "weekly" ? `/weekly/${item.topic_id}` : `/topics/${item.topic_id}`} className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/40 hover:text-league-gold">議論を見る</Link>
               </div>
               <p className="mt-5 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/25 p-4 text-sm leading-7 text-league-silver">
                 {expanded ? item.content : createPreview(item.content, 220)}

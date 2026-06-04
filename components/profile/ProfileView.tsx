@@ -130,8 +130,8 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
         created_at: answer.created_at,
         answer_type: answer.answer_type,
         content: answer.content,
-        category: topic?.category ?? "Topic",
-        title: topic?.title ?? "Topic",
+        category: topic?.category ?? "議論",
+        title: topic?.title ?? "議論",
         topicType: topic?.type ?? "daily",
         likeCount: likeCounts.get(answer.id) ?? 0,
         commentCount: commentCounts.get(answer.id) ?? 0,
@@ -239,7 +239,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <SectionHeader eyebrow="実績" title="獲得バッジ" action={<Link href="/achievements" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">すべて見る</Link>}>
-            獲得済みと未獲得の実績を表示します。次の目標を確認しながら、回答・コメント・Weekly Leagueへの参加を積み上げられます。
+            獲得済みと未獲得の実績を表示します。次の目標を確認しながら、回答・コメント・競技議論への参加を積み上げられます。
           </SectionHeader>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {profileAchievements.slice(0, 8).map((achievement) => (
@@ -269,7 +269,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
               return (
                 <div key={`${history.created_at}-${index}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="min-w-0 truncate text-sm font-bold text-white">{topic?.title ?? "Weekly League"}</p>
+                    <p className="min-w-0 truncate text-sm font-bold text-white">{topic?.title ?? "競技議論"}</p>
                     <span className="rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200">+{history.delta ?? 0}</span>
                   </div>
                   <p className="mt-2 text-xs text-league-muted">{history.old_rating ?? 0} → {history.new_rating ?? 0} · {formatDateTime(history.created_at)}</p>
@@ -277,7 +277,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
               );
             })}
           </div>
-          {(ratingHistories ?? []).length === 0 ? <EmptyState title="Rating変動はまだありません。">Weekly League完了後にold rating / new rating / delta / topicが保存されます。</EmptyState> : null}
+          {(ratingHistories ?? []).length === 0 ? <EmptyState title="Rating変動はまだありません。">競技議論完了後にRating変動が保存されます。</EmptyState> : null}
         </Card>
       </section>
 

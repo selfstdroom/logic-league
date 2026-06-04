@@ -33,6 +33,17 @@ export function formatAnswerType(value: string | null | undefined) {
   }
 }
 
+export function formatDiscussionType(value: string | null | undefined) {
+  switch (value) {
+    case "weekly":
+      return "Competitive";
+    case "special":
+      return "Special";
+    default:
+      return "Daily";
+  }
+}
+
 export function formatTopicCategory(value: string | null | undefined) {
   switch (value) {
     case "AI":
@@ -48,6 +59,6 @@ export function formatTopicCategory(value: string | null | undefined) {
     case "Science":
       return "科学";
     default:
-      return value ?? "Topic";
+      return value ?? "議論";
   }
 }

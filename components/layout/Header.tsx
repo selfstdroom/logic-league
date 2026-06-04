@@ -3,17 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 
 const navItems = [
-  { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "◆" },
-  { href: "/topics", label: "Topics", shortLabel: "Topics", icon: "◇" },
-  { href: "/timeline", label: "Timeline", shortLabel: "Time", icon: "✦" },
-  { href: "/weekly", label: "Weekly League", shortLabel: "Weekly", icon: "◈" },
-  { href: "/leaderboard", label: "Leaderboard", shortLabel: "Rank", icon: "#" },
-  { href: "/hall-of-fame", label: "Hall of Fame", shortLabel: "Fame", icon: "★" },
-  { href: "/search", label: "検索", shortLabel: "検索", icon: "⌕" },
-  { href: "/achievements", label: "実績", shortLabel: "実績", icon: "🏅" },
-  { href: "/ranks", label: "Ranks", shortLabel: "Ranks", icon: "⬡" },
-  { href: "/exam", label: "認定試験", shortLabel: "試験", icon: "△" },
+  { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "🏠" },
+  { href: "/timeline", label: "タイムライン", shortLabel: "タイムライン", icon: "📰" },
+  { href: "/search", label: "検索", shortLabel: "検索", icon: "🔍" },
 ];
+
+function myPageItem(href: string) {
+  return { href, label: "マイページ", shortLabel: "マイページ", icon: "👤" };
+}
 
 export async function Header() {
   const data = { user: null as { id: string; email?: string | null } | null, username: null as string | null };
@@ -28,6 +25,7 @@ export async function Header() {
   }
 
   const profileHref = data.username ? `/profile/${data.username}` : "/profile";
+  const primaryNavItems = [...navItems, myPageItem(profileHref)];
 
   return (
     <>
@@ -38,7 +36,7 @@ export async function Header() {
             <span className="truncate transition group-hover:text-white">LOGIC LEAGUE</span>
           </Link>
           <nav className="hidden items-center gap-1 text-sm text-league-silver md:flex md:justify-end">
-            {navItems.map((item) => (
+            {primaryNavItems.map((item) => (
               <Link key={item.label} className="rounded-full px-2.5 py-2 transition hover:bg-white/10 hover:text-white lg:px-3" href={item.href}>{item.label}</Link>
             ))}
             <form action="/search" className="hidden items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 lg:flex">
@@ -53,7 +51,7 @@ export async function Header() {
         </div>
       </header>
       <nav className="fixed inset-x-3 bottom-3 z-50 flex overflow-x-auto rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
-        {navItems.map((item) => (
+        {primaryNavItems.map((item) => (
           <Link key={item.label} href={item.href} className="flex min-w-16 flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
             <span className="text-[0.7rem] text-league-gold/80">{item.icon}</span>
             <span className="mt-0.5">{item.shortLabel}</span>

@@ -40,10 +40,10 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
     return (
       <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
         <Card className="border-red-300/20 bg-red-950/20">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">Weekly League結果</p>
-          <h1 className="mt-3 text-4xl font-black">Weekly LeagueのTopicが見つかりません。</h1>
-          <p className="mt-4 text-league-silver">指定されたTopicは存在しないか、公開されていません。</p>
-          <ButtonLink href="/weekly" className="mt-6">Weekly Leagueに戻る</ButtonLink>
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">競技議論結果</p>
+          <h1 className="mt-3 text-4xl font-black">競技議論が見つかりません。</h1>
+          <p className="mt-4 text-league-silver">指定された議論は存在しないか、公開されていません。</p>
+          <ButtonLink href="/weekly" className="mt-6">競技議論に戻る</ButtonLink>
         </Card>
       </main>
     );
@@ -56,7 +56,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
           <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">結果は未公開</p>
           <h1 className="mt-3 text-4xl font-black">結果は投票終了後に公開されます。</h1>
           <p className="mt-4 text-league-silver">投票締切: {formatDateTime(topic.vote_deadline_at)}</p>
-          <Link href={`/weekly/${topic.id}`} className="mt-6 inline-block text-sm font-bold text-league-gold hover:text-white">← Topicに戻る</Link>
+          <Link href={`/weekly/${topic.id}`} className="mt-6 inline-block text-sm font-bold text-league-gold hover:text-white">← 議論に戻る</Link>
         </Card>
       </main>
     );
@@ -85,7 +85,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
       <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
-        <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Weekly League結果</p>
+        <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">競技議論結果</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
         <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。結果確定後、順位に応じてRatingが加算され、RankとHall of Fameが更新されます。</p>
       </div>
@@ -96,7 +96,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
             <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Top Answers</p>
             <h2 className="mt-2 text-3xl font-black">上位回答</h2>
           </div>
-          <ButtonLink href={`/weekly/${topic.id}`} className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">Topicに戻る</ButtonLink>
+          <ButtonLink href={`/weekly/${topic.id}`} className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">議論に戻る</ButtonLink>
         </div>
         <div className="grid gap-5 lg:grid-cols-3">
           {topAnswers.map((answer) => {
@@ -120,7 +120,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
             );
           })}
         </div>
-        {topAnswers.length === 0 ? <EmptyState title="上位回答はまだありません。">このWeekly League Topicでは確定した投稿がありません。</EmptyState> : null}
+        {topAnswers.length === 0 ? <EmptyState title="上位回答はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
       </section>
 
       <section className="mt-10 space-y-4">
@@ -163,8 +163,8 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
           );
         })}
       </section>
-      {rows.length === 0 ? <EmptyState title="結果はまだありません。">このWeekly League Topicでは確定した投稿がありません。</EmptyState> : null}
-      <Link href={`/weekly/${topic.id}`} className="mt-8 inline-block text-sm font-bold text-league-gold hover:text-white">← Topicに戻る</Link>
+      {rows.length === 0 ? <EmptyState title="結果はまだありません。">この競技議論では確定した投稿がありません。</EmptyState> : null}
+      <Link href={`/weekly/${topic.id}`} className="mt-8 inline-block text-sm font-bold text-league-gold hover:text-white">← 議論に戻る</Link>
     </main>
   );
 }

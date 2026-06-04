@@ -23,7 +23,7 @@ export default async function OraclePage() {
   return (
     <PageShell>
       <HeroPanel eyebrow="Oracle" title="最上位層の思考家">
-        OracleはRating 2500以上に到達した知的競技者です。Weekly Leagueで継続的に結果を出した、Logic League最高峰の公開ポートフォリオです。
+        OracleはRating 2500以上に到達した知的競技者です。競技議論で継続的に結果を出した、Logic League最高峰の公開ポートフォリオです。
       </HeroPanel>
       <section className="mt-10">
         <SectionHeader eyebrow="Oracle Users" title="Oracle一覧" />

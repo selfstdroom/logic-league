@@ -3,16 +3,16 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatDiscussionType } from "@/lib/topics/format";
 import { getWeeklyCtaLabel, getWeeklyPhase, getWeeklyStatusLabel, type WeeklyPhase } from "@/lib/weekly";
 import type { Topic } from "@/types/database";
 
 type TopicGroup = { title: string; description: string; phases: WeeklyPhase[] };
 
 const groups: TopicGroup[] = [
-  { title: "開催中のWeekly League", description: "投稿または投票を受付中の回です。", phases: ["submission", "voting"] },
-  { title: "公開予定のWeekly League", description: "今後公開される予定の回です。", phases: ["upcoming"] },
-  { title: "終了したWeekly League", description: "結果を確認できる過去の回です。", phases: ["completed"] },
+  { title: "開催中の競技議論", description: "投稿または投票を受付中の回です。", phases: ["submission", "voting"] },
+  { title: "公開予定の競技議論", description: "今後公開される予定の回です。", phases: ["upcoming"] },
+  { title: "終了した競技議論", description: "結果を確認できる過去の回です。", phases: ["completed"] },
 ];
 
 function WeeklyTopicCard({ topic }: { topic: Topic }) {
@@ -23,7 +23,7 @@ function WeeklyTopicCard({ topic }: { topic: Topic }) {
   return (
     <Card className="group flex h-full flex-col border-white/10 bg-white/[0.04] p-5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatTopicCategory(topic.category)}</span>
+        <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatDiscussionType(topic.type)}</span>
         <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">{getWeeklyStatusLabel(phase)}</span>
       </div>
       <h3 className="mt-4 text-2xl font-black leading-tight group-hover:text-league-gold">{topic.title}</h3>
@@ -57,11 +57,11 @@ export default async function WeeklyPage() {
 
   return (
     <PageShell className="max-w-7xl">
-      <HeroPanel eyebrow="Weekly League" title="匿名で競い、公開Rankingで実力を示す。">
-        締切までに投稿し、匿名公開後に最大3票を投じて、Weekly Leagueの順位を競います。
+      <HeroPanel eyebrow="Competitive" title="競技議論で競い、公開順位で実力を示す。">
+        締切までに投稿し、匿名公開後に最大3票を投じて、競技議論の順位を競います。
       </HeroPanel>
 
-      {error ? <Card className="mt-8 text-red-300">Weekly LeagueのTopic取得に失敗しました: {error.message}</Card> : null}
+      {error ? <Card className="mt-8 text-red-300">競技議論の取得に失敗しました: {error.message}</Card> : null}
 
       <div className="mt-10 space-y-10">
         {groups.map((group) => {
@@ -72,7 +72,7 @@ export default async function WeeklyPage() {
               <div className="grid gap-5 lg:grid-cols-2">
                 {groupTopics.map((topic) => <WeeklyTopicCard key={topic.id} topic={topic} />)}
               </div>
-              {groupTopics.length === 0 ? <EmptyState title="この区分のTopicはまだありません。">Weekly LeagueのTopicが予定されると、ここに表示されます。</EmptyState> : null}
+              {groupTopics.length === 0 ? <EmptyState title="この区分の議論はまだありません。">競技議論が予定されると、ここに表示されます。</EmptyState> : null}
             </section>
           );
         })}

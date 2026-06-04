@@ -28,7 +28,7 @@ export default async function AchievementsPage() {
   return (
     <PageShell>
       <HeroPanel eyebrow="実績" title="積み上げた思考の記録">
-        回答、コメント、Weekly League、Rank、Hall of Fameで達成した実績を確認できます。未獲得の実績も表示されるため、次の目標を選びやすくなります。
+        回答、コメント、競技議論、Rank、Hall of Fameで達成した実績を確認できます。未獲得の実績も表示されるため、次の目標を選びやすくなります。
         <div className="mt-6 flex flex-wrap gap-3">
           <PremiumBadge tone="gold">獲得 {earnedCount}/{achievementDefinitions.length}</PremiumBadge>
           <PremiumBadge>達成率 {completion}%</PremiumBadge>
