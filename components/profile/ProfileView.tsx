@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnswerHistory, type AnswerHistoryItem } from "@/components/profile/AnswerHistory";
+import { achievementDefinitions } from "@/lib/achievements";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
@@ -20,7 +21,7 @@ type TopicAnswerHistoryRow = {
 };
 
 type CountRow = { topic_answer_id: string };
-type AchievementRow = { created_at: string; achievements?: { title?: string | null; description?: string | null; icon?: string | null } | { title?: string | null; description?: string | null; icon?: string | null }[] | null };
+type AchievementRow = { achievement_key: string | null; achievement_id: string | null; unlocked_at: string | null; created_at: string; achievements?: { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null } | { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null }[] | null };
 type RatingHistoryRow = { old_rating: number | null; new_rating: number | null; delta: number | null; created_at: string; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
 function first<T>(value: T | T[] | null | undefined) {
@@ -73,7 +74,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
       .lte("ranking_position", 10),
     profileClient
       .from("user_achievements")
-      .select("created_at, achievements(title, description, icon)")
+      .select("achievement_key, achievement_id, unlocked_at, created_at, achievements(title, description, icon, badge_icon, key)")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false }),
     profileClient
@@ -109,6 +110,14 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
   for (const like of likeRows) likeCounts.set(like.topic_answer_id, (likeCounts.get(like.topic_answer_id) ?? 0) + 1);
   const commentCounts = new Map<string, number>();
   for (const comment of commentRows) commentCounts.set(comment.topic_answer_id, (commentCounts.get(comment.topic_answer_id) ?? 0) + 1);
+
+  const achievementRows = (achievements ?? []) as AchievementRow[];
+  const earnedAchievementKeys = new Set(achievementRows.map((row) => row.achievement_key ?? row.achievement_id).filter(Boolean) as string[]);
+  const profileAchievements = achievementDefinitions.map((definition) => ({
+    ...definition,
+    earned: earnedAchievementKeys.has(definition.key),
+    row: achievementRows.find((row) => (row.achievement_key ?? row.achievement_id) === definition.key),
+  }));
 
   const historyItems: AnswerHistoryItem[] = [
     ...((examAnswers ?? []).map((answer) => ({ ...answer, kind: "exam" as const }))),
@@ -229,19 +238,28 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
-          <SectionHeader eyebrow="Achievements" title="獲得バッジ" />
-          <div className="mt-5 flex flex-wrap gap-3">
-            {((achievements ?? []) as AchievementRow[]).map((row, index) => {
-              const achievement = first(row.achievements);
-              return (
-                <span key={`${achievement?.title ?? "achievement"}-${index}`} className="inline-flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold">
-                  <span>{achievement?.icon ?? "◆"}</span>
-                  <span>{achievement?.title ?? "Achievement"}</span>
-                </span>
-              );
-            })}
+          <SectionHeader eyebrow="実績" title="獲得バッジ" action={<Link href="/achievements" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">すべて見る</Link>}>
+            獲得済みと未獲得の実績を表示します。次の目標を確認しながら、回答・コメント・Weekly Leagueへの参加を積み上げられます。
+          </SectionHeader>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {profileAchievements.slice(0, 8).map((achievement) => (
+              <div key={achievement.key} className={`rounded-2xl border p-4 ${achievement.earned ? "border-amber-300/25 bg-amber-300/10" : "border-white/10 bg-white/[0.035] opacity-70 grayscale"}`}>
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/25 text-sm font-black text-league-gold">{achievement.earned ? achievement.badgeIcon : "🔒"}</span>
+                  <span>
+                    <span className="block font-black text-white">{achievement.title}</span>
+                    <span className="mt-1 block text-xs leading-5 text-league-muted">{achievement.description}</span>
+                    {achievement.earned ? <span className="mt-2 block text-xs text-league-gold">獲得日: {formatDateTime(achievement.row?.unlocked_at ?? achievement.row?.created_at ?? null)}</span> : null}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
-          {(achievements ?? []).length === 0 ? <EmptyState title="Achievementsはまだありません。">Weekly Leagueへの参加やRank到達でバッジが増えていきます。</EmptyState> : null}
+          <div className="mt-5 grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{earnedAchievementKeys.size}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">獲得</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{achievementDefinitions.length - earnedAchievementKeys.size}</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">未獲得</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-2xl font-black">{Math.round((earnedAchievementKeys.size / achievementDefinitions.length) * 100)}%</p><p className="mt-1 text-[0.65rem] uppercase tracking-[0.18em] text-league-muted">進捗</p></div>
+          </div>
         </Card>
         <Card>
           <SectionHeader eyebrow="Rating History" title="Rating変動" />

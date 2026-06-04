@@ -106,7 +106,11 @@ export async function finalizeWeeklyLeague(topicId: string) {
     if (fameError) throw fameError;
   }
 
-  await Promise.all(ranked.map((answer) => evaluateAchievements(answer.user_id)));
+  try {
+    await Promise.all(ranked.map((answer) => evaluateAchievements(answer.user_id)));
+  } catch (achievementError) {
+    console.warn("Achievement evaluation skipped after Weekly League finalization.", achievementError);
+  }
 
   return ranked;
 }

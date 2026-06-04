@@ -1,3 +1,4 @@
+import { evaluateAchievements, grantAchievement } from "@/lib/achievements";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRankByRating } from "@/lib/rank";
 import type { Profile } from "@/types/logic-league";
@@ -22,42 +23,7 @@ export function getSeasonInfo(date = new Date()) {
   };
 }
 
-export async function grantAchievement(userId: string, achievementId: string) {
-  const admin = createAdminClient();
-  const { error } = await admin.from("user_achievements").upsert({ user_id: userId, achievement_id: achievementId }, { onConflict: "user_id,achievement_id", ignoreDuplicates: true });
-  if (error) throw error;
-}
-
-export async function evaluateAchievements(userId: string) {
-  const admin = createAdminClient();
-  const [{ count: totalAnswers }, { count: weeklySubmissions }, { count: weeklyWins }, { count: top10Count }, { data: profile }] = await Promise.all([
-    admin.from("topic_answers").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    admin.from("topic_answers").select("id, topics!inner(type)", { count: "exact", head: true }).eq("user_id", userId).eq("topics.type", "weekly"),
-    admin.from("hall_of_fame").select("id", { count: "exact", head: true }).eq("winner_user_id", userId),
-    admin.from("topic_answers").select("id, topics!inner(type)", { count: "exact", head: true }).eq("user_id", userId).eq("topics.type", "weekly").lte("ranking_position", 10),
-    admin.from("profiles").select("rank").eq("id", userId).maybeSingle(),
-  ]);
-
-  const grants: string[] = [];
-  if ((weeklySubmissions ?? 0) >= 1) grants.push("first_weekly_submission");
-  if ((weeklyWins ?? 0) >= 1) grants.push("first_weekly_win");
-  if ((top10Count ?? 0) >= 5) grants.push("top10_five_times");
-  if ((totalAnswers ?? 0) >= 10) grants.push("answers_10");
-  if ((totalAnswers ?? 0) >= 50) grants.push("answers_50");
-  if ((totalAnswers ?? 0) >= 100) grants.push("answers_100");
-
-  const rank = profile?.rank;
-  const rankOrder = ["Visitor", "Challenger", "Analyst", "Strategist", "Architect", "Mastermind", "Oracle"];
-  if (rankOrder.indexOf(rank ?? "Visitor") >= rankOrder.indexOf("Architect")) grants.push("reach_architect");
-  if (rankOrder.indexOf(rank ?? "Visitor") >= rankOrder.indexOf("Mastermind")) grants.push("reach_mastermind");
-  if (rank === "Oracle") grants.push("reach_oracle");
-
-  if (grants.length > 0) {
-    const rows = grants.map((achievement_id) => ({ user_id: userId, achievement_id }));
-    const { error } = await admin.from("user_achievements").upsert(rows, { onConflict: "user_id,achievement_id", ignoreDuplicates: true });
-    if (error) throw error;
-  }
-}
+export { evaluateAchievements, grantAchievement };
 
 export async function snapshotCurrentSeason() {
   const admin = createAdminClient();

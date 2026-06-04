@@ -9,6 +9,21 @@ import type { TopicAnswerType } from "@/types/database";
 const answerTypes: TopicAnswerType[] = ["Answer", "Counter", "Support", "Question"];
 
 type MessageState = { type: "success" | "error"; text: string } | null;
+type UnlockedAchievement = { key: string; title: string; badgeIcon: string };
+
+function AchievementNotice({ achievements }: { achievements: UnlockedAchievement[] }) {
+  if (achievements.length === 0) return null;
+  return (
+    <div className="mt-4 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-league-silver shadow-glow">
+      <p className="font-black text-league-gold">新しい実績を獲得しました</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {achievements.map((achievement) => (
+          <span key={achievement.key} className="rounded-full border border-white/10 bg-black/25 px-3 py-1 font-bold text-white">{achievement.badgeIcon} {achievement.title}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Message({ message }: { message: MessageState }) {
   if (!message) return null;
@@ -23,18 +38,20 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
   const [content, setContent] = useState("");
   const [message, setMessage] = useState<MessageState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievement[]>([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
+    setUnlockedAchievements([]);
 
     const response = await fetch(`/api/topics/${topicId}/answers`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ answer_type: answerType, content }),
     });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
+    const result = await response.json().catch(() => null) as { error?: string; unlockedAchievements?: UnlockedAchievement[] } | null;
 
     setIsSubmitting(false);
     if (!response.ok) {
@@ -45,6 +62,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
     setContent("");
     setAnswerType("Answer");
     setMessage({ type: "success", text: "回答を投稿しました。" });
+    setUnlockedAchievements(result?.unlockedAchievements ?? []);
     router.refresh();
   }
 
@@ -88,6 +106,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
       </div>
       <Button className="mt-4" disabled={isSubmitting}>{isSubmitting ? "投稿中..." : "回答を投稿する"}</Button>
       <Message message={message} />
+      <AchievementNotice achievements={unlockedAchievements} />
     </form>
   );
 }
@@ -97,18 +116,20 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
   const [content, setContent] = useState("");
   const [message, setMessage] = useState<MessageState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievement[]>([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
+    setUnlockedAchievements([]);
 
     const response = await fetch(`/api/topic-answers/${answerId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
     });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
+    const result = await response.json().catch(() => null) as { error?: string; unlockedAchievements?: UnlockedAchievement[] } | null;
 
     setIsSubmitting(false);
     if (!response.ok) {
@@ -118,6 +139,7 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
 
     setContent("");
     setMessage({ type: "success", text: "コメントを投稿しました。" });
+    setUnlockedAchievements(result?.unlockedAchievements ?? []);
     router.refresh();
   }
 
@@ -142,6 +164,7 @@ export function CommentForm({ answerId, canComment }: { answerId: string; canCom
       />
       <Button disabled={isSubmitting} className="px-5 py-2 shadow-none">コメントする</Button>
       <Message message={message} />
+      <AchievementNotice achievements={unlockedAchievements} />
     </form>
   );
 }

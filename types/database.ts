@@ -85,9 +85,11 @@ export type HallOfFame = {
 
 export type Achievement = {
   id: string;
+  key: string;
   title: string;
   description: string;
   icon: string;
+  badge_icon: string;
   created_at: string;
 };
 
@@ -95,6 +97,8 @@ export type UserAchievement = {
   id: string;
   user_id: string;
   achievement_id: string;
+  achievement_key: string;
+  unlocked_at: string;
   created_at: string;
 };
 

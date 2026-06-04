@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { evaluateAchievements } from "@/lib/achievements";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -25,5 +26,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { error } = await supabase.from("comments").insert({ topic_answer_id: id, user_id: user.id, content });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true });
+  let unlockedAchievements: Awaited<ReturnType<typeof evaluateAchievements>> = [];
+  try {
+    unlockedAchievements = await evaluateAchievements(user.id);
+  } catch (achievementError) {
+    console.warn("Achievement evaluation skipped after comment.", achievementError);
+  }
+  return NextResponse.json({ ok: true, unlockedAchievements });
 }
