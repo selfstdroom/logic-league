@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { RankBadge } from "@/components/rank/RankBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { getRankByRating } from "@/lib/rank";
 import { buildAiScoreSummary, finalizeWeeklyLeague } from "@/lib/weekly";
 import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
+
+type RatingHistoryRow = { user_id: string; old_rating: number | null; new_rating: number | null; delta: number | null };
 
 type ResultAnswer = {
   id: string;
@@ -68,10 +72,14 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
 
   const rows = (answers ?? []) as ResultAnswer[];
   const userIds = Array.from(new Set(rows.map((answer) => answer.user_id)));
-  const { data: profiles } = userIds.length > 0
-    ? await admin.from("profiles").select("id, display_name, username").in("id", userIds)
-    : { data: [] as Pick<Profile, "id" | "display_name" | "username">[] };
+  const [{ data: profiles }, { data: ratingHistories }] = userIds.length > 0
+    ? await Promise.all([
+      admin.from("profiles").select("id, display_name, username, rank, rating, qualified").in("id", userIds),
+      admin.from("rating_histories").select("user_id, old_rating, new_rating, delta").eq("topic_id", id).eq("reason", "weekly_result").in("user_id", userIds),
+    ])
+    : [{ data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "rating" | "qualified">[] }, { data: [] as RatingHistoryRow[] }];
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const ratingHistoryByUserId = new Map(((ratingHistories ?? []) as RatingHistoryRow[]).map((history) => [history.user_id, history]));
   const topAnswers = rows.slice(0, 3);
 
   return (
@@ -79,7 +87,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
       <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
         <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Weekly League結果</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
-        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。このMVPではRating、Rank、Hall of Fameは更新しません。</p>
+        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。結果確定後、順位に応じてRatingが加算され、RankとHall of Fameが更新されます。</p>
       </div>
 
       <section className="mt-10">
@@ -96,9 +104,12 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
             return (
               <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
-                <div className="mt-3 min-w-0">
-                  <p className="truncate font-black text-white">{displayName(profile)}</p>
-                  <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <RankBadge rank={profile?.rank} size="xs" />
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-white">{displayName(profile)}</p>
+                    <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · {profile?.rank ?? "Rank"} · Rating {profile?.rating ?? "—"}</p>
+                  </div>
                 </div>
                 <p className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/25 p-4 text-sm leading-7 text-league-silver">{answer.content}</p>
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-league-silver">
@@ -119,21 +130,30 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
         </div>
         {rows.map((answer) => {
           const profile = profilesById.get(answer.user_id);
+          const history = ratingHistoryByUserId.get(answer.user_id);
+          const oldRank = history?.old_rating == null ? null : getRankByRating(history.old_rating, profile?.qualified ?? true);
+          const newRank = profile?.rank ?? (history?.new_rating == null ? null : getRankByRating(history.new_rating, profile?.qualified ?? true));
+          const promoted = oldRank && newRank && oldRank !== newRank;
           return (
             <Card key={answer.id} className="hover:border-amber-300/35 hover:bg-white/[0.06]">
-              <div className="grid gap-4 md:grid-cols-[0.45fr_1.25fr_0.8fr_0.8fr_0.8fr] md:items-center">
+              <div className="grid gap-4 md:grid-cols-[0.45fr_1.25fr_0.75fr_0.75fr_0.65fr_0.9fr] md:items-center">
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-league-muted">順位</p>
                   <p className="mt-1 text-4xl font-black text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
-                  <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                  <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · {profile?.rank ?? "Rank"} · Rating {profile?.rating ?? "—"}</p>
                   <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p>
                 </div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">最終スコア</p><p className="mt-1 text-2xl font-black">{answer.final_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">AIスコア</p><p className="mt-1 text-2xl font-black">{answer.ai_total_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">得票数</p><p className="mt-1 text-2xl font-black">{answer.vote_count}</p></div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-league-muted">Rating変動</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-200">+{history?.delta ?? 0}</p>
+                  {promoted ? <p className="mt-1 text-xs font-bold text-league-gold">昇格: {oldRank} → {newRank}</p> : <p className="mt-1 text-xs text-league-muted">現在Rank: {newRank ?? profile?.rank ?? "—"}</p>}
+                </div>
               </div>
               <details className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
                 <summary className="cursor-pointer text-sm font-bold text-league-gold">回答全文を見る</summary>

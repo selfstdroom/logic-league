@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
 import { getSeasonInfo } from "@/lib/competitive";
@@ -23,16 +24,18 @@ export default async function LeaderboardPage() {
   return (
     <PageShell className="max-w-7xl">
       <HeroPanel eyebrow="Leaderboard" title="Global Ranking">
-        現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。
+        現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。上位3名は特別表示されます。
       </HeroPanel>
       <section className="mt-10">
         <SectionHeader eyebrow="Global" title="総合Leaderboard" />
         <Card className="overflow-hidden p-0">
           <div className="grid grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted">
-            <span>Position</span><span>User</span><span>Rank</span><span>Rating</span><span>Weekly wins</span>
+            <span>順位</span><span>ユーザー</span><span>Rank</span><span>Rating</span><span>勝利数</span>
           </div>
-          {((profiles ?? []) as LeaderProfile[]).map((profile, index) => (
-            <div key={profile.id} className="grid grid-cols-[4rem_1.5fr_1fr_1fr_1fr] items-center gap-3 border-b border-white/10 px-5 py-4 last:border-b-0">
+          {((profiles ?? []) as LeaderProfile[]).map((profile, index) => {
+            const topThreeClass = index === 0 ? "border-amber-300/35 bg-amber-300/10" : index === 1 ? "border-slate-200/25 bg-white/[0.07]" : index === 2 ? "border-orange-300/25 bg-orange-400/10" : "";
+            return (
+            <div key={profile.id} className={`grid grid-cols-[4rem_1.5fr_1fr_1fr_1fr] items-center gap-3 border-b border-white/10 px-5 py-4 last:border-b-0 ${topThreeClass}`}>
               <span className="text-2xl font-black text-league-gold">#{index + 1}</span>
               <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
                 <span className="block truncate">{profile.display_name ?? profile.username}</span>
@@ -41,8 +44,11 @@ export default async function LeaderboardPage() {
               <RankBadge rank={profile.rank} size="xs" showLabel />
               <span className="font-black text-white">{profile.rating}</span>
               <span className="font-black text-white">{winCounts.get(profile.id) ?? 0}</span>
+              <div className="col-span-full md:col-start-2 md:col-span-4">
+                <RankProgress rating={profile.rating} compact />
+              </div>
             </div>
-          ))}
+          );})}
         </Card>
       </section>
     </PageShell>
