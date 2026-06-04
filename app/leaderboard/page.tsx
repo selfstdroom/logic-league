@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
 import { getSeasonInfo } from "@/lib/competitive";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,6 +21,8 @@ export default async function LeaderboardPage() {
   ]);
   const winCounts = new Map<string, number>();
   for (const win of wins ?? []) if (win.winner_user_id) winCounts.set(win.winner_user_id, (winCounts.get(win.winner_user_id) ?? 0) + 1);
+  const rankingProfiles = (profiles ?? []) as LeaderProfile[];
+  const hasSufficientRankingData = rankingProfiles.length >= 3;
 
   return (
     <PageShell className="max-w-7xl">
@@ -32,7 +35,7 @@ export default async function LeaderboardPage() {
           <div className="hidden grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:grid">
             <span>順位</span><span>ユーザー</span><span>Rank</span><span>Rating</span><span>勝利数</span>
           </div>
-          {((profiles ?? []) as LeaderProfile[]).map((profile, index) => {
+          {hasSufficientRankingData ? rankingProfiles.map((profile, index) => {
             const topThreeClass = index === 0 ? "border-amber-300/35 bg-amber-300/10" : index === 1 ? "border-slate-200/25 bg-white/[0.07]" : index === 2 ? "border-orange-300/25 bg-orange-400/10" : "";
             return (
             <div key={profile.id} className={`grid grid-cols-[3rem_1fr] items-center gap-3 border-b border-white/10 px-4 py-4 last:border-b-0 md:grid-cols-[4rem_1.5fr_1fr_1fr_1fr] md:px-5 ${topThreeClass}`}>
@@ -48,7 +51,13 @@ export default async function LeaderboardPage() {
                 <RankProgress rating={profile.rating} compact />
               </div>
             </div>
-          );})}
+          );}) : (
+            <div className="p-5 sm:p-6">
+              <EmptyState kind="achievements" title="ランキングは参加者が増えると表示されます">
+                Ratingは認定試験で現在地を記録し、Competitive Discussionの結果で更新されます。十分な実参加者が集まるまでは順位を作らず、実データだけを表示します。
+              </EmptyState>
+            </div>
+          )}
         </Card>
       </section>
     </PageShell>

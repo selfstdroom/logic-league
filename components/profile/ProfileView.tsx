@@ -41,6 +41,31 @@ const snsLinks = [
   { key: "github_url", label: "GitHub URL" },
 ] as const;
 
+
+function ProfileStartEmptyState({ isOwnProfile }: { isOwnProfile: boolean }) {
+  const actions = [
+    { label: "認定試験を受験", href: "/exam" },
+    { label: "Daily Discussionへ参加", href: "/topics" },
+    { label: "Competitive Discussionへ参加", href: "/weekly" },
+  ];
+  return (
+    <Card className="border-dashed border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.1),transparent_30%),rgba(255,255,255,0.035)]">
+      <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">First steps</p>
+      <h2 className="mt-2 text-2xl font-black text-white">Logic Leagueを始めたばかりです。</h2>
+      <p className="mt-3 text-sm leading-7 text-league-silver">まだ公開活動はありません。回答・競技議論・実績解除が発生すると、このプロフィールとTimelineに実データとして表示されます。</p>
+      {isOwnProfile ? (
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {actions.map((action) => (
+            <Link key={action.href} href={action.href} className="rounded-2xl border border-amber-300/25 bg-amber-300/10 px-4 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">
+              {action.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
 function ProfileField({ label, value, href }: { label: string; value: string | number; href?: string | null }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
@@ -144,6 +169,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
     const href = profile[item.key];
     return href ? [{ key: item.key, label: item.label, href }] : [];
   });
+  const hasNoActivity = (totalAnswerCount ?? 0) === 0 && (examAnswers ?? []).length === 0 && achievementRows.length === 0;
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
@@ -180,6 +206,8 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
           <RankProgress rating={profile.rating} qualified={profile.qualified} className="relative mt-6" />
         </div>
       </Card>
+
+      {hasNoActivity ? <section className="mt-6"><ProfileStartEmptyState isOwnProfile={isOwnProfile} /></section> : null}
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <Card>
@@ -233,7 +261,7 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
               </Link>
             ) : null)}
           </div>
-          {historyItems.filter((item) => item.kind === "topic").length === 0 ? <EmptyState kind="timeline" title="まだ投稿はありません。">回答が投稿されると、ここにアクティビティが表示されます。</EmptyState> : null}
+          {historyItems.filter((item) => item.kind === "topic").length === 0 ? <ProfileStartEmptyState isOwnProfile={isOwnProfile} /> : null}
         </Card>
       </section>
 

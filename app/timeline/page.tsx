@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -66,6 +65,47 @@ const activityStyles: Record<ActivityType, { label: string; tone: string; icon: 
 
 function first<T>(value: T | T[] | null | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+const exampleActivities: Array<{ type: ActivityType; title: string; body: string }> = [
+  { type: "ANSWER", title: "回答", body: "公開議論に回答すると、論点と投稿時刻がここに流れます。" },
+  { type: "COUNTER", title: "反論", body: "他の回答への反論や別視点の提示も活動として表示されます。" },
+  { type: "COMMENT", title: "コメント", body: "議論を深めるコメントが投稿されるとタイムラインに反映されます。" },
+  { type: "RANK_UP", title: "昇格", body: "競技議論の結果によるRank更新が公開プロフィールと連動します。" },
+  { type: "ACHIEVEMENT", title: "実績獲得", body: "初参加や勝利など、実績を解除した瞬間が記録されます。" },
+  { type: "HALL_OF_FAME", title: "Hall of Fame入り", body: "Weekly Leagueの勝者は殿堂入りとして保存されます。" },
+];
+
+function TimelineWelcomeEmptyState() {
+  return (
+    <Card className="border-dashed border-amber-300/25 bg-[radial-gradient(circle_at_top,rgba(215,180,106,0.1),transparent_30%),rgba(255,255,255,0.035)] p-5 sm:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Activity examples</p>
+          <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Logic Leagueへようこそ</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-league-silver">このタイムラインには以下の活動が表示されます。下のカードは実データではなく、表示される活動種類を説明するための例です。</p>
+        </div>
+        <Link href="/topics" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">最初の議論を見る</Link>
+      </div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {exampleActivities.map((example) => {
+          const style = activityStyles[example.type];
+          return (
+            <div key={example.type} className="rounded-2xl border border-white/10 bg-black/20 p-4 opacity-85">
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${style.tone}`}><LeagueIcon name={style.icon} size={19} /></span>
+                <div>
+                  <p className="text-sm font-black text-white">{example.title}</p>
+                  <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-league-muted">Example / not real data</p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-league-muted">{example.body}</p>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
 }
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
@@ -275,7 +315,7 @@ export default async function TimelinePage() {
         {items.map((item) => <ActivityCard key={item.id} item={item} />)}
       </section>
 
-      {items.length === 0 ? <EmptyState kind="timeline" title="まだタイムラインはありません。">回答やコメントが投稿されると、ここに公開タイムラインとして表示されます。</EmptyState> : null}
+      {items.length === 0 ? <TimelineWelcomeEmptyState /> : null}
     </PageShell>
   );
 }

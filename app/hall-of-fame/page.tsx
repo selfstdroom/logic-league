@@ -69,7 +69,11 @@ export default async function HallOfFamePage() {
             );
           })}
         </div>
-        {rows.length === 0 ? <EmptyState kind="achievements" title="Hall of Fameはまだありません。">完了したWeekly Leagueの勝者がここに保存されます。</EmptyState> : null}
+        {rows.length === 0 ? (
+          <EmptyState kind="achievements" title="最初のHall of Fame獲得者を目指しましょう">
+            Hall of Fameは、Weekly Leagueなどの競技議論で高評価を獲得した勝者を保存する殿堂です。回答、AI評価、投票結果がそろうと、実際の勝者だけがここに掲載されます。
+          </EmptyState>
+        ) : null}
       </section>
     </PageShell>
   );

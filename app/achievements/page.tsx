@@ -43,7 +43,18 @@ export default async function AchievementsPage() {
         <StatCard label="達成率" value={`${completion}%`} description="全実績に対する進捗" tone="emerald" />
       </section>
 
-      <div className="mt-10 space-y-10">
+      <section className="mt-8 rounded-[1.75rem] border border-amber-300/20 bg-white/[0.035] p-5 sm:p-6">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Available achievements</p>
+        <h2 className="mt-2 text-2xl font-black text-white">獲得可能な実績一覧</h2>
+        <p className="mt-3 text-sm leading-7 text-league-silver">未獲得の実績も正直にロック状態で表示します。条件を満たすと解除され、プロフィールとタイムラインに実データとして反映されます。</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {["🔒 初参加", "🔒 初勝利", "🔒 Architect到達", "🔒 Hall of Fame入り"].map((item) => (
+            <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm font-black text-league-silver">{item}</div>
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-8 space-y-8">
         {categories.map((category) => {
           const achievements = achievementDefinitions.filter((achievement) => achievement.category === category);
           return (
