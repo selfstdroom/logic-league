@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
@@ -38,9 +39,10 @@ export default async function OraclePage() {
               </div>
               <div className="mt-6 grid grid-cols-3 gap-3 text-center">
                 <div className="rounded-2xl bg-black/25 p-3"><p className="text-2xl font-black">{profile.rating}</p><p className="text-xs text-league-muted">Rating</p></div>
-                <div className="rounded-2xl bg-black/25 p-3"><p className="truncate text-lg font-black">{profile.archetype ?? "未分類"}</p><p className="text-xs text-league-muted">archetype</p></div>
-                <div className="rounded-2xl bg-black/25 p-3"><p className="text-2xl font-black">{winCounts.get(profile.id) ?? 0}</p><p className="text-xs text-league-muted">weekly wins</p></div>
+                <div className="rounded-2xl bg-black/25 p-3"><p className="truncate text-lg font-black">{profile.archetype ?? "未分類"}</p><p className="text-xs text-league-muted">思考タイプ</p></div>
+                <div className="rounded-2xl bg-black/25 p-3"><p className="text-2xl font-black">{winCounts.get(profile.id) ?? 0}</p><p className="text-xs text-league-muted">勝利数</p></div>
               </div>
+              <RankProgress rating={profile.rating} compact className="mt-5" />
             </Card>
           ))}
         </div>

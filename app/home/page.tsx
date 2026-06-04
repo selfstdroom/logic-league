@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { RankProgress } from "@/components/rank/RankProgress";
 import { TopicCard } from "@/components/topics/TopicCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -21,6 +22,9 @@ type HomeTopic = {
   answerCount: number;
   commentCount: number;
 };
+
+type LeaderWidgetProfile = Pick<Profile, "id" | "username" | "display_name" | "rank" | "rating">;
+type LatestFameWidget = { id: string; final_score: number | null; profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
 type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at"> & {
   topics?: { category?: string | null; title?: string | null } | { category?: string | null; title?: string | null }[] | null;
@@ -54,6 +58,10 @@ function topicOf(answer: FeedAnswer) {
   return Array.isArray(answer.topics) ? answer.topics[0] : answer.topics;
 }
 
+function first<T>(value: T | T[] | null | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -61,7 +69,8 @@ export default async function HomePage() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (!profile?.predicted_deviation) redirect("/exam");
 
-  const [{ data: latestTopics }, { data: weeklyTopics }, { data: latestAnswers }, { count: answerCount }] = await Promise.all([
+  const competitionClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+  const [{ data: latestTopics }, { data: weeklyTopics }, { data: latestAnswers }, { count: answerCount }, { data: leaderProfiles }, { count: oracleCount }, { data: latestFame }] = await Promise.all([
     supabase
       .from("topics")
       .select("id, category, title, content, publish_at")
@@ -88,6 +97,20 @@ export default async function HomePage() {
       .from("topic_answers")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id),
+    competitionClient
+      .from("profiles")
+      .select("id, username, display_name, rank, rating")
+      .order("rating", { ascending: false })
+      .limit(3),
+    competitionClient
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("rank", "Oracle"),
+    competitionClient
+      .from("hall_of_fame")
+      .select("id, final_score, profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, rank), topics(title)")
+      .order("created_at", { ascending: false })
+      .limit(1),
   ]);
 
   const topicRows = latestTopics ?? [];
@@ -141,6 +164,9 @@ export default async function HomePage() {
   const activeWeeklyHref = activeWeeklyTopic
     ? activeWeeklyPhase === "completed" ? `/weekly/${activeWeeklyTopic.id}/results` : `/weekly/${activeWeeklyTopic.id}`
     : "/weekly";
+  const latestFameRow = ((latestFame ?? []) as LatestFameWidget[])[0];
+  const latestFameProfile = first(latestFameRow?.profiles);
+  const latestFameTopic = first(latestFameRow?.topics);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
@@ -169,8 +195,46 @@ export default async function HomePage() {
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Rating</p><p className="mt-1 font-black">{profile.rating}</p></div>
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">回答</p><p className="mt-1 font-black">{answerCount ?? 0}</p></div>
           </div>
+          <RankProgress rating={profile.rating} qualified={profile.qualified} compact className="mt-4" />
         </Card>
       </section>
+
+      <section className="mt-5 grid gap-4 lg:mt-8 lg:grid-cols-3">
+        <Card className="p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div><p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Leaderboard</p><h2 className="mt-1 text-xl font-black">Top 3</h2></div>
+            <Link href="/leaderboard" className="text-xs font-bold text-league-gold hover:text-white">全体を見る</Link>
+          </div>
+          <div className="mt-4 space-y-3">
+            {((leaderProfiles ?? []) as LeaderWidgetProfile[]).map((leader, index) => (
+              <Link key={leader.id} href={`/profile/${leader.username}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/35">
+                <span className="w-7 text-lg font-black text-league-gold">#{index + 1}</span>
+                <RankBadge rank={leader.rank} size="xs" />
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{leader.display_name ?? leader.username}</span><span className="block text-xs text-league-muted">Rating {leader.rating}</span></span>
+              </Link>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-4 sm:p-5">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Oracle</p>
+          <h2 className="mt-1 text-xl font-black">現在のOracle数</h2>
+          <p className="mt-5 text-5xl font-black text-league-gold">{oracleCount ?? 0}</p>
+          <p className="mt-3 text-sm leading-6 text-league-muted">Rating 2500以上の最高Rank到達者です。</p>
+          <Link href="/oracle" className="mt-4 inline-block text-sm font-bold text-league-gold hover:text-white">Oracle一覧を見る →</Link>
+        </Card>
+        <Card className="p-4 sm:p-5">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Hall of Fame</p>
+          <h2 className="mt-1 text-xl font-black">最新の勝者</h2>
+          {latestFameRow ? (
+            <Link href={`/hall-of-fame/${latestFameRow.id}`} className="mt-4 block rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 transition hover:border-amber-300/45">
+              <p className="text-sm font-black text-white">{latestFameProfile?.display_name ?? latestFameProfile?.username ?? "Winner"}</p>
+              <p className="mt-1 text-xs text-league-muted">{latestFameTopic?.title ?? "Weekly League"}</p>
+              <p className="mt-3 text-2xl font-black text-league-gold">{latestFameRow.final_score ?? "—"}</p>
+            </Link>
+          ) : <p className="mt-4 text-sm leading-6 text-league-muted">最初のWeekly League勝者を待っています。</p>}
+        </Card>
+      </section>
+
 
       <section className="mt-5 grid gap-5 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div>

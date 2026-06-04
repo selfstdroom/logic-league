@@ -1,3 +1,4 @@
+import { applyRatingChange, evaluateAchievements, getRatingDelta } from "@/lib/competitive";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Topic } from "@/types/database";
 
@@ -88,7 +89,24 @@ export async function finalizeWeeklyLeague(topicId: string) {
       .update({ final_score: answer.final_score, ranking_position: rankingPosition })
       .eq("id", answer.id);
     if (error) throw error;
+
+    await applyRatingChange(answer.user_id, topicId, getRatingDelta(rankingPosition));
   }
+
+  const winner = ranked[0];
+  if (winner) {
+    const { error: fameError } = await admin.from("hall_of_fame").upsert({
+      topic_id: topicId,
+      winner_user_id: winner.user_id,
+      winner_answer_id: winner.id,
+      final_score: winner.final_score,
+      ai_total_score: winner.ai_total_score,
+      vote_count: winner.vote_count,
+    }, { onConflict: "topic_id" });
+    if (fameError) throw fameError;
+  }
+
+  await Promise.all(ranked.map((answer) => evaluateAchievements(answer.user_id)));
 
   return ranked;
 }

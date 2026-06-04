@@ -25,7 +25,8 @@ export function getRankByRating(rating: number, qualified = true): RankName {
   if (rating >= 2100) return "Architect";
   if (rating >= 1900) return "Strategist";
   if (rating >= 1700) return "Analyst";
-  return "Challenger";
+  if (rating >= 1500) return "Challenger";
+  return "Visitor";
 }
 
 export function getRankDefinition(rank: RankName | string | null | undefined) {

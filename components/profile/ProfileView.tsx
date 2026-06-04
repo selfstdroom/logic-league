@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AnswerHistory, type AnswerHistoryItem } from "@/components/profile/AnswerHistory";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
@@ -158,12 +159,15 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
             </div>
           </div>
 
-          <div className="relative mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <StatCard label="Current Rank" value={profile.rank} tone="gold" />
             <StatCard label="Rating" value={profile.rating} tone="gold" />
-            <StatCard label="推定思考偏差値" value={profile.predicted_deviation ?? "未受験"} />
+            <StatCard label="Weekly Wins" value={weeklyWins ?? 0} tone={profile.qualified ? "emerald" : "silver"} />
+            <StatCard label="Top10 Count" value={top10Count ?? 0} />
+            <StatCard label="Hall of Fame" value={weeklyWins ?? 0} />
             <StatCard label="総回答数" value={totalAnswerCount ?? 0} />
-            <StatCard label="Weekly wins" value={weeklyWins ?? 0} tone={profile.qualified ? "emerald" : "silver"} />
           </div>
+          <RankProgress rating={profile.rating} qualified={profile.qualified} className="relative mt-6" />
         </div>
       </Card>
 
