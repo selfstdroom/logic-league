@@ -28,7 +28,7 @@ export function FloatingParticipationHub() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-4 z-[60] flex h-16 w-16 items-center justify-center rounded-full border border-amber-200/60 bg-[radial-gradient(circle_at_35%_25%,#fff7d6_0%,#d7b46a_38%,#9b6b1d_100%)] text-xs font-black leading-tight text-league-black shadow-[0_18px_55px_rgba(215,180,106,0.38)] transition hover:-translate-y-1 hover:shadow-[0_22px_70px_rgba(215,180,106,0.52)] focus:outline-none focus:ring-4 focus:ring-amber-200/35 md:bottom-7 md:right-7 md:h-20 md:w-20"
+        className="fixed bottom-24 right-4 z-[60] flex h-16 w-16 items-center justify-center rounded-full border border-amber-200/60 bg-[radial-gradient(circle_at_35%_25%,#fff7d6_0%,#d7b46a_38%,#9b6b1d_100%)] text-xs font-black leading-tight text-league-black shadow-[0_18px_55px_rgba(215,180,106,0.38)] transition hover:-translate-y-1 hover:shadow-[0_22px_70px_rgba(215,180,106,0.52)] focus:outline-none focus:ring-4 focus:ring-amber-200/35 md:bottom-28 md:right-7 md:h-20 md:w-20 lg:bottom-7"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="議論に参加"

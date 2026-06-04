@@ -54,7 +54,7 @@ const notificationToggles: ToggleDefinition[] = [
   { name: "notify_hall_of_fame", label: "Hall of Fame通知", description: "Hall of Fameに関連する更新を受け取ります。" },
 ];
 
-const currentNavigation = ["ホーム", "タイムライン", "検索", "マイページ"];
+const currentNavigation = ["ホーム", "タイムライン", "検索", "マイページ", "設定"];
 const availableNavigation = ["ホーム", "タイムライン", "検索", "マイページ", "議論", "Leaderboard", "Hall of Fame", "実績", "通知", "設定"];
 
 const defaultSettings: Omit<UserSettings, "user_id" | "created_at" | "updated_at"> = {
@@ -236,7 +236,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
   const errorMessage = settingErrorMessage(params.error);
 
   return (
-    <PageShell className="max-w-6xl pb-28 md:pb-10">
+    <PageShell className="max-w-6xl pb-28 lg:pb-10">
       <HeroPanel
         eyebrow="設定"
         title="アカウントとリーグ体験の管理"
@@ -342,12 +342,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 
         <Card id="navigation">
           <SectionHeader eyebrow="Navigation" title="ナビゲーション">
-            下部ナビゲーションの基本構成は、ホーム・タイムライン・検索・マイページのまま維持します。ここでは現在の構成と追加候補を確認できます。
+            下部ナビゲーションの基本構成は、ホーム・タイムライン・検索・マイページ・設定です。ここでは現在の構成と追加候補を確認できます。
           </SectionHeader>
           <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-4">
               <p className="text-sm font-black text-league-gold">現在の下部ナビ</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2">
+              <div className="mt-4 grid grid-cols-5 gap-2 sm:gap-3">
                 {currentNavigation.map((item, index) => (
                   <div key={item} className="rounded-2xl border border-white/10 bg-black/25 p-3 text-center">
                     <span className="block text-xs font-black text-league-muted">{index + 1}</span>
@@ -366,7 +366,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </div>
         </Card>
 
-        <div className="sticky bottom-24 z-20 flex flex-col-reverse gap-3 rounded-3xl border border-white/10 bg-[#05070d]/88 p-3 shadow-2xl backdrop-blur-2xl md:bottom-5 md:flex-row md:items-center md:justify-between">
+        <div className="sticky bottom-24 z-20 flex flex-col-reverse gap-3 rounded-3xl border border-white/10 bg-[#05070d]/88 p-3 shadow-2xl backdrop-blur-2xl lg:bottom-5 lg:flex-row lg:items-center lg:justify-between">
           <p className="px-2 text-xs leading-5 text-league-muted">変更はプロフィール、プライバシー、通知、表示設定にまとめて反映されます。</p>
           <Button type="submit" className="w-full md:w-auto">設定を保存</Button>
         </div>
