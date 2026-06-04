@@ -8,10 +8,25 @@ import { Button } from "@/components/ui/Button";
 const secondaryButtonClass = "inline-flex items-center justify-center rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-2.5 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white";
 
 type MessageState = { type: "success" | "error"; text: string } | null;
+type UnlockedAchievement = { key: string; title: string; badgeIcon: string };
 
 type SubmissionBlockReason = "visitor" | "unqualified" | "closed";
 
 type VoteBlockReason = "visitor" | "unqualified" | "no_votes" | "own_answer" | "closed";
+
+function AchievementNotice({ achievements }: { achievements: UnlockedAchievement[] }) {
+  if (achievements.length === 0) return null;
+  return (
+    <div className="mt-4 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-league-silver shadow-glow">
+      <p className="font-black text-league-gold">新しい実績を獲得しました</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {achievements.map((achievement) => (
+          <span key={achievement.key} className="rounded-full border border-white/10 bg-black/25 px-3 py-1 font-bold text-white">{achievement.badgeIcon} {achievement.title}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Message({ message }: { message: MessageState }) {
   if (!message) return null;
@@ -33,18 +48,20 @@ export function WeeklySubmissionForm({
   const [content, setContent] = useState(initialContent);
   const [message, setMessage] = useState<MessageState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<UnlockedAchievement[]>([]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
+    setUnlockedAchievements([]);
 
     const response = await fetch(`/api/weekly/${topicId}/submission`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
     });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
+    const result = await response.json().catch(() => null) as { error?: string; unlockedAchievements?: UnlockedAchievement[] } | null;
     setIsSubmitting(false);
 
     if (!response.ok) {
@@ -53,6 +70,7 @@ export function WeeklySubmissionForm({
     }
 
     setMessage({ type: "success", text: initialContent ? "投稿を更新しました。" : "投稿を保存しました。" });
+    setUnlockedAchievements(result?.unlockedAchievements ?? []);
     router.refresh();
   }
 
@@ -96,6 +114,7 @@ export function WeeklySubmissionForm({
       </label>
       <Button className="mt-4" disabled={isSubmitting}>{isSubmitting ? "保存中..." : initialContent ? "投稿を更新" : "回答を投稿"}</Button>
       <Message message={message} />
+      <AchievementNotice achievements={unlockedAchievements} />
     </form>
   );
 }

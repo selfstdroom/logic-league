@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { evaluateAchievements } from "@/lib/achievements";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { scoreWeeklyAnswer } from "@/lib/weeklyScoring";
@@ -56,5 +57,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     : await admin.from("topic_answers").insert(payload);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+
+  let unlockedAchievements: Awaited<ReturnType<typeof evaluateAchievements>> = [];
+  try {
+    unlockedAchievements = await evaluateAchievements(user.id);
+  } catch (achievementError) {
+    console.warn("Achievement evaluation skipped after weekly submission.", achievementError);
+  }
+  return NextResponse.json({ ok: true, unlockedAchievements });
 }
