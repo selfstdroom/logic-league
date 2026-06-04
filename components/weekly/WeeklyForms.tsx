@@ -1,17 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
+const secondaryButtonClass = "inline-flex items-center justify-center rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-2.5 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white";
+
 type MessageState = { type: "success" | "error"; text: string } | null;
+
+type SubmissionBlockReason = "visitor" | "unqualified" | "closed";
+
+type VoteBlockReason = "visitor" | "unqualified" | "no_votes" | "own_answer" | "closed";
 
 function Message({ message }: { message: MessageState }) {
   if (!message) return null;
   return <p className={`mt-3 text-sm ${message.type === "success" ? "text-emerald-300" : "text-red-300"}`}>{message.text}</p>;
 }
 
-export function WeeklySubmissionForm({ topicId, canSubmit, initialContent = "" }: { topicId: string; canSubmit: boolean; initialContent?: string }) {
+export function WeeklySubmissionForm({
+  topicId,
+  canSubmit,
+  initialContent = "",
+  blockReason,
+}: {
+  topicId: string;
+  canSubmit: boolean;
+  initialContent?: string;
+  blockReason: SubmissionBlockReason;
+}) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [message, setMessage] = useState<MessageState>(null);
@@ -43,7 +60,19 @@ export function WeeklySubmissionForm({ topicId, canSubmit, initialContent = "" }
     return (
       <div className="rounded-3xl border border-white/10 bg-black/25 p-6 text-league-silver">
         <h2 className="text-xl font-black text-white">回答を投稿</h2>
-        <p className="mt-3">Weekly Leagueの投稿は、受付期間中にログイン済みかつ認定済みのユーザーのみ利用できます。</p>
+        {blockReason === "visitor" ? (
+          <>
+            <p className="mt-3">ログインするとWeekly Leagueへの参加資格を確認できます。</p>
+            <Link href="/login" className={`${secondaryButtonClass} mt-5`}>ログインする</Link>
+          </>
+        ) : blockReason === "unqualified" ? (
+          <>
+            <p className="mt-3">認定試験に合格するとWeekly Leagueに参加できます</p>
+            <Link href="/exam" className={`${secondaryButtonClass} mt-5`}>認定試験を受ける</Link>
+          </>
+        ) : (
+          <p className="mt-3">このWeekly League Topicの回答受付は終了しています。</p>
+        )}
       </div>
     );
   }
@@ -71,7 +100,19 @@ export function WeeklySubmissionForm({ topicId, canSubmit, initialContent = "" }
   );
 }
 
-export function WeeklyVoteButton({ topicId, answerId, canVote, voted }: { topicId: string; answerId: string; canVote: boolean; voted: boolean }) {
+export function WeeklyVoteButton({
+  topicId,
+  answerId,
+  canVote,
+  voted,
+  blockReason,
+}: {
+  topicId: string;
+  answerId: string;
+  canVote: boolean;
+  voted: boolean;
+  blockReason: VoteBlockReason | null;
+}) {
   const router = useRouter();
   const [message, setMessage] = useState<MessageState>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,11 +137,22 @@ export function WeeklyVoteButton({ topicId, answerId, canVote, voted }: { topicI
     router.refresh();
   }
 
+  const helperText = blockReason === "visitor" || blockReason === "unqualified"
+    ? "ログインまたは認定試験合格後に投票できます"
+    : blockReason === "no_votes"
+      ? "このTopicで使える3票はすべて使用済みです。"
+      : blockReason === "own_answer"
+        ? "自分の回答には投票できません。"
+        : blockReason === "closed"
+          ? "投票受付は終了しています。"
+          : null;
+
   return (
-    <div>
+    <div className="max-w-xs text-right">
       <Button onClick={vote} disabled={!canVote || voted || isSubmitting} className={voted ? "bg-none bg-emerald-300/15 text-emerald-200 shadow-none ring-1 ring-emerald-300/30" : ""}>
         {voted ? "投票済み" : isSubmitting ? "投票中..." : "投票"}
       </Button>
+      {helperText ? <p className="mt-2 text-xs leading-5 text-league-muted">{helperText}</p> : null}
       <Message message={message} />
     </div>
   );

@@ -39,6 +39,9 @@ begin
   if weekly_topic.id is null then
     raise exception 'Weekly topic not found.';
   end if;
+  if weekly_topic.deadline_at is null or weekly_topic.deadline_at > now() then
+    raise exception 'Voting has not started.';
+  end if;
   if weekly_topic.vote_deadline_at is null or weekly_topic.vote_deadline_at <= now() then
     raise exception 'Voting is closed.';
   end if;
@@ -66,15 +69,15 @@ insert into public.topics (type, category, title, content, status, publish_at, d
 select
   'weekly',
   'Society',
-  'Should voting be mandatory?',
-  '民主主義において投票を義務化するべきか。自由との関係、政治参加、投票率向上の効果、副作用などを踏まえて考察してください。',
+  '投票を義務化するべきか',
+  '民主主義において、投票を義務化するべきでしょうか。投票率の向上、政治参加の公平性、自由との関係、無関心層の投票による副作用などを踏まえて考察してください。',
   'published',
   now(),
   now() + interval '7 days',
   now() + interval '7 days',
   now() + interval '10 days'
 where not exists (
-  select 1 from public.topics where type = 'weekly' and title = 'Should voting be mandatory?'
+  select 1 from public.topics where type = 'weekly'
 );
 
 drop policy if exists "topics_select_published_weekly_anon" on public.topics;

@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
-import { getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
+import { getWeeklyCtaLabel, getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
 
@@ -137,6 +137,10 @@ export default async function HomePage() {
     commentCount: commentCountsByAnswer.get(answer.id) ?? 0,
   }));
   const activeWeeklyTopic = (weeklyTopics ?? []).find((topic) => ["submission", "voting"].includes(getWeeklyPhase(topic))) ?? (weeklyTopics ?? [])[0];
+  const activeWeeklyPhase = activeWeeklyTopic ? getWeeklyPhase(activeWeeklyTopic) : null;
+  const activeWeeklyHref = activeWeeklyTopic
+    ? activeWeeklyPhase === "completed" ? `/weekly/${activeWeeklyTopic.id}/results` : `/weekly/${activeWeeklyTopic.id}`
+    : "/weekly";
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
@@ -217,11 +221,11 @@ export default async function HomePage() {
                 <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Weekly League</p>
                 <h2 className="mt-2 text-xl font-black sm:text-3xl">{activeWeeklyTopic.title}</h2>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-league-silver sm:text-sm">
-                  <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">現在の段階: {getWeeklyStatusLabel(getWeeklyPhase(activeWeeklyTopic))}</span>
+                  <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">現在の段階: {activeWeeklyPhase ? getWeeklyStatusLabel(activeWeeklyPhase) : "開始前"}</span>
                   <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">締切: {formatDateTime(activeWeeklyTopic.deadline_at)}</span>
                 </div>
               </div>
-              <ButtonLink href={`/weekly/${activeWeeklyTopic.id}`} className="px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm">Weekly Leagueに参加する</ButtonLink>
+              <ButtonLink href={activeWeeklyHref} className="px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm">{activeWeeklyPhase ? getWeeklyCtaLabel(activeWeeklyPhase) : "Weekly Leagueに参加する"}</ButtonLink>
             </div>
           </Card>
         </section>

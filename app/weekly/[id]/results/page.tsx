@@ -3,16 +3,23 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { formatDateTime } from "@/lib/topics/format";
-import { finalizeWeeklyLeague } from "@/lib/weekly";
+import { createPreview, formatDateTime } from "@/lib/topics/format";
+import { buildAiScoreSummary, finalizeWeeklyLeague } from "@/lib/weekly";
 import type { Profile } from "@/types/logic-league";
 
 type ResultAnswer = {
   id: string;
   user_id: string;
+  content: string;
+  ai_structure_score: number | null;
+  ai_logic_score: number | null;
+  ai_originality_score: number | null;
+  ai_feasibility_score: number | null;
+  ai_risk_score: number | null;
   ai_total_score: number | null;
   vote_count: number;
   final_score: number | null;
@@ -46,7 +53,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
 
   const { data: answers } = await admin
     .from("topic_answers")
-    .select("id, user_id, ai_total_score, vote_count, final_score, ranking_position")
+    .select("id, user_id, content, ai_structure_score, ai_logic_score, ai_originality_score, ai_feasibility_score, ai_risk_score, ai_total_score, vote_count, final_score, ranking_position")
     .eq("topic_id", id)
     .order("ranking_position", { ascending: true, nullsFirst: false });
 
@@ -56,36 +63,79 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
     ? await admin.from("profiles").select("id, display_name, username, rank").in("id", userIds)
     : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank">[] };
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const topAnswers = rows.slice(0, 3);
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
       <div className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
         <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">Weekly League結果</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
-        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。</p>
+        <p className="mt-5 text-league-silver">最終スコア = AIスコア × 70% + 正規化した得票スコア × 30%。RatingとRankはこのMVPでは更新しません。</p>
       </div>
 
+      <section className="mt-10">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Top Answers</p>
+            <h2 className="mt-2 text-3xl font-black">上位回答</h2>
+          </div>
+          <ButtonLink href={`/weekly/${topic.id}`} className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">Topicに戻る</ButtonLink>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-3">
+          {topAnswers.map((answer) => {
+            const profile = profilesById.get(answer.user_id);
+            return (
+              <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <RankBadge rank={profile?.rank} size="sm" />
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-white">{displayName(profile)}</p>
+                    <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                  </div>
+                </div>
+                <p className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/25 p-4 text-sm leading-7 text-league-silver">{answer.content}</p>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-league-silver">
+                  <p className="font-bold text-white">AIスコア内訳</p>
+                  <p className="mt-2 leading-6">{buildAiScoreSummary(answer)}</p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+        {topAnswers.length === 0 ? <EmptyState title="上位回答はまだありません。">このWeekly League Topicでは確定した投稿がありません。</EmptyState> : null}
+      </section>
+
       <section className="mt-10 space-y-4">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Ranking</p>
+          <h2 className="mt-2 text-3xl font-black">最終Ranking</h2>
+        </div>
         {rows.map((answer) => {
           const profile = profilesById.get(answer.user_id);
           return (
             <Card key={answer.id} className="hover:border-amber-300/35 hover:bg-white/[0.06]">
-              <div className="grid gap-4 md:grid-cols-[0.4fr_1.2fr_0.8fr_0.8fr_0.8fr] md:items-center">
+              <div className="grid gap-4 md:grid-cols-[0.45fr_1.25fr_0.8fr_0.8fr_0.8fr] md:items-center">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-league-muted">Rank</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-league-muted">順位</p>
                   <p className="mt-1 text-4xl font-black text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <RankBadge rank={profile?.rank} size="sm" />
-                  <div>
-                    <p className="text-lg font-black text-white">{displayName(profile)}</p>
-                    <p className="text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
+                    <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"}</p>
+                    <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p>
                   </div>
                 </div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">最終スコア</p><p className="mt-1 text-2xl font-black">{answer.final_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">AIスコア</p><p className="mt-1 text-2xl font-black">{answer.ai_total_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">得票数</p><p className="mt-1 text-2xl font-black">{answer.vote_count}</p></div>
               </div>
+              <details className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                <summary className="cursor-pointer text-sm font-bold text-league-gold">回答全文を見る</summary>
+                <p className="mt-4 whitespace-pre-wrap leading-8 text-league-silver">{answer.content}</p>
+              </details>
             </Card>
           );
         })}

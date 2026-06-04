@@ -37,7 +37,7 @@ function parseWeeklyTopicForm(formData: FormData): WeeklyTopicFormPayload {
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
   if (!categories.includes(category as TopicCategory)) throw new Error("カテゴリーが不正です。");
-  if (!title || !content) throw new Error("タイトル and content are required.");
+  if (!title || !content) throw new Error("タイトルと本文を入力してください。");
 
   return {
     category: category as TopicCategory,
@@ -146,15 +146,15 @@ export default async function AdminWeeklyPage() {
               <input type="hidden" name="id" value={topic.id} />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-league-muted">公開日時: {formatDateTime(topic.publish_at)} · 締切: {formatDateTime(topic.deadline_at)}</p>
-                <p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">{topic.status}</p>
+                <p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">編集する</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory value={topic.category as TopicCategory} /></label><DateField name="publish_at" label="公開日時" value={topic.publish_at} /></div>
               <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="投稿締切" value={topic.deadline_at} /><DateField name="reveal_at" label="公開日時" value={topic.reveal_at} /><DateField name="vote_deadline_at" label="投票締切" value={topic.vote_deadline_at} /></div>
               <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
               <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
-              <Button className="w-fit">変更を保存</Button>
+              <div className="flex flex-wrap gap-3"><Button className="w-fit">保存する</Button><Button type="reset" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">キャンセル</Button></div>
             </form>
-            <form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">Topicを削除</Button></form>
+            <form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">削除する</Button></form>
           </Card>
         ))}
       </section>
