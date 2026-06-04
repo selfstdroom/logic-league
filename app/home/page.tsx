@@ -4,7 +4,6 @@ import { RankProgress } from "@/components/rank/RankProgress";
 import { TopicCard } from "@/components/topics/TopicCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
@@ -60,6 +59,51 @@ function topicOf(answer: FeedAnswer) {
 
 function first<T>(value: T | T[] | null | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function DiscussionOnboardingEmptyState() {
+  const discussionTypes = [
+    { title: "Daily Discussionとは？", body: "日々の問いに回答し、反論・質問・補足で議論を育てる公開ディスカッションです。", href: "/topics", cta: "Dailyを見る" },
+    { title: "Competitive Discussionとは？", body: "期限内に回答し、AI評価と投票を通じてRating・Rank・Hall of Fameを目指す競技議論です。", href: "/weekly", cta: "Competitiveを見る" },
+  ];
+  return (
+    <Card className="border-dashed border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.12),transparent_32%),rgba(255,255,255,0.035)] p-5 sm:p-6">
+      <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Start here</p>
+      <h3 className="mt-2 text-2xl font-black text-white">最初の議論に参加しましょう</h3>
+      <p className="mt-3 text-sm leading-7 text-league-silver">公開中の議論が少ない時期でも、参加の入口は明確です。認定試験で現在地を知り、DailyまたはCompetitiveに参加しましょう。</p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {discussionTypes.map((item) => (
+          <div key={item.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <h4 className="font-black text-white">{item.title}</h4>
+            <p className="mt-2 text-sm leading-6 text-league-muted">{item.body}</p>
+            <Link href={item.href} className="mt-4 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">{item.cta}</Link>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <ButtonLink href="/exam" className="px-4 py-2 text-sm">認定試験を受験</ButtonLink>
+        <ButtonLink href="/timeline" className="bg-none bg-white/10 px-4 py-2 text-sm text-white shadow-none ring-1 ring-white/15">Timelineの仕組みを見る</ButtonLink>
+      </div>
+    </Card>
+  );
+}
+
+function NewUserJourney() {
+  const steps = ["Home", "認定試験", "初めての議論", "実績解除", "Timeline掲載"];
+  return (
+    <Card className="p-4 sm:p-5">
+      <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Onboarding</p>
+      <h2 className="mt-1 text-xl font-black text-white">Logic Leagueの始め方</h2>
+      <div className="mt-4 grid gap-2 sm:grid-cols-5">
+        {steps.map((step, index) => (
+          <div key={step} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+            <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-league-muted">Step {index + 1}</p>
+            <p className="mt-1 text-sm font-black text-white">{step}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 export default async function HomePage() {
@@ -167,15 +211,17 @@ export default async function HomePage() {
   const latestFameRow = ((latestFame ?? []) as LatestFameWidget[])[0];
   const latestFameProfile = first(latestFameRow?.profiles);
   const latestFameTopic = first(latestFameRow?.topics);
+  const discussionCount = topicRows.length + ((weeklyTopics ?? []).length);
+  const discussionsAreScarce = discussionCount < 2;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
       <section className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr] lg:gap-6">
-        <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.16),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.76))] p-5 sm:p-8">
+        <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.16),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.76))] p-5 sm:p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">議論コマンド</p>
-              <h1 className="mt-3 max-w-4xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl">今、どの議論に参加するか</h1>
+              <h1 className="mt-3 max-w-4xl text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">今、どの議論に参加するか</h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">公開中の議論から論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
             </div>
             <ButtonLink href={todaysTopic ? `/topics/${todaysTopic.id}` : "/topics"} className="shrink-0 px-5 py-3">議論に参加する</ButtonLink>
@@ -208,14 +254,14 @@ export default async function HomePage() {
         </Card>
       </section>
 
-      <section className="mt-5 grid gap-4 lg:mt-8 lg:grid-cols-3">
+      <section className="mt-4 grid gap-4 lg:mt-6 lg:grid-cols-3">
         <Card className="p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <div><p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Leaderboard</p><h2 className="mt-1 text-xl font-black">Top 3</h2></div>
             <Link href="/leaderboard" className="text-xs font-bold text-league-gold hover:text-white">全体を見る</Link>
           </div>
           <div className="mt-4 space-y-3">
-            {((leaderProfiles ?? []) as LeaderWidgetProfile[]).map((leader, index) => (
+            {((leaderProfiles ?? []) as LeaderWidgetProfile[]).length < 3 ? <p className="text-sm leading-6 text-league-muted">ランキングは参加者が増えると表示されます。Ratingは認定試験と競技議論の結果から更新されます。</p> : ((leaderProfiles ?? []) as LeaderWidgetProfile[]).map((leader, index) => (
               <Link key={leader.id} href={`/profile/${leader.username}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/35">
                 <span className="w-7 text-lg font-black text-league-gold">#{index + 1}</span>
                 <RankBadge rank={leader.rank} size="xs" />
@@ -262,7 +308,7 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-3">コメント {todaysTopic.commentCount}</div>
               </div>
             </div>
-          ) : <EmptyState kind="discussions" title="公開中の議論はまだありません。">公開中の議論がない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
+          ) : <DiscussionOnboardingEmptyState />}
         </div>
 
         <Card className="p-4 sm:p-6">
@@ -281,10 +327,12 @@ export default async function HomePage() {
                 </div>
               </Link>
             ))}
-            {trendingTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">新しい議論が公開されると、ここに表示されます。</p> : null}
+            {trendingTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">新しい議論が公開されると、ここに表示されます。参加可能な議論はDailyまたはCompetitiveから確認できます。</p> : null}
           </div>
         </Card>
       </section>
+
+      {discussionsAreScarce ? <section className="mt-5 lg:mt-6"><NewUserJourney /></section> : null}
 
       {activeWeeklyTopic ? (
         <section className="mt-5 lg:mt-8">
@@ -337,7 +385,7 @@ export default async function HomePage() {
             );
           })}
         </div>
-        {feedAnswers.length === 0 ? <EmptyState kind="timeline" title="まだ投稿はありません。">最初の回答が投稿されると、ここにリーグの議論が流れます。</EmptyState> : null}
+        {feedAnswers.length === 0 ? <DiscussionOnboardingEmptyState /> : null}
       </section>
     </main>
   );
