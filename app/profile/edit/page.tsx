@@ -19,6 +19,14 @@ function normalizeOptional(value: FormDataEntryValue | null) {
   return normalized.length > 0 ? normalized : null;
 }
 
+function checkboxValue(formData: FormData, key: string) {
+  return formData.get(key) === "on";
+}
+
+function isPublic(profile: { [key: string]: unknown }, key: string) {
+  return profile[key] !== false;
+}
+
 function isValidUrl(value: string | null) {
   if (!value) return true;
   try {
@@ -64,6 +72,10 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
     const xUrl = normalizeOptional(formData.get("x_url"));
     const youtubeUrl = normalizeOptional(formData.get("youtube_url"));
     const githubUrl = normalizeOptional(formData.get("github_url"));
+    const showThoughtLogPublic = checkboxValue(formData, "show_thought_log_public");
+    const showExamResultPublic = checkboxValue(formData, "show_exam_result_public");
+    const showCompetitiveHistoryPublic = checkboxValue(formData, "show_competitive_history_public");
+    const showAchievementsPublic = checkboxValue(formData, "show_achievements_public");
 
     if (!displayName || !username) redirect("/profile/edit?error=required");
     if (!usernamePattern.test(username)) redirect("/profile/edit?error=username");
@@ -82,6 +94,10 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
         x_url: xUrl,
         youtube_url: youtubeUrl,
         github_url: githubUrl,
+        show_thought_log_public: showThoughtLogPublic,
+        show_exam_result_public: showExamResultPublic,
+        show_competitive_history_public: showCompetitiveHistoryPublic,
+        show_achievements_public: showAchievementsPublic,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -131,6 +147,24 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">GitHub URL</span>
               <input name="github_url" type="url" defaultValue={profile.github_url ?? ""} placeholder="https://github.com/..." className="premium-input mt-2" />
             </label>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">公開範囲</p>
+            <p className="mt-2 text-sm leading-6 text-league-silver">公開プロフィールに表示するセクションを選択します。オフにした項目は /profile/[username] で非公開として扱われます。</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                { key: "show_thought_log_public", label: "思考ログ・代表回答を公開" },
+                { key: "show_exam_result_public", label: "認定試験・アーキタイプを公開" },
+                { key: "show_competitive_history_public", label: "Competitive戦績を公開" },
+                { key: "show_achievements_public", label: "実績ショーケースを公開" },
+              ].map((item) => (
+                <label key={item.key} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm font-bold text-white">
+                  <input name={item.key} type="checkbox" defaultChecked={isPublic(profile as unknown as { [key: string]: unknown }, item.key)} className="rounded border-white/20 bg-black/40 text-league-gold focus:ring-league-gold" />
+                  <span>{item.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
             <Link href={`/profile/${profile.username}`} className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.06] px-6 py-3 text-sm font-bold text-white transition hover:bg-white/[0.1]">キャンセル</Link>
