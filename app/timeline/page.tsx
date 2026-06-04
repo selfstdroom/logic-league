@@ -8,6 +8,7 @@ import type { Profile } from "@/types/logic-league";
 export const dynamic = "force-dynamic";
 
 type ProfileLite = Pick<Profile, "id" | "display_name" | "username" | "rank">;
+type CurrentProfile = Pick<Profile, "qualified">;
 type TopicLite = { id?: string | null; type?: string | null; category?: string | null; title?: string | null; status?: string | null; reveal_at?: string | null; is_sample?: boolean | null };
 type AnswerRow = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at" | "is_sample"> & { topics?: TopicLite | TopicLite[] | null };
 type ReplyRow = Pick<Comment, "id" | "topic_answer_id" | "parent_reply_id" | "user_id" | "reply_type" | "content" | "created_at" | "is_sample"> & {
@@ -73,6 +74,7 @@ function thoughtScore(item: ThoughtFeedItem) {
 export default async function TimelinePage() {
   const supabase = await createClient();
   const readClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+  const { data: { user } } = await supabase.auth.getUser();
   const now = new Date().toISOString();
 
   const [{ data: answers }, { data: replies }] = await Promise.all([
@@ -94,24 +96,26 @@ export default async function TimelinePage() {
 
   const answerRows = ((answers ?? []) as AnswerRow[]).filter((answer) => {
     const topic = first(answer.topics);
-    return topic?.type !== "weekly" || !topic.reveal_at || topic.reveal_at <= now;
+    return topic?.type !== "weekly" || Boolean(topic.reveal_at && topic.reveal_at <= now);
   });
   const replyRows = ((replies ?? []) as ReplyRow[]).filter((reply) => {
     const answer = first(reply.topic_answers);
     const topic = first(answer?.topics);
-    return topic?.type !== "weekly" || !topic.reveal_at || topic.reveal_at <= now;
+    return topic?.type !== "weekly" || Boolean(topic.reveal_at && topic.reveal_at <= now);
   });
   const answerIds = answerRows.map((answer) => answer.id);
   const replyAnswerIds = replyRows.map((reply) => reply.topic_answer_id);
   const allAnswerIds = Array.from(new Set([...answerIds, ...replyAnswerIds]));
 
-  const [{ data: likes }, { data: commentsForCounts }] = await Promise.all([
-    allAnswerIds.length > 0 ? readClient.from("likes").select("topic_answer_id").in("topic_answer_id", allAnswerIds) : Promise.resolve({ data: [] as Pick<Like, "topic_answer_id">[] }),
+  const [{ data: likes }, { data: commentsForCounts }, { data: currentProfile }] = await Promise.all([
+    allAnswerIds.length > 0 ? readClient.from("likes").select("topic_answer_id, user_id").in("topic_answer_id", allAnswerIds) : Promise.resolve({ data: [] as Pick<Like, "topic_answer_id" | "user_id">[] }),
     allAnswerIds.length > 0 ? readClient.from("comments").select("topic_answer_id, parent_reply_id").in("topic_answer_id", allAnswerIds) : Promise.resolve({ data: [] as Pick<Comment, "topic_answer_id" | "parent_reply_id">[] }),
+    user ? supabase.from("profiles").select("qualified").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null as CurrentProfile | null }),
   ]);
 
   const likeCounts = new Map<string, number>();
   for (const like of likes ?? []) likeCounts.set(like.topic_answer_id, (likeCounts.get(like.topic_answer_id) ?? 0) + 1);
+  const likedAnswerIds = new Set((likes ?? []).filter((like) => user && like.user_id === user.id).map((like) => like.topic_answer_id));
   const commentCounts = new Map<string, number>();
   const childReplyCounts = new Map<string, number>();
   for (const comment of commentsForCounts ?? []) {
@@ -140,6 +144,7 @@ export default async function TimelinePage() {
       createdAt: answer.created_at,
       likeCount: likeCounts.get(answer.id) ?? 0,
       commentCount: commentCounts.get(answer.id) ?? 0,
+      likedByCurrentUser: likedAnswerIds.has(answer.id),
       isSample: answer.is_sample || Boolean(topic.is_sample),
       author: {
         id: answer.user_id,
@@ -167,8 +172,10 @@ export default async function TimelinePage() {
       discussionType: topic.type,
       content: reply.content,
       createdAt: reply.created_at,
-      likeCount: 0,
+      likeCount: likeCounts.get(answerId) ?? 0,
       commentCount: childReplyCounts.get(reply.id) ?? 0,
+      likedByCurrentUser: likedAnswerIds.has(answerId),
+      parentReplyId: reply.id,
       isSample: reply.is_sample || Boolean(topic.is_sample),
       author: {
         id: reply.user_id,
@@ -184,6 +191,9 @@ export default async function TimelinePage() {
     .sort((a, b) => thoughtScore(b) - thoughtScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 140);
 
+  const canInteract = Boolean(user && currentProfile?.qualified);
+  const blockedReason = user ? "認定試験に合格すると議論に参加できます" : "ログインすると議論に参加できます";
+
   return (
     <PageShell className="max-w-2xl pb-32">
       <header className="sticky top-0 z-10 -mx-4 border-b border-white/10 bg-league-black/88 px-4 py-3 backdrop-blur sm:-mx-5 sm:px-5">
@@ -192,7 +202,7 @@ export default async function TimelinePage() {
         <p className="mt-1 text-sm font-bold text-league-muted">回答・反論・再反論・補足・質問だけを流します。主役はユーザーではなく、議論に投げ込まれたアイデアです。</p>
       </header>
 
-      <ThoughtFeed items={items} />
+      <ThoughtFeed items={items} canInteract={canInteract} blockedReason={blockedReason} />
     </PageShell>
   );
 }
