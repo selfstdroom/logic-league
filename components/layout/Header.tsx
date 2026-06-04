@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabasePublicEnv } from "@/lib/supabase/env";
-import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
+import type { LeagueIconName } from "@/components/ui/LeagueIcon";
+import { ResponsiveNavigation, type PrimaryNavItem } from "@/components/layout/ResponsiveNavigation";
 
-const navItems = [
+const navItems: PrimaryNavItem[] = [
   { href: "/home", label: "ホーム", shortLabel: "ホーム", icon: "home" as LeagueIconName },
   { href: "/timeline", label: "タイムライン", shortLabel: "タイムライン", icon: "timeline" as LeagueIconName },
   { href: "/search", label: "検索", shortLabel: "検索", icon: "search" as LeagueIconName },
 ];
+
+const settingsNavItem: PrimaryNavItem = { href: "/settings", label: "設定", shortLabel: "設定", icon: "settings" as LeagueIconName };
 
 function myPageItem(href: string) {
   return { href, label: "マイページ", shortLabel: "マイページ", icon: "profile" as LeagueIconName };
@@ -27,7 +30,7 @@ export async function Header() {
 
   const profileHref = "/profile";
   const publicProfileHref = data.username ? `/profile/${data.username}` : "/profile";
-  const primaryNavItems = [...navItems, myPageItem(profileHref)];
+  const primaryNavItems = [...navItems, myPageItem(profileHref), settingsNavItem];
 
   return (
     <>
@@ -37,34 +40,12 @@ export async function Header() {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-300/35 bg-amber-300/10 text-[0.68rem] shadow-[0_0_24px_rgba(215,180,106,0.16)] sm:h-9 sm:w-9 sm:rounded-xl sm:text-sm">LL</span>
             <span className="truncate transition group-hover:text-white">LOGIC LEAGUE</span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm text-league-silver md:flex md:justify-end">
-            {primaryNavItems.map((item) => (
-              <Link key={item.label} className="inline-flex items-center gap-2 rounded-full px-2.5 py-2 transition hover:bg-white/10 hover:text-white lg:px-3" href={item.href}><LeagueIcon name={item.icon} size={17} className="text-league-gold/80" />{item.label}</Link>
-            ))}
-            <form action="/search" className="hidden items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 lg:flex">
-              <input name="q" aria-label="検索" placeholder="検索" className="w-24 bg-transparent text-xs font-bold text-white outline-none placeholder:text-league-muted xl:w-36" />
-              <button className="text-xs font-black text-league-gold">検索</button>
-            </form>
-            {data.user ? (
-              <>
-                <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white" href="/settings">設定</Link>
-                <Link className="hidden rounded-full border border-white/10 px-3 py-2 font-bold text-league-muted transition hover:border-amber-300/30 hover:text-white lg:inline" href={publicProfileHref}>{data.user.email}</Link>
-              </>
-            ) : <Link className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 font-bold text-league-gold transition hover:bg-amber-300/20" href="/login">ログイン</Link>}
-          </nav>
-          <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white md:hidden" href={data.user ? profileHref : "/login"}>
+          <ResponsiveNavigation items={primaryNavItems} userEmail={data.user?.email ?? null} publicProfileHref={publicProfileHref} />
+          <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white lg:hidden" href={data.user ? profileHref : "/login"}>
             {data.user ? "プロフィール" : "ログイン"}
           </Link>
         </div>
       </header>
-      <nav className="fixed inset-x-3 bottom-3 z-50 flex overflow-x-auto rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
-        {primaryNavItems.map((item) => (
-          <Link key={item.label} href={item.href} className="flex min-w-16 flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
-            <LeagueIcon name={item.icon} size={19} className="text-league-gold/80" />
-            <span className="mt-0.5">{item.shortLabel}</span>
-          </Link>
-        ))}
-      </nav>
     </>
   );
 }
