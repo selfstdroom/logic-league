@@ -11,6 +11,7 @@ type TopicCardProps = {
     type?: string | null;
     answerCount?: number;
     commentCount?: number;
+    is_sample?: boolean | null;
   };
   featured?: boolean;
 };
@@ -22,14 +23,18 @@ export function TopicCard({ topic, featured = false }: TopicCardProps) {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-200/10 blur-3xl transition group-hover:bg-amber-200/20" />
         <div className="relative flex items-start justify-between gap-4">
-          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.22em] text-league-gold">
-            {formatDiscussionType(topic.type)}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.22em] text-league-gold">
+              {formatDiscussionType(topic.type)}
+            </span>
+            {topic.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-[0.68rem] font-black text-sky-100">公式サンプル</span> : null}
+          </div>
           {topic.publish_at ? <time className="text-right text-xs leading-5 text-league-muted">{formatDateTime(topic.publish_at)}</time> : null}
         </div>
         <h2 className={`${featured ? "text-3xl" : "text-2xl"} relative mt-5 font-black leading-tight text-white transition group-hover:text-league-gold`}>
           {topic.title}
         </h2>
+        {topic.is_sample ? <p className="relative mt-3 rounded-2xl border border-sky-300/20 bg-sky-300/10 px-3 py-2 text-xs font-bold text-sky-100">これはLogic League運営によるサンプル議論です</p> : null}
         <p className="relative mt-4 flex-1 text-sm leading-6 text-league-silver">{createPreview(topic.content, featured ? 150 : 105)}</p>
         <div className="relative mt-4 flex flex-wrap gap-2 text-xs font-bold text-league-muted">
           <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1">{formatTopicCategory(topic.category)}</span>

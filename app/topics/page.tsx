@@ -8,7 +8,7 @@ export default async function TopicsPage() {
   const supabase = await createClient();
   const { data: topics, error } = await supabase
     .from("topics")
-    .select("id, type, category, title, content, publish_at")
+    .select("id, type, category, title, content, publish_at, is_sample")
     .eq("type", "daily")
     .eq("status", "published")
     .order("publish_at", { ascending: false, nullsFirst: false })

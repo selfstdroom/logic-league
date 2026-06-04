@@ -46,12 +46,13 @@ function DebateReplyNode({ reply, answerId, canReply, blockedReason, depth = 0 }
     <div id={`reply-${reply.id}`} className={`relative rounded-2xl border border-white/10 bg-black/25 p-4 ${visualDepth > 0 ? "ml-3 sm:ml-6" : ""}`}>
       <div className="flex flex-wrap items-center gap-2">
         <span className={`rounded-full border px-3 py-1 text-[0.68rem] font-black ${replyTone(reply.reply_type)}`}>{formatReplyType(reply.reply_type)}</span>
+        {reply.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-[0.68rem] font-black text-sky-100">公式サンプル返信</span> : null}
         <time className="text-xs font-bold text-league-muted">{formatDateTime(reply.created_at)}</time>
       </div>
       <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-league-silver">{reply.content}</p>
       <Link href={profileHref(reply.profile)} className="mt-3 inline-flex min-w-0 items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
         <RankBadge rank={reply.profile?.rank} size="xs" />
-        <span className="truncate">{displayName(reply.profile)}</span>
+        <span className="truncate">{reply.is_sample ? "Logic League運営" : displayName(reply.profile)}</span>
         <span className="truncate font-normal text-league-muted">@{reply.profile?.username ?? reply.user_id}</span>
       </Link>
       <DebateReplyComposer answerId={answerId} parentReplyId={reply.id} canReply={canReply} blockedReason={blockedReason} compact />
@@ -69,6 +70,7 @@ function AnswerCard({ answer, canInteract, blockedReason, idPrefix = "answer" }:
     <Card key={answer.id} id={`${idPrefix}-${answer.id}`} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
       <div className="flex flex-wrap items-center gap-3">
         <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
+        {answer.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル回答</span> : null}
         <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={canInteract} />
         <span className="text-xs font-bold text-league-muted">{formatDateTime(answer.created_at)}</span>
       </div>
@@ -77,7 +79,7 @@ function AnswerCard({ answer, canInteract, blockedReason, idPrefix = "answer" }:
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
         <RankBadge rank={answer.profile?.rank} size="xs" />
-        <Link href={profileHref(answer.profile)} className="truncate font-black text-white transition hover:text-league-gold">{displayName(answer.profile)}</Link>
+        <Link href={profileHref(answer.profile)} className="truncate font-black text-white transition hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link>
         <span className="truncate">@{answer.profile?.username ?? answer.user_id}</span>
       </div>
 
@@ -192,7 +194,8 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
   return (
     <PageShell>
       <HeroPanel eyebrow="Original Question" title={topic.title}>
-        <div className="flex flex-wrap gap-2 text-sm text-league-muted"><time>{formatDateTime(topic.publish_at)}</time><span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(topic.category)}</span></div>
+        <div className="flex flex-wrap gap-2 text-sm text-league-muted"><time>{formatDateTime(topic.publish_at)}</time><span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(topic.category)}</span>{topic.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル議論</span> : null}</div>
+        {topic.is_sample ? <div className="mt-5 rounded-2xl border border-sky-300/20 bg-sky-300/10 p-4 text-sm font-bold leading-7 text-sky-100">これはLogic League運営によるサンプル議論です。初めての方は、この議論を参考に回答してみてください。</div> : null}
         <div className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
       </HeroPanel>
 

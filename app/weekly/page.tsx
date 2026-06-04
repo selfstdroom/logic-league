@@ -23,10 +23,11 @@ function WeeklyTopicCard({ topic }: { topic: Topic }) {
   return (
     <Card className="group flex h-full flex-col border-white/10 bg-white/[0.04] p-5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/40 hover:bg-white/[0.07]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatDiscussionType(topic.type)}</span>
+        <div className="flex flex-wrap gap-2"><span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatDiscussionType(topic.type)}</span>{topic.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル</span> : null}</div>
         <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">{getWeeklyStatusLabel(phase)}</span>
       </div>
       <h3 className="mt-4 text-2xl font-black leading-tight group-hover:text-league-gold">{topic.title}</h3>
+      {topic.is_sample ? <p className="mt-3 rounded-2xl border border-sky-300/20 bg-sky-300/10 p-3 text-xs font-bold text-sky-100">これはLogic League運営によるサンプル議論です</p> : null}
       <p className="mt-3 flex-1 text-sm leading-7 text-league-silver">{createPreview(topic.content, 150)}</p>
       <div className="mt-5 grid gap-3 text-sm text-league-silver sm:grid-cols-3">
         <p><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">投稿締切</span>{formatDateTime(topic.deadline_at)}</p>

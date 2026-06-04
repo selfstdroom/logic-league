@@ -16,7 +16,7 @@ export default async function LeaderboardPage() {
   const admin = createAdminClient();
   const season = getSeasonInfo();
   const [{ data: profiles }, { data: wins }] = await Promise.all([
-    admin.from("profiles").select("id, username, display_name, rank, rating, archetype").order("rating", { ascending: false }).limit(100),
+    admin.from("profiles").select("id, username, display_name, rank, rating, archetype").neq("rank", "Official").order("rating", { ascending: false }).limit(100),
     admin.from("hall_of_fame").select("winner_user_id"),
   ]);
   const winCounts = new Map<string, number>();

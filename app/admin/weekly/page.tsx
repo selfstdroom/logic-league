@@ -19,6 +19,7 @@ type WeeklyTopicFormPayload = {
   deadline_at: string | null;
   reveal_at: string | null;
   vote_deadline_at: string | null;
+  status: "published" | "draft";
 };
 
 async function requireAdmin() {
@@ -36,6 +37,7 @@ function parseWeeklyTopicForm(formData: FormData): WeeklyTopicFormPayload {
   const category = formData.get("category");
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
+  const status = formData.get("status") === "draft" ? "draft" : "published";
   if (!categories.includes(category as TopicCategory)) throw new Error("カテゴリーが不正です。");
   if (!title || !content) throw new Error("タイトルと本文を入力してください。");
 
@@ -47,6 +49,7 @@ function parseWeeklyTopicForm(formData: FormData): WeeklyTopicFormPayload {
     deadline_at: parseDateTime(formData.get("deadline_at")),
     reveal_at: parseDateTime(formData.get("reveal_at")),
     vote_deadline_at: parseDateTime(formData.get("vote_deadline_at")),
+    status,
   };
 }
 
@@ -55,7 +58,7 @@ async function createWeeklyTopic(formData: FormData) {
   await requireAdmin();
   const payload = parseWeeklyTopicForm(formData);
   const admin = createAdminClient();
-  const { error } = await admin.from("topics").insert({ ...payload, type: "weekly", status: "published" });
+  const { error } = await admin.from("topics").insert({ ...payload, type: "weekly" });
   if (error) throw error;
   revalidatePath("/admin/weekly");
   revalidatePath("/weekly");
@@ -69,6 +72,19 @@ async function updateWeeklyTopic(formData: FormData) {
   const payload = parseWeeklyTopicForm(formData);
   const admin = createAdminClient();
   const { error } = await admin.from("topics").update(payload).eq("id", id).eq("type", "weekly");
+  if (error) throw error;
+  revalidatePath("/admin/weekly");
+  revalidatePath("/weekly");
+  revalidatePath(`/weekly/${id}`);
+  revalidatePath("/home");
+}
+
+async function hideSampleWeeklyTopic(formData: FormData) {
+  "use server";
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const admin = createAdminClient();
+  const { error } = await admin.from("topics").update({ status: "draft" }).eq("id", id).eq("type", "weekly").eq("is_sample", true);
   if (error) throw error;
   revalidatePath("/admin/weekly");
   revalidatePath("/weekly");
@@ -131,6 +147,7 @@ export default async function AdminWeeklyPage() {
         <form action={createWeeklyTopic} className="mt-5 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory /></label><DateField name="publish_at" label="公開日時" /></div>
           <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="投稿締切" /><DateField name="reveal_at" label="公開日時" /><DateField name="vote_deadline_at" label="投票締切" /></div>
+          <label className="text-sm font-bold text-league-silver">公開状態<select name="status" defaultValue="published" className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white"><option value="published">公開</option><option value="draft">非公開</option></select></label>
           <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
           <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={6} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
           <Button className="w-fit">Weekly League Topicを作成</Button>
@@ -146,15 +163,16 @@ export default async function AdminWeeklyPage() {
               <input type="hidden" name="id" value={topic.id} />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-league-muted">公開日時: {formatDateTime(topic.publish_at)} · 締切: {formatDateTime(topic.deadline_at)}</p>
-                <p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">編集する</p>
+                <div className="flex flex-wrap gap-2"><p className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-league-silver">{topic.status}</p>{topic.is_sample ? <p className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル</p> : null}</div>
               </div>
               <div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-bold text-league-silver">カテゴリー<SelectCategory value={topic.category as TopicCategory} /></label><DateField name="publish_at" label="公開日時" value={topic.publish_at} /></div>
               <div className="grid gap-4 md:grid-cols-3"><DateField name="deadline_at" label="投稿締切" value={topic.deadline_at} /><DateField name="reveal_at" label="公開日時" value={topic.reveal_at} /><DateField name="vote_deadline_at" label="投票締切" value={topic.vote_deadline_at} /></div>
+              <label className="text-sm font-bold text-league-silver">公開状態<select name="status" defaultValue={topic.status === "draft" ? "draft" : "published"} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white"><option value="published">公開</option><option value="draft">非公開</option></select></label>
               <label className="text-sm font-bold text-league-silver">タイトル<input name="title" required defaultValue={topic.title} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
               <label className="text-sm font-bold text-league-silver">本文<textarea name="content" required rows={5} defaultValue={topic.content} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-white" /></label>
               <div className="flex flex-wrap gap-3"><Button className="w-fit">保存する</Button><Button type="reset" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15">キャンセル</Button></div>
             </form>
-            <form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">削除する</Button></form>
+            {topic.is_sample && topic.status !== "draft" ? <form action={hideSampleWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-sky-500/15 text-sky-100 shadow-none ring-1 ring-sky-300/30">公式サンプルを非公開にする</Button></form> : null}<form action={deleteWeeklyTopic} className="mt-3"><input type="hidden" name="id" value={topic.id} /><Button className="bg-none bg-red-500/15 text-red-200 shadow-none ring-1 ring-red-300/30">削除する</Button></form>
           </Card>
         ))}
       </section>

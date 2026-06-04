@@ -2,7 +2,7 @@ import type { Profile, ExamAnswer, UserSettings } from "./logic-league";
 
 export type TopicCategory = "AI" | "Business" | "Economics" | "Society" | "Psychology" | "Science";
 export type TopicType = "daily" | "weekly";
-export type TopicStatus = "published" | "draft";
+export type TopicStatus = "published" | "draft" | "sample";
 export type TopicAnswerType = "Answer" | "Counter" | "Support" | "Question";
 export type DebateReplyType = "counter" | "rebuttal" | "support" | "question";
 
@@ -17,6 +17,7 @@ export type Topic = {
   deadline_at: string | null;
   reveal_at: string | null;
   vote_deadline_at: string | null;
+  is_sample: boolean;
   created_at: string;
 };
 
@@ -36,6 +37,7 @@ export type TopicAnswer = {
   final_score: number | null;
   ranking_position: number | null;
   is_anonymous: boolean;
+  is_sample: boolean;
   created_at: string;
 };
 
@@ -46,6 +48,7 @@ export type Comment = {
   user_id: string;
   reply_type: DebateReplyType;
   content: string;
+  is_sample: boolean;
   created_at: string;
 };
 

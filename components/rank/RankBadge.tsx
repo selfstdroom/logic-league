@@ -73,6 +73,17 @@ const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolea
     core: "#451a03",
     accent: "#facc15",
   },
+  Official: {
+    metal: "from-amber-200 via-white to-yellow-500",
+    glow: "shadow-amber-200/45",
+    crown: true,
+    points: "42,0 83,14 94,48 70,92 16,92 -10,48 1,14",
+    label: "Official",
+    mark: "LL",
+    rim: "#fef3c7",
+    core: "#2a1800",
+    accent: "#d7b46a",
+  },
 };
 
 type RankBadgeProps = {

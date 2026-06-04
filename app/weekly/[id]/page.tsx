@@ -33,7 +33,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
 
   const phase = getWeeklyPhase(topic);
   const [{ data: answers }, { data: votes }, { data: ownSubmission }] = await Promise.all([
-    phase === "voting" || phase === "completed"
+    topic?.is_sample || phase === "voting" || phase === "completed"
       ? supabase.from("topic_answers").select("*").eq("topic_id", id).order("created_at", { ascending: true })
       : Promise.resolve({ data: [] as TopicAnswer[] }),
     user ? supabase.from("weekly_votes").select("*").eq("topic_id", id).eq("user_id", user.id) : Promise.resolve({ data: [] as WeeklyVote[] }),
@@ -52,10 +52,12 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
       <article className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
         <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatDiscussionType(topic.type)}</span>
+          {topic.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル議論</span> : null}
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">現在のフェーズ: {getWeeklyStatusLabel(phase)}</span>
         </div>
         <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-league-silver">{getWeeklyPhaseDescription(phase)}</p>
+        {topic.is_sample ? <p className="mt-5 max-w-3xl rounded-2xl border border-sky-300/20 bg-sky-300/10 p-4 text-sm font-bold leading-7 text-sky-100">これはLogic League運営によるサンプル議論です。初めての方は、この議論を参考に回答してみてください。</p> : null}
         <p className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver">{topic.content}</p>
         <div className="mt-6 grid gap-3 text-sm text-league-silver md:grid-cols-3">
           <p className="rounded-2xl border border-white/10 bg-black/25 p-4"><span className="block text-xs uppercase tracking-[0.18em] text-league-muted">投稿締切</span>{formatDateTime(topic.deadline_at)}</p>
@@ -91,6 +93,27 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
         </section>
       ) : null}
 
+      {topic.is_sample ? (
+        <section className="mt-10">
+          <div className="mb-5 flex flex-col gap-2">
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Official Samples</p>
+            <h2 className="text-3xl font-black">公式サンプル回答</h2>
+            <p className="text-sm leading-7 text-league-muted">以下はLogic League運営によるサンプル回答です。実在ユーザーの投稿ではありません。</p>
+          </div>
+          <div className="space-y-5">
+            {(answers ?? []).filter((answer) => answer.is_sample).map((answer, index) => (
+              <Card key={`sample-${answer.id}`} className="border-sky-300/20 bg-sky-300/[0.04]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-1 text-xs font-black text-sky-100">公式サンプル回答 #{index + 1}</span>
+                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">Logic League運営</span>
+                </div>
+                <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/25 p-5 leading-7 text-league-silver">{answer.content}</p>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {phase === "voting" ? (
         <section className="mt-10">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -105,7 +128,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
               <Card key={answer.id} className="hover:border-amber-300/35 hover:bg-white/[0.06]">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">Anonymous Entry #{index + 1}</p>
+                    <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">{answer.is_sample ? "公式サンプル回答" : `Anonymous Entry #${index + 1}`}</p>
                     <p className="mt-2 text-sm text-league-muted">{buildAiScoreSummary(answer)}</p>
                   </div>
                   <div className="flex flex-col items-start gap-3 sm:items-end">

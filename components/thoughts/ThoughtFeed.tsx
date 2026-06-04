@@ -20,6 +20,7 @@ export type ThoughtFeedItem = {
   createdAt: string;
   likeCount: number;
   commentCount: number;
+  isSample?: boolean;
   author: {
     id: string;
     displayName: string;
@@ -74,6 +75,7 @@ function ThoughtCard({ item }: { item: ThoughtFeedItem }) {
             <LeagueIcon name={style.icon} size={13} />
             {style.label}
           </span>
+          {item.isSample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-[0.68rem] font-black text-sky-100">公式サンプル</span> : null}
         </div>
         <h2 className="mt-3 line-clamp-2 text-base font-black leading-snug text-white sm:text-lg">{item.discussionTitle}</h2>
         <p className="mt-3 whitespace-pre-wrap break-words text-[0.95rem] leading-7 text-league-silver sm:text-base">{createPreview(item.content, 240)}</p>
@@ -85,7 +87,7 @@ function ThoughtCard({ item }: { item: ThoughtFeedItem }) {
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
         <RankBadge rank={item.author.rank} size="xs" />
-        <Link href={item.author.href} className="truncate font-black text-white transition hover:text-league-gold">{item.author.displayName}</Link>
+        <Link href={item.author.href} className="truncate font-black text-white transition hover:text-league-gold">{item.isSample ? "Logic League運営" : item.author.displayName}</Link>
         {item.author.username ? <span className="truncate">@{item.author.username}</span> : null}
         <span>·</span>
         <time>{formatDateTime(item.createdAt)}</time>
