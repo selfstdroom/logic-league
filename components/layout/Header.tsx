@@ -7,6 +7,9 @@ const navItems = [
   { href: "/topics", label: "Topics", shortLabel: "Topics", icon: "◇" },
   { href: "/timeline", label: "Timeline", shortLabel: "Time", icon: "✦" },
   { href: "/weekly", label: "Weekly League", shortLabel: "Weekly", icon: "◈" },
+  { href: "/leaderboard", label: "Leaderboard", shortLabel: "Rank", icon: "#" },
+  { href: "/hall-of-fame", label: "Hall of Fame", shortLabel: "Fame", icon: "★" },
+  { href: "/ranks", label: "Ranks", shortLabel: "Ranks", icon: "⬡" },
   { href: "/exam", label: "認定試験", shortLabel: "試験", icon: "△" },
 ];
 
@@ -36,6 +39,7 @@ export async function Header() {
             {navItems.map((item) => (
               <Link key={item.label} className="rounded-full px-3 py-2 transition hover:bg-white/10 hover:text-white" href={item.href}>{item.label}</Link>
             ))}
+            <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 font-bold text-league-silver transition hover:border-amber-300/40 hover:text-white" href="/search">Search</Link>
             {data.user ? <span className="hidden max-w-48 truncate rounded-full border border-white/10 px-3 py-2 text-league-muted lg:inline">{data.user.email}</span> : <Link className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 font-bold text-league-gold transition hover:bg-amber-300/20" href="/login">ログイン</Link>}
           </nav>
           <Link className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-league-silver transition hover:border-amber-300/30 hover:text-white md:hidden" href={data.user ? profileHref : "/login"}>
@@ -43,9 +47,9 @@ export async function Header() {
           </Link>
         </div>
       </header>
-      <nav className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-50 flex overflow-x-auto rounded-2xl border border-white/10 bg-[#05070d]/90 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:hidden">
         {navItems.map((item) => (
-          <Link key={item.label} href={item.href} className="flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
+          <Link key={item.label} href={item.href} className="flex min-w-16 flex-col items-center justify-center rounded-xl px-2 py-2 text-[0.65rem] font-bold text-league-muted transition hover:bg-white/[0.07] hover:text-white">
             <span className="text-[0.7rem] text-league-gold/80">{item.icon}</span>
             <span className="mt-0.5">{item.shortLabel}</span>
           </Link>

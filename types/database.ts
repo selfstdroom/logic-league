@@ -61,6 +61,55 @@ export type WeeklyVote = {
   created_at: string;
 };
 
+export type RatingHistory = {
+  id: string;
+  user_id: string;
+  topic_id: string | null;
+  old_rating: number | null;
+  new_rating: number | null;
+  delta: number | null;
+  reason: string | null;
+  created_at: string;
+};
+
+export type HallOfFame = {
+  id: string;
+  topic_id: string | null;
+  winner_user_id: string | null;
+  winner_answer_id: string | null;
+  final_score: number | null;
+  ai_total_score: number | null;
+  vote_count: number | null;
+  created_at: string;
+};
+
+export type Achievement = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  created_at: string;
+};
+
+export type UserAchievement = {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  created_at: string;
+};
+
+export type SeasonSnapshot = {
+  id: string;
+  season_key: string;
+  season_name: string;
+  user_id: string;
+  rating: number;
+  rank: string;
+  position: number;
+  weekly_wins: number;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -104,6 +153,36 @@ export type Database = {
         Row: WeeklyVote;
         Insert: Partial<WeeklyVote> & { topic_id: string; topic_answer_id: string; user_id: string };
         Update: Partial<WeeklyVote>;
+        Relationships: [];
+      };
+      rating_histories: {
+        Row: RatingHistory;
+        Insert: Partial<RatingHistory> & { user_id: string };
+        Update: Partial<RatingHistory>;
+        Relationships: [];
+      };
+      hall_of_fame: {
+        Row: HallOfFame;
+        Insert: Partial<HallOfFame>;
+        Update: Partial<HallOfFame>;
+        Relationships: [];
+      };
+      achievements: {
+        Row: Achievement;
+        Insert: Partial<Achievement> & { id: string; title: string; description: string };
+        Update: Partial<Achievement>;
+        Relationships: [];
+      };
+      user_achievements: {
+        Row: UserAchievement;
+        Insert: Partial<UserAchievement> & { user_id: string; achievement_id: string };
+        Update: Partial<UserAchievement>;
+        Relationships: [];
+      };
+      season_snapshots: {
+        Row: SeasonSnapshot;
+        Insert: Partial<SeasonSnapshot> & { season_key: string; season_name: string; user_id: string; rating: number; rank: string; position: number };
+        Update: Partial<SeasonSnapshot>;
         Relationships: [];
       };
     };
