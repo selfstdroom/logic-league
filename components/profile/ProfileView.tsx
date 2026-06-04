@@ -10,8 +10,8 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime, formatDiscussionType } from "@/lib/topics/format";
-import type { TopicAnswerType } from "@/types/database";
+import { createPreview, formatDateTime, formatDiscussionType, formatReplyType } from "@/lib/topics/format";
+import type { DebateReplyType, TopicAnswerType } from "@/types/database";
 import type { ArchetypeName, Profile } from "@/types/logic-league";
 
 type ProfileVisibilityKey =
@@ -37,6 +37,15 @@ type TopicAnswerHistoryRow = {
 };
 
 type CountRow = { topic_answer_id: string };
+type DebateReplyHistoryRow = {
+  id: string;
+  topic_answer_id: string;
+  parent_reply_id: string | null;
+  reply_type: DebateReplyType;
+  content: string;
+  created_at: string;
+  topic_answers?: { id?: string | null; topic_id?: string | null; topics?: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null } | { id?: string | null; topic_id?: string | null; topics?: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null }[] | null;
+};
 type AchievementRow = { achievement_key: string | null; achievement_id: string | null; unlocked_at: string | null; created_at: string; achievements?: { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null } | { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null }[] | null };
 type RatingHistoryRow = { old_rating: number | null; new_rating: number | null; delta: number | null; created_at: string; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
@@ -48,6 +57,8 @@ type TopicActivityItem = {
   category: string;
   title: string;
   topicType: string;
+  activityLabel?: string;
+  activityHref?: string;
   likeCount: number;
   commentCount: number;
   score: number | null;
@@ -162,7 +173,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
   const showCompetitive = profileVisible(profile, "show_competitive_history_public", isOwnProfile);
   const showAchievements = profileVisible(profile, "show_achievements_public", isOwnProfile);
 
-  const [{ count: totalAnswerCount }, { count: hallOfFameCount }, { count: competitiveCount }, { count: top10Count }, { count: winCount }, { data: achievements }, { data: ratingHistories }, { data: examAnswers }, { data: topicAnswers }] = await Promise.all([
+  const [{ count: totalAnswerCount }, { count: hallOfFameCount }, { count: competitiveCount }, { count: top10Count }, { count: winCount }, { data: achievements }, { data: ratingHistories }, { data: examAnswers }, { data: topicAnswers }, { data: debateReplies }] = await Promise.all([
     readClient.from("topic_answers").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
     profileClient.from("hall_of_fame").select("id", { count: "exact", head: true }).eq("winner_user_id", profile.id),
     profileClient.from("topic_answers").select("id, topics!inner(type)", { count: "exact", head: true }).eq("user_id", profile.id).eq("topics.type", "weekly"),
@@ -172,6 +183,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
     profileClient.from("rating_histories").select("old_rating, new_rating, delta, created_at, topics(title)").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(100),
     profileClient.from("exam_answers").select("id, answer, created_at, predicted_deviation, archetype, total_score, structure_score, hypothesis_score, originality_score, feasibility_score, risk_score, summary, strength, weakness, upper_gap").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(showExam ? 10 : 1),
     readClient.from("topic_answers").select("id, topic_id, answer_type, content, is_anonymous, ai_total_score, final_score, vote_count, ranking_position, created_at, topics!inner(id, type, category, title)").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(80),
+    readClient.from("comments").select("id, topic_answer_id, parent_reply_id, reply_type, content, created_at, topic_answers!inner(id, topic_id, topics!inner(id, type, category, title))").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(80),
   ]);
 
   const topicAnswerRows = ((topicAnswers ?? []) as TopicAnswerHistoryRow[]).filter((answer) => isOwnProfile || !answer.is_anonymous);
@@ -186,7 +198,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
   const commentCounts = new Map<string, number>();
   for (const comment of (comments ?? []) as CountRow[]) commentCounts.set(comment.topic_answer_id, (commentCounts.get(comment.topic_answer_id) ?? 0) + 1);
 
-  const topicItems: TopicActivityItem[] = topicAnswerRows.map((answer) => {
+  const answerItems: TopicActivityItem[] = topicAnswerRows.map((answer) => {
     const topic = first(answer.topics);
     return {
       id: answer.id,
@@ -197,12 +209,36 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
       category: topic?.category ?? "議論",
       title: topic?.title ?? "議論",
       topicType: topic?.type ?? "daily",
+      activityLabel: `${topic?.title ?? "議論"}に${answerTypeLabel(answer.answer_type)}しました`,
       likeCount: likeCounts.get(answer.id) ?? 0,
       commentCount: commentCounts.get(answer.id) ?? 0,
       score: scoreOf(answer),
       rankingPosition: answer.ranking_position,
     };
   });
+  const debateReplyRows = (debateReplies ?? []) as DebateReplyHistoryRow[];
+  const replyItems: TopicActivityItem[] = debateReplyRows.map((reply) => {
+    const answer = first(reply.topic_answers);
+    const topic = first(answer?.topics);
+    const topicId = answer?.topic_id ?? "";
+    return {
+      id: `reply-${reply.id}`,
+      topic_id: topicId,
+      created_at: reply.created_at,
+      answer_type: reply.reply_type === "counter" ? "Counter" : reply.reply_type === "question" ? "Question" : "Support",
+      content: reply.content,
+      category: topic?.category ?? "議論",
+      title: topic?.title ?? "議論",
+      topicType: topic?.type ?? "daily",
+      activityLabel: `${topic?.title ?? "議論"}に${formatReplyType(reply.reply_type)}しました`,
+      activityHref: topic?.type === "weekly" ? `/weekly/${topicId}` : `/topics/${topicId}#reply-${reply.id}`,
+      likeCount: 0,
+      commentCount: 0,
+      score: null,
+      rankingPosition: null,
+    };
+  });
+  const topicItems = [...answerItems, ...replyItems].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const featuredAnswer = [...topicItems].sort((a, b) => {
     const scoreDiff = (b.score ?? -1) - (a.score ?? -1);
@@ -367,7 +403,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
           {showThoughtLog ? (
             <div className="mt-4 space-y-3">
               {topicItems.slice(0, 14).map((item) => (
-                <Link key={item.id} href={discussionHref(item)} className="block rounded-[1.35rem] border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
+                <Link key={item.id} href={item.activityHref ?? discussionHref(item)} className="block rounded-[1.35rem] border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap gap-2">
                       <PremiumBadge>{answerTypeLabel(item.answer_type)}</PremiumBadge>
@@ -375,7 +411,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
                     </div>
                     <time className="text-xs font-bold text-league-muted">{formatDateTime(item.created_at)}</time>
                   </div>
-                  <h3 className="mt-3 line-clamp-1 text-base font-black text-white sm:text-lg">{item.title}</h3>
+                  <h3 className="mt-3 line-clamp-1 text-base font-black text-white sm:text-lg">{item.activityLabel ?? item.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(item.content, 190)}</p>
                 </Link>
               ))}
