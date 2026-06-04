@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
+import { FloatingParticipationHub } from "@/components/layout/FloatingParticipationHub";
 
 export const metadata: Metadata = {
   title: "Logic League",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-screen bg-[radial-gradient(circle_at_top,#111827_0%,#05070d_48%,#020204_100%)] antialiased">
         <Header />
         {children}
+        <FloatingParticipationHub />
       </body>
     </html>
   );

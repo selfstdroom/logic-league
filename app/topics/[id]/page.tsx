@@ -27,6 +27,44 @@ function profileHref(profile: Pick<Profile, "id" | "username"> | undefined, user
   return profile?.username ? `/profile/${profile.username}` : `/profile/${profile?.id ?? userId}`;
 }
 
+function AnswerCard({ answer, canInteract, idPrefix = "answer" }: { answer: AnswerView; canInteract: boolean; idPrefix?: string }) {
+  return (
+    <Card key={answer.id} id={`${idPrefix}-${answer.id}`} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
+        <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={canInteract} />
+        <span className="text-xs font-bold text-league-muted">{formatDateTime(answer.created_at)}</span>
+      </div>
+
+      <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
+
+      <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
+        <RankBadge rank={answer.profile?.rank} size="xs" />
+        <Link href={profileHref(answer.profile, answer.user_id)} className="truncate font-black text-white transition hover:text-league-gold">{displayName(answer.profile)}</Link>
+        <span className="truncate">@{answer.profile?.username ?? answer.user_id}</span>
+      </div>
+
+      <div className="mt-6 border-t border-white/10 pt-5">
+        <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">コメント</h3>
+        <div className="mt-4 space-y-3">
+          {answer.comments.map((comment) => (
+            <div key={comment.id} id={`comment-${comment.id}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <p className="text-sm leading-6 text-league-silver">{comment.content}</p>
+              <Link href={profileHref(comment.profile, comment.user_id)} className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
+                <RankBadge rank={comment.profile?.rank} size="xs" />
+                <span>{displayName(comment.profile)}</span>
+                <span className="font-normal text-league-muted">@{comment.profile?.username ?? comment.user_id} · {formatDateTime(comment.created_at)}</span>
+              </Link>
+            </div>
+          ))}
+          {answer.comments.length === 0 ? <p className="text-sm text-league-muted">まだコメントはありません。</p> : null}
+        </div>
+        <CommentForm answerId={answer.id} canComment={canInteract} />
+      </div>
+    </Card>
+  );
+}
+
 export default async function TopicDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -96,6 +134,8 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
     Support: answerViews.filter((answer) => answer.answer_type === "Support"),
     Question: answerViews.filter((answer) => answer.answer_type === "Question"),
   };
+  const topAnswerIds = new Set([...answersByType.Answer].sort((a, b) => (b.likeCount + b.comments.length) - (a.likeCount + a.comments.length)).slice(0, 3).map((answer) => answer.id));
+
   const { data: relatedTopics } = await supabase
     .from("topics")
     .select("id, type, category, title, content, publish_at")
@@ -108,7 +148,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   return (
     <PageShell>
-      <HeroPanel eyebrow={formatDiscussionType(topic.type)} title={topic.title}>
+      <HeroPanel eyebrow="Original Question" title={topic.title}>
         <div className="flex flex-wrap gap-2 text-sm text-league-muted"><time>{formatDateTime(topic.publish_at)}</time><span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(topic.category)}</span></div>
         <div className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
       </HeroPanel>
@@ -127,43 +167,46 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           <div className="rounded-2xl border border-purple-300/20 bg-purple-300/10 p-4"><p className="text-xs text-league-muted">質問</p><p className="mt-1 text-2xl font-black text-white">{answersByType.Question.length}</p></div>
         </div>
 
-        <div className="space-y-5">
-          {answerViews.map((answer) => (
-            <Card key={answer.id} id={`answer-${answer.id}`} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <Link href={profileHref(answer.profile, answer.user_id)} className="flex items-center gap-3 rounded-xl transition hover:text-league-gold">
-                  <RankBadge rank={answer.profile?.rank} size="sm" />
-                  <span>
-                    <span className="block font-black text-white">{displayName(answer.profile)}</span>
-                    <span className="mt-1 block text-xs text-league-muted">@{answer.profile?.username ?? answer.user_id} · {formatDateTime(answer.created_at)}</span>
-                  </span>
-                </Link>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-league-silver">{formatAnswerType(answer.answer_type)}</span>
-                  <LikeButton answerId={answer.id} likeCount={answer.likeCount} liked={answer.likedByCurrentUser} canLike={Boolean(user)} />
-                </div>
-              </div>
-              <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
+        <div className="space-y-10">
+          <section>
+            <SectionHeader eyebrow="Top Answers" title="Top Answers" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">人気順</p>} />
+            <div className="space-y-5">
+              {[...answersByType.Answer].sort((a, b) => (b.likeCount + b.comments.length) - (a.likeCount + a.comments.length)).slice(0, 3).map((answer) => <AnswerCard key={`top-${answer.id}`} answer={answer} canInteract={Boolean(user)} />)}
+              {answersByType.Answer.length === 0 ? <p className="text-sm text-league-muted">まだ回答はありません。</p> : null}
+            </div>
+          </section>
 
-              <div className="mt-6 border-t border-white/10 pt-5">
-                <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">コメント</h3>
-                <div className="mt-4 space-y-3">
-                  {answer.comments.map((comment) => (
-                    <div key={comment.id} id={`comment-${comment.id}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <Link href={profileHref(comment.profile, comment.user_id)} className="inline-flex items-center gap-2 text-sm font-bold text-white transition hover:text-league-gold">
-                        <RankBadge rank={comment.profile?.rank} size="sm" />
-                        <span>{displayName(comment.profile)}</span>
-                        <span className="font-normal text-league-muted">@{comment.profile?.username ?? comment.user_id} · {formatDateTime(comment.created_at)}</span>
-                      </Link>
-                      <p className="mt-2 text-sm leading-6 text-league-silver">{comment.content}</p>
-                    </div>
-                  ))}
-                  {answer.comments.length === 0 ? <p className="text-sm text-league-muted">まだコメントはありません。質の高い問いや補足が届くと、ここに蓄積されます。</p> : null}
-                </div>
-                <CommentForm answerId={answer.id} canComment={Boolean(user)} />
-              </div>
-            </Card>
-          ))}
+          <section>
+            <SectionHeader eyebrow="New Answers" title="新着回答" />
+            <div className="space-y-5">
+              {[...answersByType.Answer].filter((answer) => !topAnswerIds.has(answer.id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5).map((answer) => <AnswerCard key={`new-${answer.id}`} answer={answer} canInteract={Boolean(user)} />)}
+              {answersByType.Answer.filter((answer) => !topAnswerIds.has(answer.id)).length === 0 ? <p className="text-sm text-league-muted">新着回答はTop Answersに表示されています。</p> : null}
+            </div>
+          </section>
+
+          <section>
+            <SectionHeader eyebrow="Counterarguments" title="反論" />
+            <div className="space-y-5">
+              {answersByType.Counter.map((answer) => <AnswerCard key={`counter-${answer.id}`} answer={answer} canInteract={Boolean(user)} />)}
+              {answersByType.Counter.length === 0 ? <p className="text-sm text-league-muted">まだ反論はありません。</p> : null}
+            </div>
+          </section>
+
+          <section>
+            <SectionHeader eyebrow="Support Arguments" title="賛成・補足" />
+            <div className="space-y-5">
+              {answersByType.Support.map((answer) => <AnswerCard key={`support-${answer.id}`} answer={answer} canInteract={Boolean(user)} />)}
+              {answersByType.Support.length === 0 ? <p className="text-sm text-league-muted">まだ賛成・補足はありません。</p> : null}
+            </div>
+          </section>
+
+          <section>
+            <SectionHeader eyebrow="Comments" title="コメントが動いている回答" />
+            <div className="space-y-5">
+              {answerViews.filter((answer) => answer.comments.length > 0).slice(0, 3).map((answer) => <AnswerCard key={`comments-${answer.id}`} answer={answer} canInteract={Boolean(user)} idPrefix="comment-thread" />)}
+              {answerViews.every((answer) => answer.comments.length === 0) ? <p className="text-sm text-league-muted">まだコメントはありません。</p> : null}
+            </div>
+          </section>
         </div>
 
         {answerViews.length === 0 ? <EmptyState kind="discussions" title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}

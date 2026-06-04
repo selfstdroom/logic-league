@@ -26,7 +26,7 @@ type LeaderWidgetProfile = Pick<Profile, "id" | "username" | "display_name" | "r
 type LatestFameWidget = { id: string; final_score: number | null; profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
 type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at"> & {
-  topics?: { category?: string | null; title?: string | null } | { category?: string | null; title?: string | null }[] | null;
+  topics?: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null;
   profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">;
   likeCount: number;
   commentCount: number;
@@ -57,53 +57,13 @@ function topicOf(answer: FeedAnswer) {
   return Array.isArray(answer.topics) ? answer.topics[0] : answer.topics;
 }
 
+function answerHref(answer: FeedAnswer) {
+  const topic = topicOf(answer);
+  return topic?.type === "weekly" ? `/weekly/${answer.topic_id}` : `/topics/${answer.topic_id}#answer-${answer.id}`;
+}
+
 function first<T>(value: T | T[] | null | undefined) {
   return Array.isArray(value) ? value[0] : value;
-}
-
-function DiscussionOnboardingEmptyState() {
-  const discussionTypes = [
-    { title: "Daily Discussionとは？", body: "日々の問いに回答し、反論・質問・補足で議論を育てる公開ディスカッションです。", href: "/topics", cta: "Dailyを見る" },
-    { title: "Competitive Discussionとは？", body: "期限内に回答し、AI評価と投票を通じてRating・Rank・Hall of Fameを目指す競技議論です。", href: "/weekly", cta: "Competitiveを見る" },
-  ];
-  return (
-    <Card className="border-dashed border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.12),transparent_32%),rgba(255,255,255,0.035)] p-5 sm:p-6">
-      <p className="text-xs font-black uppercase tracking-[0.3em] text-league-gold">Start here</p>
-      <h3 className="mt-2 text-2xl font-black text-white">最初の議論に参加しましょう</h3>
-      <p className="mt-3 text-sm leading-7 text-league-silver">公開中の議論が少ない時期でも、参加の入口は明確です。認定試験で現在地を知り、DailyまたはCompetitiveに参加しましょう。</p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {discussionTypes.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <h4 className="font-black text-white">{item.title}</h4>
-            <p className="mt-2 text-sm leading-6 text-league-muted">{item.body}</p>
-            <Link href={item.href} className="mt-4 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">{item.cta}</Link>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 flex flex-wrap gap-3">
-        <ButtonLink href="/exam" className="px-4 py-2 text-sm">認定試験を受験</ButtonLink>
-        <ButtonLink href="/timeline" className="bg-none bg-white/10 px-4 py-2 text-sm text-white shadow-none ring-1 ring-white/15">Timelineの仕組みを見る</ButtonLink>
-      </div>
-    </Card>
-  );
-}
-
-function NewUserJourney() {
-  const steps = ["Home", "認定試験", "初めての議論", "実績解除", "Timeline掲載"];
-  return (
-    <Card className="p-4 sm:p-5">
-      <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Onboarding</p>
-      <h2 className="mt-1 text-xl font-black text-white">Logic Leagueの始め方</h2>
-      <div className="mt-4 grid gap-2 sm:grid-cols-5">
-        {steps.map((step, index) => (
-          <div key={step} className="rounded-2xl border border-white/10 bg-black/20 p-3">
-            <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-league-muted">Step {index + 1}</p>
-            <p className="mt-1 text-sm font-black text-white">{step}</p>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
 }
 
 export default async function HomePage() {
@@ -133,10 +93,11 @@ export default async function HomePage() {
       .limit(5),
     supabase
       .from("topic_answers")
-      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(category, title, type)")
-      .eq("topics.type", "daily")
+      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(category, title, type, status)")
+      .eq("topics.status", "published")
+      .filter("topics.type", "in", "(daily,weekly,special)")
       .order("created_at", { ascending: false })
-      .limit(8),
+      .limit(18),
     supabase
       .from("topic_answers")
       .select("id", { count: "exact", head: true })
@@ -211,8 +172,8 @@ export default async function HomePage() {
   const latestFameRow = ((latestFame ?? []) as LatestFameWidget[])[0];
   const latestFameProfile = first(latestFameRow?.profiles);
   const latestFameTopic = first(latestFameRow?.topics);
-  const discussionCount = topicRows.length + ((weeklyTopics ?? []).length);
-  const discussionsAreScarce = discussionCount < 2;
+  const popularAnswers = [...feedAnswers].sort((a, b) => (b.likeCount + b.commentCount) - (a.likeCount + a.commentCount)).slice(0, 4);
+  const newAnswers = [...feedAnswers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
@@ -308,7 +269,7 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-3">コメント {todaysTopic.commentCount}</div>
               </div>
             </div>
-          ) : <DiscussionOnboardingEmptyState />}
+          ) : <p className="py-6 text-sm font-bold text-league-muted">まだ回答はありません</p>}
         </div>
 
         <Card className="p-4 sm:p-6">
@@ -332,7 +293,6 @@ export default async function HomePage() {
         </Card>
       </section>
 
-      {discussionsAreScarce ? <section className="mt-5 lg:mt-6"><NewUserJourney /></section> : null}
 
       {activeWeeklyTopic ? (
         <section className="mt-5 lg:mt-8">
@@ -355,37 +315,55 @@ export default async function HomePage() {
       <section className="mt-6 lg:mt-10">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">最近動いている議論</p>
-            <h2 className="mt-1 text-2xl font-black sm:mt-2 sm:text-3xl">いま動いている議論</h2>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">人気の回答</p>
+            <h2 className="mt-1 text-2xl font-black sm:mt-2 sm:text-3xl">人気の回答</h2>
           </div>
           <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">タイムラインを見る</ButtonLink>
         </div>
         <div className="grid gap-5 lg:grid-cols-2">
-          {feedAnswers.slice(0, 6).map((answer) => {
+          {popularAnswers.map((answer) => {
             const topic = topicOf(answer);
             return (
               <article key={answer.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <Link href={profileHref(answer.profile)} className="flex min-w-0 items-center gap-3 rounded-xl transition hover:text-league-gold">
-                    <RankBadge rank={answer.profile?.rank} size="sm" />
-                    <span className="min-w-0">
-                      <span className="block truncate font-black">{displayName(answer.profile)}</span>
-                      <span className="block truncate text-xs text-league-muted">@{answer.profile?.username ?? answer.user_id}</span>
-                    </span>
-                  </Link>
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{activityLabel(answer.answer_type)}</span>
-                </div>
-                <Link href={`/topics/${answer.topic_id}`} className="mt-4 block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
+                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
+                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span><span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
+                  <p className="mt-3 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
                   <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
-                  <p className="mt-3 text-xs text-league-muted">{formatDateTime(answer.created_at)} · いいね {answer.likeCount} · コメント {answer.commentCount}</p>
+                  <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{displayName(answer.profile)}</Link></div>
               </article>
             );
           })}
         </div>
-        {feedAnswers.length === 0 ? <DiscussionOnboardingEmptyState /> : null}
+        {feedAnswers.length === 0 ? <p className="py-6 text-center text-sm font-bold text-league-muted">まだ回答はありません</p> : null}
+      </section>
+
+      <section className="mt-6 lg:mt-10">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">新着回答</p>
+            <h2 className="mt-1 text-2xl font-black sm:mt-2 sm:text-3xl">新しく届いた思考</h2>
+          </div>
+          <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">思考フィードを見る</ButtonLink>
+        </div>
+        <div className="grid gap-5 lg:grid-cols-2">
+          {newAnswers.map((answer) => {
+            const topic = topicOf(answer);
+            return (
+              <article key={`new-${answer.id}`} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
+                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
+                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span><span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
+                  <h3 className="mt-3 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
+                  <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 170)}</p>
+                  <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
+                </Link>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><span className="truncate font-black text-white">{displayName(answer.profile)}</span></div>
+              </article>
+            );
+          })}
+        </div>
       </section>
     </main>
   );
