@@ -44,10 +44,8 @@ body::before {
   }
 }
 
-@media (max-width: 1023px) {
-  body {
-    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
-  }
+body {
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
 }
 
 @layer components {
