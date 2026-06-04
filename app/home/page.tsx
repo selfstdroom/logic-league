@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { TopicCard } from "@/components/topics/TopicCard";
@@ -8,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
 import { getWeeklyCtaLabel, getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
@@ -19,6 +18,7 @@ type HomeTopic = {
   title: string;
   content: string;
   publish_at: string | null;
+  type?: string | null;
   answerCount: number;
   commentCount: number;
 };
@@ -65,15 +65,15 @@ function first<T>(value: T | T[] | null | undefined) {
 export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-  if (!profile?.predicted_deviation) redirect("/exam");
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+    : { data: null };
 
   const competitionClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const [{ data: latestTopics }, { data: weeklyTopics }, { data: latestAnswers }, { count: answerCount }, { data: leaderProfiles }, { count: oracleCount }, { data: latestFame }] = await Promise.all([
     supabase
       .from("topics")
-      .select("id, category, title, content, publish_at")
+      .select("id, type, category, title, content, publish_at")
       .eq("type", "daily")
       .eq("status", "published")
       .order("publish_at", { ascending: false, nullsFirst: false })
@@ -81,7 +81,7 @@ export default async function HomePage() {
       .limit(8),
     supabase
       .from("topics")
-      .select("id, category, title, content, deadline_at, vote_deadline_at, publish_at")
+      .select("id, type, category, title, content, deadline_at, vote_deadline_at, publish_at")
       .eq("type", "weekly")
       .eq("status", "published")
       .order("publish_at", { ascending: true, nullsFirst: false })
@@ -96,7 +96,7 @@ export default async function HomePage() {
     supabase
       .from("topic_answers")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
+      .eq("user_id", user?.id ?? ""),
     competitionClient
       .from("profiles")
       .select("id, username, display_name, rank, rating")
@@ -176,13 +176,14 @@ export default async function HomePage() {
             <div>
               <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">議論コマンド</p>
               <h1 className="mt-3 max-w-4xl text-3xl font-black leading-tight sm:text-5xl lg:text-6xl">今、どの議論に参加するか</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">公開中のTopicから論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">公開中の議論から論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
             </div>
             <ButtonLink href={todaysTopic ? `/topics/${todaysTopic.id}` : "/topics"} className="shrink-0 px-5 py-3">議論に参加する</ButtonLink>
           </div>
         </Card>
 
         <Card className="p-4 sm:p-5">
+          {profile ? (<>
           <div className="flex items-center gap-3">
             <RankBadge rank={profile.rank} size="sm" />
             <div className="min-w-0">
@@ -196,6 +197,14 @@ export default async function HomePage() {
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">回答</p><p className="mt-1 font-black">{answerCount ?? 0}</p></div>
           </div>
           <RankProgress rating={profile.rating} qualified={profile.qualified} compact className="mt-4" />
+          </>) : (
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Visitor</p>
+              <h2 className="mt-2 text-xl font-black text-white">ログインすると成長が記録されます</h2>
+              <p className="mt-3 text-sm leading-6 text-league-muted">読むことは誰でも可能です。回答・投票・いいねにはログインが必要です。</p>
+              <Link href="/login" className="mt-4 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold">ログインする</Link>
+            </div>
+          )}
         </Card>
       </section>
 
@@ -228,10 +237,10 @@ export default async function HomePage() {
           {latestFameRow ? (
             <Link href={`/hall-of-fame/${latestFameRow.id}`} className="mt-4 block rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 transition hover:border-amber-300/45">
               <p className="text-sm font-black text-white">{latestFameProfile?.display_name ?? latestFameProfile?.username ?? "Winner"}</p>
-              <p className="mt-1 text-xs text-league-muted">{latestFameTopic?.title ?? "Weekly League"}</p>
+              <p className="mt-1 text-xs text-league-muted">{latestFameTopic?.title ?? "競技議論"}</p>
               <p className="mt-3 text-2xl font-black text-league-gold">{latestFameRow.final_score ?? "—"}</p>
             </Link>
-          ) : <p className="mt-4 text-sm leading-6 text-league-muted">最初のWeekly League勝者を待っています。</p>}
+          ) : <p className="mt-4 text-sm leading-6 text-league-muted">最初の競技議論勝者を待っています。</p>}
         </Card>
       </section>
 
@@ -240,10 +249,10 @@ export default async function HomePage() {
         <div>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">今日のTopic</p>
-              <h2 className="mt-1 text-2xl font-black sm:text-3xl">最新の論点へ入る</h2>
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">今日の注目議論</p>
+              <h2 className="mt-1 text-2xl font-black sm:text-3xl">今日、参加すべき議論</h2>
             </div>
-            <Link href="/topics" className="text-sm font-bold text-league-gold hover:text-white">Topics →</Link>
+            <Link href="/topics" className="text-sm font-bold text-league-gold hover:text-white">議論一覧 →</Link>
           </div>
           {todaysTopic ? (
             <div className="space-y-3">
@@ -253,11 +262,11 @@ export default async function HomePage() {
                 <div className="rounded-2xl border border-white/10 bg-black/25 p-3">コメント {todaysTopic.commentCount}</div>
               </div>
             </div>
-          ) : <EmptyState title="公開中のDaily Topicはまだありません。">公開中のDaily Topicがない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
+          ) : <EmptyState title="公開中の議論はまだありません。">公開中の議論がない場合も、タイムラインから最近の議論を確認できます。</EmptyState>}
         </div>
 
         <Card className="p-4 sm:p-6">
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">盛り上がっているTopic</p>
+          <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">おすすめ議論</p>
           <h2 className="mt-2 text-2xl font-black">活動量の高い議論</h2>
           <div className="mt-5 space-y-3">
             {trendingTopics.map((topic, index) => (
@@ -265,14 +274,14 @@ export default async function HomePage() {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl font-black text-white/20">0{index + 1}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic.category)}</span>
+                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{formatDiscussionType(topic.type)}</span>
                     <span className="mt-1 block font-black leading-snug group-hover:text-league-gold">{topic.title}</span>
                     <span className="mt-2 block text-xs text-league-muted">回答 {topic.answerCount} · コメント {topic.commentCount}</span>
                   </span>
                 </div>
               </Link>
             ))}
-            {trendingTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">新しいTopicが公開されると、ここに議論が表示されます。</p> : null}
+            {trendingTopics.length === 0 ? <p className="text-sm leading-6 text-league-muted">新しい議論が公開されると、ここに表示されます。</p> : null}
           </div>
         </Card>
       </section>
@@ -282,14 +291,14 @@ export default async function HomePage() {
           <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.12),transparent_28%),linear-gradient(145deg,rgba(255,255,255,0.06),rgba(8,13,26,0.74))] p-4 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">Weekly League</p>
+                <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">競技議論</p>
                 <h2 className="mt-2 text-xl font-black sm:text-3xl">{activeWeeklyTopic.title}</h2>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-league-silver sm:text-sm">
                   <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">現在の段階: {activeWeeklyPhase ? getWeeklyStatusLabel(activeWeeklyPhase) : "開始前"}</span>
                   <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">締切: {formatDateTime(activeWeeklyTopic.deadline_at)}</span>
                 </div>
               </div>
-              <ButtonLink href={activeWeeklyHref} className="px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm">{activeWeeklyPhase ? getWeeklyCtaLabel(activeWeeklyPhase) : "Weekly Leagueに参加する"}</ButtonLink>
+              <ButtonLink href={activeWeeklyHref} className="px-4 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm">{activeWeeklyPhase ? getWeeklyCtaLabel(activeWeeklyPhase) : "競技議論に参加する"}</ButtonLink>
             </div>
           </Card>
         </section>
@@ -320,7 +329,7 @@ export default async function HomePage() {
                 </div>
                 <Link href={`/topics/${answer.topic_id}`} className="mt-4 block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
-                  <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "Daily Topic"}</h3>
+                  <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
                   <p className="mt-3 text-xs text-league-muted">{formatDateTime(answer.created_at)} · いいね {answer.likeCount} · コメント {answer.commentCount}</p>
                 </Link>

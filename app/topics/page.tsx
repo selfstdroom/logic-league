@@ -8,7 +8,7 @@ export default async function TopicsPage() {
   const supabase = await createClient();
   const { data: topics, error } = await supabase
     .from("topics")
-    .select("id, category, title, content, publish_at")
+    .select("id, type, category, title, content, publish_at")
     .eq("type", "daily")
     .eq("status", "published")
     .order("publish_at", { ascending: false, nullsFirst: false })
@@ -20,8 +20,8 @@ export default async function TopicsPage() {
 
   return (
     <PageShell className="max-w-7xl">
-      <HeroPanel eyebrow="Daily Topics" title="今日の論点を選ぶ">
-        思考力を競うための毎日のお題です。閲覧は誰でも可能、認定ユーザーは回答できます。
+      <HeroPanel eyebrow="Daily" title="今日の議論を選ぶ">
+        思考力を競うための毎日の議論です。閲覧は誰でも可能、認定ユーザーは回答できます。
       </HeroPanel>
 
       {error ? <Card className="mb-6 text-red-300">トピックの取得に失敗しました: {error.message}</Card> : null}
@@ -41,12 +41,12 @@ export default async function TopicsPage() {
         </section>
       ) : null}
 
-      {rest.length > 0 ? <SectionHeader eyebrow="アーカイブ" title="公開中の論点" /> : null}
+      {rest.length > 0 ? <SectionHeader eyebrow="アーカイブ" title="公開中の議論" /> : null}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {rest.map((topic) => <TopicCard key={topic.id} topic={topic} />)}
       </div>
 
-      {!error && topicList.length === 0 ? <EmptyState title="公開中のDaily Topicはまだありません。">公開中のDaily Topicはまだありません。</EmptyState> : null}
+      {!error && topicList.length === 0 ? <EmptyState title="公開中の議論はまだありません。">公開中の議論はまだありません。</EmptyState> : null}
     </PageShell>
   );
 }

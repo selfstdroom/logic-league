@@ -70,7 +70,7 @@ export function AnswerForm({ topicId, canAnswer }: { topicId: string; canAnswer:
     return (
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-league-silver">
         <h2 className="text-xl font-bold text-white">ログインすると議論に参加できます</h2>
-        <p className="mt-3">Daily Topicsへの回答は、ログイン済みかつ認定試験に合格したユーザーのみ投稿できます。</p>
+        <p className="mt-3">Dailyの議論への回答は、ログイン済みかつ認定試験に合格したユーザーのみ投稿できます。</p>
         <a href="/login" className="mt-5 inline-flex rounded-full border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">ログインする</a>
       </div>
     );

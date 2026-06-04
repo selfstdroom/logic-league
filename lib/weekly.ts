@@ -27,14 +27,14 @@ export function getWeeklyPhaseDescription(phase: WeeklyPhase) {
   if (phase === "submission") return "回答を投稿できます。投稿締切までは自分の回答を編集できます。";
   if (phase === "voting") return "投稿は匿名で公開されています。認定済みユーザーは最大3票まで投票できます。";
   if (phase === "completed") return "投票は終了しました。最終Rankingと上位回答を確認できます。";
-  return "このWeekly League Topicはまだ開始前です。公開日時をお待ちください。";
+  return "この競技議論はまだ開始前です。公開日時をお待ちください。";
 }
 
 export function getWeeklyCtaLabel(phase: WeeklyPhase) {
   if (phase === "completed") return "結果を見る";
   if (phase === "voting") return "投票する";
   if (phase === "upcoming") return "詳細を見る";
-  return "Weekly Leagueに参加する";
+  return "競技議論に参加する";
 }
 
 export function calculateFinalScore(aiTotalScore: number | null, voteCount: number, maxVoteCount: number) {
@@ -58,9 +58,9 @@ export async function finalizeWeeklyLeague(topicId: string) {
     .maybeSingle();
 
   if (topicError) throw topicError;
-  if (!topic) throw new Error("Weekly LeagueのTopicが見つかりません。");
+  if (!topic) throw new Error("競技議論が見つかりません。");
   if (!topic.vote_deadline_at || new Date(topic.vote_deadline_at).getTime() > Date.now()) {
-    throw new Error("Weekly Leagueの結果はまだ公開されていません。");
+    throw new Error("競技議論の結果はまだ公開されていません。");
   }
 
   const { data: answers, error: answersError } = await admin
@@ -109,7 +109,7 @@ export async function finalizeWeeklyLeague(topicId: string) {
   try {
     await Promise.all(ranked.map((answer) => evaluateAchievements(answer.user_id)));
   } catch (achievementError) {
-    console.warn("Achievement evaluation skipped after Weekly League finalization.", achievementError);
+    console.warn("Achievement evaluation skipped after competitive discussion finalization.", achievementError);
   }
 
   return ranked;

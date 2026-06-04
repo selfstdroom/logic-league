@@ -80,16 +80,16 @@ export function WeeklySubmissionForm({
         <h2 className="text-xl font-black text-white">回答を投稿</h2>
         {blockReason === "visitor" ? (
           <>
-            <p className="mt-3">ログインするとWeekly Leagueへの参加資格を確認できます。</p>
+            <p className="mt-3">ログインすると競技議論への参加資格を確認できます。</p>
             <Link href="/login" className={`${secondaryButtonClass} mt-5`}>ログインする</Link>
           </>
         ) : blockReason === "unqualified" ? (
           <>
-            <p className="mt-3">認定試験に合格するとWeekly Leagueに参加できます</p>
+            <p className="mt-3">認定試験に合格すると競技議論に参加できます</p>
             <Link href="/exam" className={`${secondaryButtonClass} mt-5`}>認定試験を受ける</Link>
           </>
         ) : (
-          <p className="mt-3">このWeekly League Topicの回答受付は終了しています。</p>
+          <p className="mt-3">この競技議論の回答受付は終了しています。</p>
         )}
       </div>
     );
@@ -99,7 +99,7 @@ export function WeeklySubmissionForm({
     <form onSubmit={onSubmit} className="rounded-3xl border border-amber-300/25 bg-[linear-gradient(145deg,rgba(215,180,106,0.12),rgba(0,0,0,0.34))] p-6 shadow-2xl">
       <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">公式エントリー</p>
       <h2 className="mt-2 text-2xl font-black">回答を投稿</h2>
-      <p className="mt-2 text-sm leading-6 text-league-muted">各Weekly League Topicにつき投稿は1件です。投稿締切までは編集できます。</p>
+      <p className="mt-2 text-sm leading-6 text-league-muted">各競技議論につき投稿は1件です。投稿締切までは編集できます。</p>
       <label className="mt-5 block text-sm font-bold text-league-silver">
         回答
         <textarea
@@ -159,7 +159,7 @@ export function WeeklyVoteButton({
   const helperText = blockReason === "visitor" || blockReason === "unqualified"
     ? "ログインまたは認定試験合格後に投票できます"
     : blockReason === "no_votes"
-      ? "このTopicで使える3票はすべて使用済みです。"
+      ? "この議論で使える3票はすべて使用済みです。"
       : blockReason === "own_answer"
         ? "自分の回答には投票できません。"
         : blockReason === "closed"

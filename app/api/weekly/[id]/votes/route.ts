@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .eq("status", "published")
     .maybeSingle();
   if (topicError) return NextResponse.json({ error: topicError.message }, { status: 500 });
-  if (!topic) return NextResponse.json({ error: "Weekly LeagueのTopicが見つかりません。" }, { status: 404 });
+  if (!topic) return NextResponse.json({ error: "競技議論の議論が見つかりません。" }, { status: 404 });
   const now = Date.now();
   if (!topic.deadline_at || new Date(topic.deadline_at).getTime() > now) return NextResponse.json({ error: "投票はまだ始まっていません。" }, { status: 403 });
   if (!topic.vote_deadline_at || new Date(topic.vote_deadline_at).getTime() <= now) return NextResponse.json({ error: "投票は終了しました。" }, { status: 403 });
@@ -46,7 +46,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   ]);
 
   if (existingVote) return NextResponse.json({ error: "この回答にはすでに投票しています。" }, { status: 409 });
-  if ((usedVotes ?? 0) >= 3) return NextResponse.json({ error: "このTopicで使える3票はすべて使用済みです。" }, { status: 403 });
+  if ((usedVotes ?? 0) >= 3) return NextResponse.json({ error: "この議論で使える3票はすべて使用済みです。" }, { status: 403 });
 
   const { error: voteError } = await admin.from("weekly_votes").insert({ topic_id: id, topic_answer_id: answerId, user_id: user.id });
   if (voteError) return NextResponse.json({ error: voteError.message }, { status: 500 });

@@ -10,9 +10,9 @@ export type AchievementDefinition = {
 
 export const achievementDefinitions: AchievementDefinition[] = [
   { key: "FIRST_ANSWER", title: "初参加", description: "初めて回答を投稿する", badgeIcon: "🏅", category: "参加" },
-  { key: "FIRST_WEEKLY", title: "初Weekly参加", description: "初めてWeekly Leagueに参加する", badgeIcon: "◇", category: "参加" },
-  { key: "FIRST_WIN", title: "初勝利", description: "Weekly Leagueで初めて1位を獲得する", badgeIcon: "🏆", category: "勝利" },
-  { key: "TOP10", title: "初Top10", description: "Weekly Leagueで初めてTop10に入る", badgeIcon: "◆", category: "勝利" },
+  { key: "FIRST_WEEKLY", title: "初競技議論参加", description: "初めて競技議論に参加する", badgeIcon: "◇", category: "参加" },
+  { key: "FIRST_WIN", title: "初勝利", description: "競技議論で初めて1位を獲得する", badgeIcon: "🏆", category: "勝利" },
+  { key: "TOP10", title: "初Top10", description: "競技議論で初めてTop10に入る", badgeIcon: "◆", category: "勝利" },
   { key: "TOP10_X5", title: "Top10 ×5", description: "Top10を5回達成する", badgeIcon: "◈", category: "勝利" },
   { key: "TOP10_X10", title: "Top10 ×10", description: "Top10を10回達成する", badgeIcon: "✦", category: "勝利" },
   { key: "ANSWER_10", title: "10回答達成", description: "回答を10件投稿する", badgeIcon: "10", category: "活動" },

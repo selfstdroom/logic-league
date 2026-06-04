@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { formatDateTime, formatDiscussionType } from "@/lib/topics/format";
 import { buildAiScoreSummary, getWeeklyPhase, getWeeklyPhaseDescription, getWeeklyStatusLabel } from "@/lib/weekly";
 import type { TopicAnswer, WeeklyVote } from "@/types/database";
 
@@ -22,10 +22,10 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
     return (
       <main className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
         <Card className="border-red-300/20 bg-red-950/20">
-          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">Weekly League</p>
-          <h1 className="mt-3 text-4xl font-black">Weekly LeagueのTopicが見つかりません。</h1>
-          <p className="mt-4 text-league-silver">指定されたTopicは存在しないか、公開されていません。</p>
-          <ButtonLink href="/weekly" className="mt-6">Weekly Leagueに戻る</ButtonLink>
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-red-200">競技議論</p>
+          <h1 className="mt-3 text-4xl font-black">競技議論が見つかりません。</h1>
+          <p className="mt-4 text-league-silver">指定された議論は存在しないか、公開されていません。</p>
+          <ButtonLink href="/weekly" className="mt-6">競技議論に戻る</ButtonLink>
         </Card>
       </main>
     );
@@ -51,7 +51,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6 lg:py-12">
       <article className="relative overflow-hidden rounded-[2rem] border border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.2),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.07),rgba(8,13,26,0.78))] p-6 shadow-2xl sm:p-10">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic.category)}</span>
+          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatDiscussionType(topic.type)}</span>
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-league-silver">現在のフェーズ: {getWeeklyStatusLabel(phase)}</span>
         </div>
         <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{topic.title}</h1>
@@ -67,7 +67,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
       <Card className="mt-8">
         <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">ルール</p>
         <div className="mt-4 grid gap-3 text-sm leading-6 text-league-silver md:grid-cols-2">
-          <p className="rounded-2xl border border-white/10 bg-black/25 p-4">認定済みユーザーは1つのTopicにつき1件だけ投稿できます。編集できるのは投稿締切までです。</p>
+          <p className="rounded-2xl border border-white/10 bg-black/25 p-4">認定済みユーザーは1つの議論につき1件だけ投稿できます。編集できるのは投稿締切までです。</p>
           <p className="rounded-2xl border border-white/10 bg-black/25 p-4">匿名公開中は、ユーザー名、Rank、Rating、思考タイプ、プロフィールリンクは表示されません。</p>
           <p className="rounded-2xl border border-white/10 bg-black/25 p-4">認定済みユーザーは投票締切までに最大3票を投じられます。</p>
           <p className="rounded-2xl border border-white/10 bg-black/25 p-4">自分の投稿への投票はできません。結果は投票終了後に公開されます。</p>
@@ -79,7 +79,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">参加資格が必要です</p>
             <h2 className="mt-2 text-2xl font-black">認定試験に合格すると投稿・投票できます。</h2>
-            <p className="mt-2 text-sm text-league-silver">Daily Topicsは引き続き利用できます。Weekly League参加には認定が必要です。</p>
+            <p className="mt-2 text-sm text-league-silver">Dailyの議論は引き続き利用できます。競技議論参加には認定が必要です。</p>
           </div>
           <ButtonLink href="/exam">認定試験を受ける</ButtonLink>
         </Card>
@@ -138,7 +138,7 @@ export default async function WeeklyDetailPage({ params }: { params: Promise<{ i
       ) : null}
 
       {phase !== "completed" ? <p className="mt-6 text-sm text-league-muted">結果ページは次の日時以降に開きます: {formatDateTime(topic.vote_deadline_at)}.</p> : null}
-      <div className="mt-8"><Link href="/weekly" className="text-sm font-bold text-league-gold hover:text-white">← Weekly Leagueに戻る</Link></div>
+      <div className="mt-8"><Link href="/weekly" className="text-sm font-bold text-league-gold hover:text-white">← 競技議論に戻る</Link></div>
     </main>
   );
 }

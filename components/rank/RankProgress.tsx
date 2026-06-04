@@ -26,7 +26,7 @@ export function RankProgress({ rating, qualified = true, compact = false, classN
       </div>
       {!compact ? (
         <p className="mt-2 text-xs leading-5 text-league-muted">
-          {nextRank ? `次のRankは${nextRank.name}です。Weekly Leagueで上位に入るとRatingが加算されます。` : "Oracleとして最高Rankに到達しています。Hall of Fameでさらなる名声を積み上げましょう。"}
+          {nextRank ? `次のRankは${nextRank.name}です。競技議論で上位に入るとRatingが加算されます。` : "Oracleとして最高Rankに到達しています。Hall of Fameでさらなる名声を積み上げましょう。"}
         </p>
       ) : null}
     </div>

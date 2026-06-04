@@ -5,7 +5,7 @@ import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
-import { formatAnswerType, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { formatAnswerType, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/logic-league";
@@ -90,11 +90,26 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       likedByCurrentUser: Boolean(user && answerLikes.some((like) => like.user_id === user.id)),
     };
   });
+  const answersByType = {
+    Answer: answerViews.filter((answer) => answer.answer_type === "Answer"),
+    Counter: answerViews.filter((answer) => answer.answer_type === "Counter"),
+    Support: answerViews.filter((answer) => answer.answer_type === "Support"),
+    Question: answerViews.filter((answer) => answer.answer_type === "Question"),
+  };
+  const { data: relatedTopics } = await supabase
+    .from("topics")
+    .select("id, type, category, title, content, publish_at")
+    .eq("type", "daily")
+    .eq("status", "published")
+    .eq("category", topic.category)
+    .neq("id", topic.id)
+    .order("publish_at", { ascending: false, nullsFirst: false })
+    .limit(3);
 
   return (
     <PageShell>
-      <HeroPanel eyebrow={formatTopicCategory(topic.category)} title={topic.title}>
-        <time className="block text-sm text-league-muted">{formatDateTime(topic.publish_at)}</time>
+      <HeroPanel eyebrow={formatDiscussionType(topic.type)} title={topic.title}>
+        <div className="flex flex-wrap gap-2 text-sm text-league-muted"><time>{formatDateTime(topic.publish_at)}</time><span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-league-silver">{formatTopicCategory(topic.category)}</span></div>
         <div className="mt-6 whitespace-pre-wrap rounded-[1.5rem] border border-white/10 bg-black/25 p-5 leading-8 text-league-silver sm:p-6">{topic.content}</div>
       </HeroPanel>
 
@@ -103,11 +118,18 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       </section>
 
       <section className="mt-10">
-        <SectionHeader eyebrow="議論" title="みんなの回答" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の回答</p>} />
+        <SectionHeader eyebrow="議論スレッド" title="回答・反論・補足・質問" action={<p className="rounded-full border border-white/10 px-4 py-2 text-sm text-league-muted">{answerViews.length}件の投稿</p>} />
+
+        <div className="mb-5 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-black/25 p-4"><p className="text-xs text-league-muted">回答</p><p className="mt-1 text-2xl font-black text-white">{answersByType.Answer.length}</p></div>
+          <div className="rounded-2xl border border-red-300/20 bg-red-300/10 p-4"><p className="text-xs text-league-muted">反論</p><p className="mt-1 text-2xl font-black text-white">{answersByType.Counter.length}</p></div>
+          <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4"><p className="text-xs text-league-muted">賛成・補足</p><p className="mt-1 text-2xl font-black text-white">{answersByType.Support.length}</p></div>
+          <div className="rounded-2xl border border-purple-300/20 bg-purple-300/10 p-4"><p className="text-xs text-league-muted">質問</p><p className="mt-1 text-2xl font-black text-white">{answersByType.Question.length}</p></div>
+        </div>
 
         <div className="space-y-5">
           {answerViews.map((answer) => (
-            <Card key={answer.id} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
+            <Card key={answer.id} id={`answer-${answer.id}`} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <Link href={profileHref(answer.profile, answer.user_id)} className="flex items-center gap-3 rounded-xl transition hover:text-league-gold">
                   <RankBadge rank={answer.profile?.rank} size="sm" />
@@ -127,7 +149,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
                 <h3 className="text-xs font-black uppercase tracking-[0.24em] text-league-muted">コメント</h3>
                 <div className="mt-4 space-y-3">
                   {answer.comments.map((comment) => (
-                    <div key={comment.id} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div key={comment.id} id={`comment-${comment.id}`} className="rounded-2xl border border-white/10 bg-black/25 p-4">
                       <Link href={profileHref(comment.profile, comment.user_id)} className="inline-flex items-center gap-2 text-sm font-bold text-white transition hover:text-league-gold">
                         <RankBadge rank={comment.profile?.rank} size="sm" />
                         <span>{displayName(comment.profile)}</span>
@@ -145,6 +167,20 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
         </div>
 
         {answerViews.length === 0 ? <EmptyState title="まだ回答はありません。">まだ回答はありません。最初の回答を投稿しましょう。</EmptyState> : null}
+      </section>
+
+      <section className="mt-10">
+        <SectionHeader eyebrow="関連議論" title="同じテーマの議論を見る" />
+        <div className="grid gap-4 md:grid-cols-3">
+          {(relatedTopics ?? []).map((related) => (
+            <Link key={related.id} href={`/topics/${related.id}`} className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-1 hover:border-amber-300/35">
+              <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-league-gold">{formatDiscussionType(related.type)}</span>
+              <h3 className="mt-4 text-lg font-black leading-snug text-white">{related.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-league-muted">{formatDateTime(related.publish_at)}</p>
+            </Link>
+          ))}
+        </div>
+        {(relatedTopics ?? []).length === 0 ? <p className="text-sm text-league-muted">関連する議論はまだありません。</p> : null}
       </section>
     </PageShell>
   );

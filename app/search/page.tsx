@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createPreview, formatDateTime, formatTopicCategory } from "@/lib/topics/format";
+import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
 
 export const dynamic = "force-dynamic";
 
@@ -99,7 +99,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <PageShell>
       <HeroPanel eyebrow="検索" title="Logic Leagueを検索">
-        Topics、回答、ユーザーを横断して探せます。タイトル・本文・カテゴリ・ユーザー名から、次に読むべき議論へ移動できます。
+        議論、回答、ユーザーを横断して探せます。タイトル・本文・カテゴリ・ユーザー名から、次に読むべき議論へ移動できます。
         <form action="/search" className="mt-6 flex flex-col gap-3 sm:flex-row">
           <input name="q" defaultValue={query} placeholder="キーワードを入力" className="min-h-12 flex-1 rounded-2xl border border-white/10 bg-black/35 px-4 text-white outline-none ring-amber-300/30 placeholder:text-league-muted focus:ring-2" />
           <button className="rounded-2xl bg-gradient-to-r from-amber-200 to-yellow-600 px-6 py-3 font-black text-black shadow-glow">検索</button>
@@ -112,17 +112,17 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {query ? (
         <div className="mt-10 space-y-10">
           <section>
-            <SectionHeader eyebrow="Topics" title="Topics" action={<PremiumBadge>{topics.length}件</PremiumBadge>} />
+            <SectionHeader eyebrow="議論" title="議論" action={<PremiumBadge>{topics.length}件</PremiumBadge>} />
             <div className="grid gap-4">
               {topics.map((topic) => (
                 <Card key={topic.id}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <PremiumBadge tone="gold">{formatTopicCategory(topic.category)}</PremiumBadge>
+                      <PremiumBadge tone="gold">{formatDiscussionType(topic.type)}</PremiumBadge>
                       <h2 className="mt-3 text-xl font-black text-white">{topic.title}</h2>
                       <p className="mt-2 text-sm text-league-muted">作成日: {formatDateTime(topic.created_at)}</p>
                     </div>
-                    <Link href={topicHref(topic)} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">Topicを見る</Link>
+                    <Link href={topicHref(topic)} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">議論を見る</Link>
                   </div>
                   <p className="mt-4 text-sm leading-7 text-league-silver">{createPreview(topic.content, 180)}</p>
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-league-muted">
@@ -164,7 +164,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   <Card key={answer.id}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <Link href={topicHref({ id: answer.topic_id, type: topic?.type })} className="text-lg font-black text-white transition hover:text-league-gold">{topic?.title ?? "Topic"}</Link>
+                        <Link href={topicHref({ id: answer.topic_id, type: topic?.type })} className="text-lg font-black text-white transition hover:text-league-gold">{topic?.title ?? "議論"}</Link>
                         <p className="mt-2 text-sm text-league-muted">{formatTopicCategory(topic?.category)} · 作成日: {formatDateTime(answer.created_at)} · コメント {answerCommentCounts.get(answer.id) ?? 0}</p>
                       </div>
                       <Link href={topicHref({ id: answer.topic_id, type: topic?.type })} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">回答を見る</Link>
