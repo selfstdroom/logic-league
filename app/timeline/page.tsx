@@ -8,9 +8,9 @@ import type { Profile } from "@/types/logic-league";
 export const dynamic = "force-dynamic";
 
 type ProfileLite = Pick<Profile, "id" | "display_name" | "username" | "rank">;
-type TopicLite = { id?: string | null; type?: string | null; category?: string | null; title?: string | null; status?: string | null; reveal_at?: string | null };
-type AnswerRow = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at"> & { topics?: TopicLite | TopicLite[] | null };
-type ReplyRow = Pick<Comment, "id" | "topic_answer_id" | "parent_reply_id" | "user_id" | "reply_type" | "content" | "created_at"> & {
+type TopicLite = { id?: string | null; type?: string | null; category?: string | null; title?: string | null; status?: string | null; reveal_at?: string | null; is_sample?: boolean | null };
+type AnswerRow = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at" | "is_sample"> & { topics?: TopicLite | TopicLite[] | null };
+type ReplyRow = Pick<Comment, "id" | "topic_answer_id" | "parent_reply_id" | "user_id" | "reply_type" | "content" | "created_at" | "is_sample"> & {
   topic_answers?: ({ id?: string | null; topic_id?: string | null; topics?: TopicLite | TopicLite[] | null } | { id?: string | null; topic_id?: string | null; topics?: TopicLite | TopicLite[] | null }[]) | null;
 };
 
@@ -78,14 +78,14 @@ export default async function TimelinePage() {
   const [{ data: answers }, { data: replies }] = await Promise.all([
     readClient
       .from("topic_answers")
-      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(id, type, category, title, status, reveal_at)")
+      .select("id, topic_id, user_id, answer_type, content, created_at, is_sample, topics!inner(id, type, category, title, status, reveal_at, is_sample)")
       .eq("topics.status", "published")
       .filter("topics.type", "in", "(daily,weekly,special)")
       .order("created_at", { ascending: false })
       .limit(96),
     readClient
       .from("comments")
-      .select("id, topic_answer_id, parent_reply_id, user_id, reply_type, content, created_at, topic_answers!inner(id, topic_id, topics!inner(id, type, category, title, status, reveal_at))")
+      .select("id, topic_answer_id, parent_reply_id, user_id, reply_type, content, created_at, is_sample, topic_answers!inner(id, topic_id, topics!inner(id, type, category, title, status, reveal_at, is_sample))")
       .eq("topic_answers.topics.status", "published")
       .filter("topic_answers.topics.type", "in", "(daily,weekly,special)")
       .order("created_at", { ascending: false })
@@ -140,6 +140,7 @@ export default async function TimelinePage() {
       createdAt: answer.created_at,
       likeCount: likeCounts.get(answer.id) ?? 0,
       commentCount: commentCounts.get(answer.id) ?? 0,
+      isSample: answer.is_sample || Boolean(topic.is_sample),
       author: {
         id: answer.user_id,
         displayName: displayName(profile),
@@ -168,6 +169,7 @@ export default async function TimelinePage() {
       createdAt: reply.created_at,
       likeCount: 0,
       commentCount: childReplyCounts.get(reply.id) ?? 0,
+      isSample: reply.is_sample || Boolean(topic.is_sample),
       author: {
         id: reply.user_id,
         displayName: displayName(profile),

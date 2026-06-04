@@ -20,16 +20,18 @@ type HomeTopic = {
   type?: string | null;
   answerCount: number;
   commentCount: number;
+  is_sample?: boolean | null;
 };
 
 type LeaderWidgetProfile = Pick<Profile, "id" | "username" | "display_name" | "rank" | "rating">;
 type LatestFameWidget = { id: string; final_score: number | null; profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
-type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at"> & {
-  topics?: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null;
+type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at" | "is_sample"> & {
+  topics?: { category?: string | null; title?: string | null; type?: string | null; is_sample?: boolean | null } | { category?: string | null; title?: string | null; type?: string | null; is_sample?: boolean | null }[] | null;
   profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">;
   likeCount: number;
   commentCount: number;
+  is_sample?: boolean | null;
 };
 
 function displayName(profile?: Pick<Profile, "display_name" | "username">) {
@@ -77,7 +79,7 @@ export default async function HomePage() {
   const [{ data: latestTopics }, { data: weeklyTopics }, { data: latestAnswers }, { count: answerCount }, { data: leaderProfiles }, { count: oracleCount }, { data: latestFame }] = await Promise.all([
     supabase
       .from("topics")
-      .select("id, type, category, title, content, publish_at")
+      .select("id, type, category, title, content, publish_at, is_sample")
       .eq("type", "daily")
       .eq("status", "published")
       .order("publish_at", { ascending: false, nullsFirst: false })
@@ -85,7 +87,7 @@ export default async function HomePage() {
       .limit(8),
     supabase
       .from("topics")
-      .select("id, type, category, title, content, deadline_at, vote_deadline_at, publish_at")
+      .select("id, type, category, title, content, deadline_at, vote_deadline_at, publish_at, is_sample")
       .eq("type", "weekly")
       .eq("status", "published")
       .order("publish_at", { ascending: true, nullsFirst: false })
@@ -93,7 +95,7 @@ export default async function HomePage() {
       .limit(5),
     supabase
       .from("topic_answers")
-      .select("id, topic_id, user_id, answer_type, content, created_at, topics!inner(category, title, type, status)")
+      .select("id, topic_id, user_id, answer_type, content, created_at, is_sample, topics!inner(category, title, type, status, is_sample)")
       .eq("topics.status", "published")
       .filter("topics.type", "in", "(daily,weekly,special)")
       .order("created_at", { ascending: false })
@@ -105,6 +107,7 @@ export default async function HomePage() {
     competitionClient
       .from("profiles")
       .select("id, username, display_name, rank, rating")
+      .neq("rank", "Official")
       .order("rating", { ascending: false })
       .limit(3),
     competitionClient
@@ -281,7 +284,7 @@ export default async function HomePage() {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl font-black text-white/20">0{index + 1}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{formatDiscussionType(topic.type)}</span>
+                    <span className="block text-xs font-bold uppercase tracking-[0.2em] text-league-gold">{formatDiscussionType(topic.type)}{topic.is_sample ? " · 公式サンプル" : ""}</span>
                     <span className="mt-1 block font-black leading-snug group-hover:text-league-gold">{topic.title}</span>
                     <span className="mt-2 block text-xs text-league-muted">回答 {topic.answerCount} · コメント {topic.commentCount}</span>
                   </span>
@@ -299,7 +302,10 @@ export default async function HomePage() {
           <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.12),transparent_28%),linear-gradient(145deg,rgba(255,255,255,0.06),rgba(8,13,26,0.74))] p-4 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">競技議論</p>
+                <div className="flex flex-wrap gap-2">
+                  <p className="text-xs font-black uppercase tracking-[0.32em] text-league-gold">競技議論</p>
+                  {activeWeeklyTopic.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-0.5 text-[0.68rem] font-black text-sky-100">公式サンプル</span> : null}
+                </div>
                 <h2 className="mt-2 text-xl font-black sm:text-3xl">{activeWeeklyTopic.title}</h2>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-league-silver sm:text-sm">
                   <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5">現在の段階: {activeWeeklyPhase ? getWeeklyStatusLabel(activeWeeklyPhase) : "開始前"}</span>
@@ -326,13 +332,13 @@ export default async function HomePage() {
             return (
               <article key={answer.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
                 <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
-                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span><span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
+                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span>{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-sky-100">公式サンプル回答</span> : null}<span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
                   <p className="mt-3 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
                   <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{displayName(answer.profile)}</Link></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link></div>
               </article>
             );
           })}
@@ -354,12 +360,12 @@ export default async function HomePage() {
             return (
               <article key={`new-${answer.id}`} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
                 <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
-                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span><span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
+                  <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span>{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-sky-100">公式サンプル回答</span> : null}<span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
                   <h3 className="mt-3 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 170)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><span className="truncate font-black text-white">{displayName(answer.profile)}</span></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><span className="truncate font-black text-white">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</span></div>
               </article>
             );
           })}

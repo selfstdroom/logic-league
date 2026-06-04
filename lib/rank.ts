@@ -9,6 +9,7 @@ export type RankDefinition = {
 };
 
 export const RANK_DEFINITIONS: RankDefinition[] = [
+  { name: "Official", min: 0, max: null, range: "運営", description: "Logic League運営による公式サンプル・案内用アカウント" },
   { name: "Visitor", min: 0, max: 1499, range: "0–1499", description: "認定前、または競技参加を始めたばかりの観察者" },
   { name: "Challenger", min: 1500, max: 1699, range: "1500–1699", description: "知的競技に挑み始めた参加者" },
   { name: "Analyst", min: 1700, max: 1899, range: "1700–1899", description: "論点分析と根拠整理に優れる" },
@@ -30,7 +31,7 @@ export function getRankByRating(rating: number, qualified = true): RankName {
 }
 
 export function getRankDefinition(rank: RankName | string | null | undefined) {
-  return RANK_DEFINITIONS.find((definition) => definition.name === rank) ?? RANK_DEFINITIONS[0];
+  return RANK_DEFINITIONS.find((definition) => definition.name === rank) ?? RANK_DEFINITIONS.find((definition) => definition.name === "Visitor") ?? RANK_DEFINITIONS[0];
 }
 
 export function getNextRank(rating: number, qualified = true) {

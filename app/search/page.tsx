@@ -8,7 +8,7 @@ import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategor
 
 export const dynamic = "force-dynamic";
 
-type TopicResult = { id: string; type: string; category: string; title: string; content: string; created_at: string };
+type TopicResult = { id: string; type: string; category: string; title: string; content: string; created_at: string; is_sample?: boolean | null };
 type UserResult = { id: string; username: string; display_name: string | null; avatar_url: string | null; rank: string | null; rating: number; archetype: string | null; created_at: string };
 type AnswerResult = {
   id: string;
@@ -16,7 +16,8 @@ type AnswerResult = {
   user_id: string;
   content: string;
   created_at: string;
-  topics?: { type?: string | null; title?: string | null; category?: string | null } | { type?: string | null; title?: string | null; category?: string | null }[] | null;
+  is_sample?: boolean | null;
+  topics?: { type?: string | null; title?: string | null; category?: string | null; is_sample?: boolean | null } | { type?: string | null; title?: string | null; category?: string | null; is_sample?: boolean | null }[] | null;
   profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null;
 };
 type CountRow = { topic_id?: string | null; topic_answer_id?: string | null };
@@ -50,14 +51,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     ? await Promise.all([
         admin
           .from("topics")
-          .select("id, type, category, title, content, created_at")
+          .select("id, type, category, title, content, created_at, is_sample")
           .eq("status", "published")
           .or(`title.ilike.${pattern},content.ilike.${pattern},category.ilike.${pattern}`)
           .order("created_at", { ascending: false })
           .limit(12),
         admin
           .from("topic_answers")
-          .select("id, topic_id, user_id, content, created_at, topics(type, title, category), profiles(username, display_name, rank)")
+          .select("id, topic_id, user_id, content, created_at, is_sample, topics(type, title, category, is_sample), profiles(username, display_name, rank)")
           .ilike("content", pattern)
           .order("created_at", { ascending: false })
           .limit(12),
@@ -118,12 +119,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 <Card key={topic.id}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <PremiumBadge tone="gold">{formatDiscussionType(topic.type)}</PremiumBadge>
+                      <div className="flex flex-wrap gap-2"><PremiumBadge tone="gold">{formatDiscussionType(topic.type)}</PremiumBadge>{topic.is_sample ? <PremiumBadge>公式サンプル</PremiumBadge> : null}</div>
                       <h2 className="mt-3 text-xl font-black text-white">{topic.title}</h2>
                       <p className="mt-2 text-sm text-league-muted">作成日: {formatDateTime(topic.created_at)}</p>
                     </div>
                     <Link href={topicHref(topic)} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">議論を見る</Link>
                   </div>
+                  {topic.is_sample ? <p className="mt-4 rounded-2xl border border-sky-300/20 bg-sky-300/10 p-3 text-sm font-bold text-sky-100">これはLogic League運営によるサンプル議論です</p> : null}
                   <p className="mt-4 text-sm leading-7 text-league-silver">{createPreview(topic.content, 180)}</p>
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-league-muted">
                     <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1">回答 {answerCounts.get(topic.id) ?? 0}</span>
@@ -169,7 +171,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                       </div>
                       <Link href={topicHref({ id: answer.topic_id, type: topic?.type })} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">回答を見る</Link>
                     </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm text-league-silver"><RankBadge rank={profile?.rank} size="sm" /><span>{profile?.display_name ?? profile?.username ?? "ユーザー"}</span>{profile?.username ? <span className="text-league-muted">@{profile.username}</span> : null}</div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-league-silver"><RankBadge rank={profile?.rank} size="sm" />{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-xs font-black text-sky-100">公式サンプル回答</span> : null}<span>{answer.is_sample ? "Logic League運営" : profile?.display_name ?? profile?.username ?? "ユーザー"}</span>{profile?.username ? <span className="text-league-muted">@{profile.username}</span> : null}</div>
                     <p className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-league-silver">{createPreview(answer.content, 240)}</p>
                   </Card>
                 );

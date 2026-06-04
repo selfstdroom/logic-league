@@ -18,7 +18,7 @@ export const ARCHETYPE_NAMES = [
 ] as const;
 
 export type ArchetypeName = (typeof ARCHETYPE_NAMES)[number];
-export type RankName = "Visitor" | "Challenger" | "Analyst" | "Strategist" | "Architect" | "Mastermind" | "Oracle";
+export type RankName = "Visitor" | "Challenger" | "Analyst" | "Strategist" | "Architect" | "Mastermind" | "Oracle" | "Official";
 
 export type ExamScores = {
   structure_score: number;
