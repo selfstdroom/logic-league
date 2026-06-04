@@ -36,8 +36,8 @@ function displayName(profile?: Pick<Profile, "display_name" | "username">) {
   return profile?.display_name || profile?.username || "Logic Leagueユーザー";
 }
 
-function profileHref(profile?: Pick<Profile, "id" | "username">) {
-  return profile?.username ? `/profile/${profile.username}` : `/profile/${profile?.id ?? "unknown"}`;
+function profileHref(profile?: Pick<Profile, "username">) {
+  return profile?.username ? `/profile/${profile.username}` : "/profile";
 }
 
 function activityLabel(answerType: TopicAnswer["answer_type"]) {

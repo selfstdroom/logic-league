@@ -17,6 +17,7 @@ type TopicAnswerHistoryRow = {
   topic_id: string;
   answer_type: TopicAnswerType | null;
   content: string;
+  is_anonymous: boolean | null;
   created_at: string;
   topics: { category?: string | null; title?: string | null; type?: string | null } | { category?: string | null; title?: string | null; type?: string | null }[] | null;
 };
@@ -40,6 +41,14 @@ const snsLinks = [
   { key: "youtube_url", label: "YouTube URL" },
   { key: "github_url", label: "GitHub URL" },
 ] as const;
+
+const myPageLinks = [
+  { href: "/profile", label: "プロフィール", description: "公開プロフィールと思考ログを確認" },
+  { href: "/achievements", label: "実績", description: "獲得バッジと進捗を見る" },
+  { href: "/bookmarks", label: "ブックマーク", description: "保存した議論・回答を確認" },
+  { href: "/notifications", label: "通知", description: "リーグ内の更新を確認" },
+  { href: "/settings", label: "設定", description: "アカウント設定へ移動" },
+];
 
 
 function ProfileStartEmptyState({ isOwnProfile }: { isOwnProfile: boolean }) {
@@ -117,13 +126,13 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
       .limit(30),
     readClient
       .from("topic_answers")
-      .select("id, topic_id, answer_type, content, created_at, topics!inner(id, type, category, title)")
+      .select("id, topic_id, answer_type, content, is_anonymous, created_at, topics!inner(id, type, category, title)")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(60),
   ]);
 
-  const topicAnswerRows = (topicAnswers ?? []) as TopicAnswerHistoryRow[];
+  const topicAnswerRows = ((topicAnswers ?? []) as TopicAnswerHistoryRow[]).filter((answer) => isOwnProfile || !answer.is_anonymous);
   const topicAnswerIds = topicAnswerRows.map((answer) => answer.id);
   const [{ data: likes }, { data: comments }] = await Promise.all([
     topicAnswerIds.length > 0 ? readClient.from("likes").select("topic_answer_id").in("topic_answer_id", topicAnswerIds) : Promise.resolve({ data: [] as CountRow[] }),
@@ -191,7 +200,12 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
             </div>
             <div className="flex flex-col items-start gap-3 sm:items-end">
               <RankBadge rank={profile.rank} size="md" showLabel labelPlacement="bottom" />
-              {isOwnProfile ? <Link href="/profile/edit" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white">プロフィールを編集</Link> : null}
+              {isOwnProfile ? (
+                <div className="flex flex-wrap justify-start gap-2 sm:justify-end">
+                  <Link href="/profile/edit" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white">プロフィールを編集</Link>
+                  <Link href="/settings" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/30 hover:bg-white/[0.1]">設定</Link>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -206,6 +220,22 @@ export async function ProfileView({ profile, viewerId, saved }: ProfileViewProps
           <RankProgress rating={profile.rating} qualified={profile.qualified} className="relative mt-6" />
         </div>
       </Card>
+
+      {isOwnProfile ? (
+        <section className="mt-6">
+          <Card>
+            <SectionHeader eyebrow="My Page" title="マイページ" />
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {myPageLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
+                  <span className="block text-base font-black text-white">{item.label}</span>
+                  <span className="mt-2 block text-xs leading-5 text-league-muted">{item.description}</span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        </section>
+      ) : null}
 
       {hasNoActivity ? <section className="mt-6"><ProfileStartEmptyState isOwnProfile={isOwnProfile} /></section> : null}
 

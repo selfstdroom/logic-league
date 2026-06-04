@@ -21,8 +21,8 @@ function displayName(profile?: Pick<Profile, "display_name" | "username">) {
   return profile?.display_name || profile?.username || "Logic Leagueユーザー";
 }
 
-function profileHref(profile: Pick<Profile, "id" | "username"> | undefined, userId: string) {
-  return profile?.username ? `/profile/${profile.username}` : `/profile/${profile?.id ?? userId}`;
+function profileHref(profile: Pick<Profile, "username"> | undefined) {
+  return profile?.username ? `/profile/${profile.username}` : "/profile";
 }
 
 function answerThoughtType(answerType: TopicAnswer["answer_type"]): ThoughtType {
@@ -105,7 +105,7 @@ export default async function TimelinePage() {
         displayName: displayName(profile),
         username: profile?.username,
         rank: profile?.rank,
-        href: profileHref(profile, answer.user_id),
+        href: profileHref(profile),
       },
     };
   }).sort((a, b) => thoughtScore(b) - thoughtScore(a) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
