@@ -18,11 +18,11 @@ export default async function ExamPage() {
           <StatCard label="最低文字数" value="500字" />
         </div>
       </HeroPanel>
-      <Card className="mb-8 mt-8">
+      <Card className="mb-6 mt-6 sm:mb-8 sm:mt-8">
         <p className="mb-4 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-100">
           本結果はAIによる推定であり、正式なIQ検査・心理検査・学術的知能検査ではありません。
         </p>
-        <div className="space-y-4 leading-8 text-league-silver">
+        <div className="space-y-3 text-sm leading-7 text-league-silver sm:space-y-4 sm:text-base sm:leading-8">
           <p>あなたは人口50万人の地方都市の市長です。この都市では20年間、人口減少が続いています。若年層は都市部へ流出し、出生数も減少しています。</p>
           <p>使える予算は100億円です。国からの追加支援は期待できません。</p>
           <p className="text-white">あなたなら、10年後に人口減少を止めるために、最初の3年間で何を行いますか。</p>

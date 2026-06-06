@@ -309,17 +309,17 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
   ];
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:py-10">
+    <main className="mx-auto max-w-6xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10">
       <Card id="overview" className="p-0">
         <div className="relative overflow-hidden p-4 sm:p-7 lg:p-9">
           <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
           {saved === "profile" ? <div className="relative mb-5 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100">プロフィールを保存しました。</div> : null}
           <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 gap-4 sm:gap-5">
+            <div className="flex min-w-0 flex-col gap-3 min-[420px]:flex-row sm:gap-5">
               <Avatar profile={profile} />
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Public Profile</p>
-                <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-5xl">{profile.display_name ?? profile.username}</h1>
+                <h1 className="mt-2 text-[1.85rem] font-black leading-tight text-white sm:text-5xl">{profile.display_name ?? profile.username}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-league-muted">
                   <span>@{profile.username}</span>
                   <span>登録日 {registeredAt}</span>
@@ -343,11 +343,11 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
             </div>
           </div>
 
-          <div className="relative mt-6 rounded-[1.6rem] border border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.15),transparent_38%),rgba(215,180,106,0.08)] p-5">
+          <div className="relative mt-5 rounded-[1.35rem] border border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.15),transparent_38%),rgba(215,180,106,0.08)] p-4 sm:mt-6 sm:rounded-[1.6rem] sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">表示中の思考偏差値</p>
-                <p className="mt-2 text-5xl font-black text-white">{formatDeviation(selectedDeviation)}</p>
+                <p className="mt-2 text-4xl font-black text-white sm:text-5xl">{formatDeviation(selectedDeviation)}</p>
                 <p className="mt-2 text-sm font-black text-league-gold">AI推定思考偏差値 · {deviationTypeLabel(selectedDeviationType)}</p>
                 <p className="mt-1 text-xs leading-5 text-league-muted">{deviationSourceLabel}</p>
               </div>
@@ -366,7 +366,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
             <p className="mt-4 text-xs leading-5 text-league-muted">本結果はAIによる推定であり、正式なIQ検査・心理検査ではありません。</p>
           </div>
 
-          <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="relative mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard label="Rank" value={profile.rank} tone="gold" />
             <StatCard label="Rating" value={profile.rating} tone="gold" />
             <StatCard label="登録日" value={registeredAt} />
@@ -425,7 +425,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
 
       {hasNoActivity ? <section className="mt-5"><ProfileStartEmptyState isOwnProfile={isOwnProfile} /></section> : null}
 
-      <section className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="mt-5 grid gap-4 lg:gap-5 lg:grid-cols-[1.1fr_0.9fr]">
         <Card>
           <SectionHeader eyebrow="代表回答" title="この人の思考が一番伝わる回答" />
           {showThoughtLog && featuredAnswer ? (
@@ -584,7 +584,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
         </Card>
       </section>
 
-      <section className="mt-5 grid gap-5 lg:grid-cols-2">
+      <section className="mt-5 grid gap-4 lg:gap-5 lg:grid-cols-2">
         <Card>
           <SectionHeader eyebrow="プロフィール詳細" title="基本情報・リンク" />
           <dl className="mt-4 space-y-3">
