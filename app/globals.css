@@ -61,3 +61,15 @@ body {
     @apply block text-sm font-bold text-league-silver;
   }
 }
+
+@keyframes brandFade {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
