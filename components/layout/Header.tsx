@@ -15,16 +15,16 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05070d]/90 shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-3 py-2 sm:px-6 sm:py-3">
-          <Link href="/" className="group inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-[linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_14px_34px_rgba(0,0,0,0.22)] transition hover:border-amber-200/25 hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-amber-200/35 sm:gap-2.5 sm:px-3 sm:py-2" aria-label="Logic League ホームへ">
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-amber-100/20 bg-[radial-gradient(circle_at_30%_20%,rgba(215,180,106,0.28),transparent_42%),linear-gradient(145deg,#0c1019,#020204)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_20px_rgba(215,180,106,0.12)] sm:h-9 sm:w-9">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-3 py-1.5 sm:px-6 sm:py-2">
+          <Link href="/" className="group inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-white/[0.08] bg-[linear-gradient(135deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] px-2.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_14px_34px_rgba(0,0,0,0.22)] transition hover:border-amber-200/25 hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-amber-200/35 sm:gap-2.5 sm:px-3 sm:py-2" aria-label="Logic League ホームへ">
+            <span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-amber-100/20 bg-[radial-gradient(circle_at_30%_20%,rgba(215,180,106,0.28),transparent_42%),linear-gradient(145deg,#0c1019,#020204)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_20px_rgba(215,180,106,0.12)] sm:h-8 sm:w-8">
               <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-black/45" />
               <Image
                 src="/logo.png"
                 alt=""
                 width={40}
                 height={40}
-                className="h-full w-full scale-[1.12] rounded-full object-cover drop-shadow-[0_0_14px_rgba(215,180,106,0.22)] transition group-hover:scale-[1.17]"
+                className="h-full w-full scale-[1.18] rounded-full object-cover drop-shadow-[0_0_14px_rgba(215,180,106,0.22)] transition group-hover:scale-[1.17]"
                 priority
               />
             </span>
