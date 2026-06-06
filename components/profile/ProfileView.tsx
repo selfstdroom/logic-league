@@ -164,6 +164,22 @@ function PremiumBadge({ children, tone = "gold" }: { children: ReactNode; tone?:
   return <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${className}`}>{children}</span>;
 }
 
+function ProfileMiniStat({ label, value, tone = "silver" }: { label: string; value: ReactNode; tone?: "gold" | "silver" | "emerald" }) {
+  const toneClass = tone === "gold"
+    ? "border-amber-300/25 bg-[linear-gradient(145deg,rgba(215,180,106,0.14),rgba(255,255,255,0.035))] text-league-gold"
+    : tone === "emerald"
+      ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-100"
+      : "border-white/10 bg-white/[0.045] text-league-silver";
+
+  return (
+    <div className={`relative overflow-hidden rounded-[1.15rem] border px-3 py-3 ${toneClass}`}>
+      <div className="pointer-events-none absolute -right-8 -top-8 h-16 w-16 rounded-full bg-white/10 blur-2xl" />
+      <p className="relative truncate text-[0.64rem] font-black uppercase tracking-[0.18em] opacity-85">{label}</p>
+      <p className="relative mt-1.5 truncate text-[1.35rem] font-black leading-none text-white sm:text-2xl">{value}</p>
+    </div>
+  );
+}
+
 export async function ProfileView({ profile: rawProfile, viewerId, saved }: { profile: Profile; viewerId: string; saved?: string }) {
   const profile = rawProfile as ProfileWithVisibility;
   const supabase = await createClient();
@@ -310,73 +326,112 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10">
-      <Card id="overview" className="p-0">
-        <div className="relative overflow-hidden p-4 sm:p-7 lg:p-9">
-          <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
-          {saved === "profile" ? <div className="relative mb-5 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100">プロフィールを保存しました。</div> : null}
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 flex-col gap-3 min-[420px]:flex-row sm:gap-5">
-              <Avatar profile={profile} />
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Public Profile</p>
-                <h1 className="mt-2 text-[1.85rem] font-black leading-tight text-white sm:text-5xl">{profile.display_name ?? profile.username}</h1>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-league-muted">
-                  <span>@{profile.username}</span>
-                  <span>登録日 {registeredAt}</span>
-                </div>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">{profile.bio ?? "自己紹介はまだありません。"}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <PremiumBadge>{selectedTitle?.label ?? (profile.archetype ? `${archetype?.ja ?? profile.archetype} / ${profile.archetype}` : "未分類")}</PremiumBadge>
-                  <PremiumBadge tone="silver">Rating {profile.rating}</PremiumBadge>
-                  <PremiumBadge tone={profile.qualified ? "emerald" : "silver"}>Competitive {competitiveCount ?? 0}回</PremiumBadge>
-                </div>
-              </div>
-            </div>
-            <div className="relative flex flex-col items-start gap-3 lg:items-end">
-              <RankBadge rank={profile.rank} size="md" showLabel labelPlacement="bottom" />
-              {isOwnProfile ? (
-                <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
-                  <Link href="/profile/edit" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white">プロフィールを編集</Link>
-                  <Link href="/settings#profile-display" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/30 hover:bg-white/[0.1]">プロフィール表示を変更</Link>
-                </div>
-              ) : null}
-            </div>
-          </div>
+      <section id="overview" className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-5">
+        <div className="space-y-4 lg:sticky lg:top-24">
+          <Card className="p-0">
+            <div className="relative overflow-hidden p-4 sm:p-6 lg:p-7">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-amber-300/14 blur-3xl" />
+              <div className="pointer-events-none absolute left-6 top-0 h-px w-2/3 bg-gradient-to-r from-amber-200/80 via-white/20 to-transparent" />
+              {saved === "profile" ? <div className="relative mb-4 rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-100">プロフィールを保存しました。</div> : null}
 
-          <div className="relative mt-5 rounded-[1.35rem] border border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.15),transparent_38%),rgba(215,180,106,0.08)] p-4 sm:mt-6 sm:rounded-[1.6rem] sm:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">表示中の思考偏差値</p>
-                <p className="mt-2 text-4xl font-black text-white sm:text-5xl">{formatDeviation(selectedDeviation)}</p>
-                <p className="mt-2 text-sm font-black text-league-gold">AI推定思考偏差値 · {deviationTypeLabel(selectedDeviationType)}</p>
-                <p className="mt-1 text-xs leading-5 text-league-muted">{deviationSourceLabel}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 lg:min-w-56">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-league-muted">選択中の称号</p>
-                <p className="mt-2 text-xl font-black text-white">{selectedTitle?.label ?? "未設定"}</p>
-                <p className="mt-1 text-xs text-league-muted">{selectedTitle?.source ?? "獲得済み称号から選択できます"}</p>
-              </div>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="認定偏差値" value={formatDeviation(certificationDeviation)} tone="gold" />
-              <StatCard label="最新Weekly偏差値" value={formatDeviation(latestWeeklyRow?.deviation ?? null)} />
-              <StatCard label="最高Weekly偏差値" value={formatDeviation(highestWeeklyRow?.deviation ?? null)} tone="emerald" />
-              <StatCard label="Season平均偏差値" value={formatDeviation(latestSeasonRow?.deviation ?? null)} />
-            </div>
-            <p className="mt-4 text-xs leading-5 text-league-muted">本結果はAIによる推定であり、正式なIQ検査・心理検査ではありません。</p>
-          </div>
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                  <Avatar profile={profile} />
+                  <div className="min-w-0">
+                    <p className="text-[0.64rem] font-black uppercase tracking-[0.24em] text-league-gold">Profile</p>
+                    <h1 className="mt-1 truncate text-[1.8rem] font-black leading-tight text-white sm:text-4xl">{profile.display_name ?? profile.username}</h1>
+                    <p className="mt-1 truncate text-sm font-bold text-league-muted">@{profile.username}</p>
+                  </div>
+                </div>
 
-          <div className="relative mt-5 grid gap-3 sm:mt-6 sm:grid-cols-2 lg:grid-cols-6">
-            <StatCard label="Rank" value={profile.rank} tone="gold" />
-            <StatCard label="Rating" value={profile.rating} tone="gold" />
-            <StatCard label="登録日" value={registeredAt} />
-            <StatCard label="Competitive参加" value={competitiveCount ?? 0} tone={profile.qualified ? "emerald" : "silver"} />
-            <StatCard label="Top10" value={top10Count ?? 0} />
-            <StatCard label="総回答数" value={totalAnswerCount ?? 0} />
-          </div>
-          <RankProgress rating={profile.rating} qualified={profile.qualified} className="relative mt-5" />
+                {isOwnProfile ? (
+                  <div className="flex shrink-0 gap-1.5">
+                    <Link href="/profile/edit" className="flex h-9 w-9 items-center justify-center rounded-full border border-amber-300/30 bg-amber-300/10 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white" aria-label="プロフィールを編集">✎</Link>
+                    <Link href="/settings#profile-display" className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-sm font-black text-white transition hover:border-amber-300/30 hover:bg-white/[0.1]" aria-label="プロフィール表示を変更">⚙</Link>
+                  </div>
+                ) : null}
+              </div>
+
+              <p className="relative mt-4 text-sm leading-7 text-league-silver">{profile.bio ?? "自己紹介はまだありません。"}</p>
+
+              <div className="relative mt-4 grid grid-cols-2 gap-2.5">
+                <div className="rounded-2xl border border-amber-300/25 bg-black/25 px-3 py-3">
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">Current Rank</p>
+                  <p className="mt-1 text-lg font-black text-league-gold">{profile.rank}</p>
+                </div>
+                <div className="rounded-2xl border border-amber-300/20 bg-black/25 px-3 py-3">
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">Rating</p>
+                  <p className="mt-1 text-lg font-black text-white">{profile.rating}</p>
+                </div>
+                <div className="col-span-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-3">
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">称号 / Archetype</p>
+                  <p className="mt-1 line-clamp-2 text-sm font-black leading-5 text-white">{selectedTitle?.label ?? (profile.archetype ? `${archetype?.ja ?? profile.archetype} / ${profile.archetype}` : "未分類")}</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="text-center">
+            <p className="text-[0.65rem] font-black uppercase tracking-[0.28em] text-league-gold">Rank Showcase</p>
+            <div className="mt-3 flex justify-center">
+              <RankBadge rank={profile.rank} size="lg" showLabel labelPlacement="bottom" />
+            </div>
+            <div className="mt-4 rounded-[1.25rem] border border-amber-300/20 bg-black/25 p-4 text-left">
+              <RankProgress rating={profile.rating} qualified={profile.qualified} compact className="relative" />
+            </div>
+          </Card>
         </div>
-      </Card>
+
+        <div className="space-y-4">
+          <Card>
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[0.65rem] font-black uppercase tracking-[0.24em] text-league-gold">Stats</p>
+                <h2 className="mt-1 text-xl font-black text-white">プロフィール統計</h2>
+              </div>
+              <PremiumBadge tone={profile.qualified ? "emerald" : "silver"}>{profile.qualified ? "認定済み" : "未認定"}</PremiumBadge>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+              <ProfileMiniStat label="Rating" value={profile.rating} tone="gold" />
+              <ProfileMiniStat label="思考偏差値" value={formatDeviation(selectedDeviation)} tone="gold" />
+              <ProfileMiniStat label="Competitive参加" value={competitiveCount ?? 0} tone={profile.qualified ? "emerald" : "silver"} />
+              <ProfileMiniStat label="Top10" value={top10Count ?? 0} />
+              <ProfileMiniStat label="総回答数" value={totalAnswerCount ?? 0} />
+              <ProfileMiniStat label="登録日" value={registeredAt} />
+            </div>
+            <div className="mt-4 rounded-[1.15rem] border border-white/10 bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">表示中の思考偏差値</p>
+                  <p className="mt-1 text-lg font-black text-white">{deviationTypeLabel(selectedDeviationType)}</p>
+                </div>
+                <p className="text-right text-xs leading-5 text-league-muted">{deviationSourceLabel}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <SectionHeader eyebrow="Activity" title="思考ログ" action={<Link href="#thought-log" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-xs font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">すべて見る</Link>} />
+            {showThoughtLog ? (
+              <div className="mt-4 space-y-2.5">
+                {topicItems.slice(0, 4).map((item) => (
+                  <Link key={item.id} href={item.activityHref ?? discussionHref(item)} className="block rounded-[1.15rem] border border-white/10 bg-black/25 p-3 transition hover:border-amber-300/35 hover:bg-white/[0.06]">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2 py-0.5 text-[0.62rem] font-black text-league-gold">{answerTypeLabel(item.answer_type)}</span>
+                        <p className="min-w-0 truncate text-sm font-black text-white">{item.activityLabel ?? item.title}</p>
+                      </div>
+                      <time className="shrink-0 text-[0.62rem] font-bold text-league-muted">{formatDateTime(item.created_at)}</time>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-league-silver">{createPreview(item.content, 110)}</p>
+                  </Link>
+                ))}
+                {topicItems.length === 0 ? <EmptyState kind="timeline" title="思考ログはまだありません。">公開回答が投稿されるとここに表示されます。</EmptyState> : null}
+              </div>
+            ) : <VisibilityEmpty title="思考ログは非公開です。">このユーザーは回答履歴の公開をオフにしています。</VisibilityEmpty>}
+          </Card>
+        </div>
+      </section>
 
       <nav className="sticky top-0 z-10 -mx-4 mt-4 overflow-x-auto border-y border-white/10 bg-league-black/85 px-4 py-2 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-3" aria-label="Profile sections">
         <div className="flex min-w-max gap-2">
@@ -586,17 +641,9 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
 
       <section className="mt-5 grid gap-4 lg:gap-5 lg:grid-cols-2">
         <Card>
-          <SectionHeader eyebrow="プロフィール詳細" title="基本情報・リンク" />
-          <dl className="mt-4 space-y-3">
-            <ProfileField label="display_name" value={profile.display_name ?? "未設定"} />
-            <ProfileField label="username" value={`@${profile.username}`} />
-            <ProfileField label="bio" value={profile.bio ?? "自己紹介はまだありません。"} />
-            <ProfileField label="rank" value={profile.rank} />
-            <ProfileField label="rating" value={profile.rating} />
-            {showExam ? <ProfileField label="認定偏差値" value={formatDeviation(certificationDeviation)} /> : null}
-          </dl>
+          <SectionHeader eyebrow="Links" title="外部リンク" />
           {availableSnsLinks.length > 0 ? (
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               {availableSnsLinks.map((link) => <Link key={link.key} href={link.href} target="_blank" rel="noreferrer" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/40 hover:text-league-gold">{link.label}</Link>)}
             </div>
           ) : <EmptyState title="SNSリンクは未設定です。">プロフィール編集からX、YouTube、GitHubのリンクを追加できます。</EmptyState>}
