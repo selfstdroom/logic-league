@@ -15,17 +15,19 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05070d]/86 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-3 sm:px-6 sm:py-4">
-          <Link href="/" className="group inline-flex min-w-0 items-center justify-center rounded-2xl px-3 py-1.5 transition hover:bg-white/[0.04] focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
-            <Image
-              src="/logo.png"
-              alt="Logic League"
-              width={40}
-              height={40}
-              className="h-8 w-8 object-contain drop-shadow-[0_0_18px_rgba(215,180,106,0.18)] transition group-hover:scale-[1.03] sm:h-9 sm:w-9 lg:h-10 lg:w-10"
-              priority
-            />
-            <span className="sr-only">Logic League</span>
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3">
+          <Link href="/" className="group inline-flex min-w-0 items-center justify-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.035] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] transition hover:border-white/15 hover:bg-white/[0.055] focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-amber-100/15 bg-black/25 sm:h-10 sm:w-10">
+              <Image
+                src="/icon.png"
+                alt=""
+                width={40}
+                height={40}
+                className="h-7 w-7 object-contain drop-shadow-[0_0_14px_rgba(215,180,106,0.2)] transition group-hover:scale-[1.03] sm:h-8 sm:w-8"
+                priority
+              />
+            </span>
+            <span className="text-sm font-black uppercase tracking-[0.22em] text-white sm:text-base">Logic League</span>
           </Link>
         </div>
       </header>
