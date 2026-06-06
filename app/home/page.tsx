@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
 import { getWeeklyCtaLabel, getWeeklyPhase, getWeeklyStatusLabel } from "@/lib/weekly";
+import { deviationTypeLabel, formatDeviation, getDeviationGoalText, resolveDisplayDeviationType } from "@/lib/thinkingDeviation";
 import type { Comment, Like, TopicAnswer } from "@/types/database";
 import type { Profile } from "@/types/logic-league";
 
@@ -126,15 +127,27 @@ export default async function HomePage() {
   const answerRows = (latestAnswers ?? []) as FeedAnswer[];
   const answerIds = answerRows.map((answer) => answer.id);
 
-  const [{ data: topicAnswerCounts }, { data: topicComments }, { data: feedLikes }, { data: feedComments }] = await Promise.all([
+  const [{ data: topicAnswerCounts }, { data: topicComments }, { data: feedLikes }, { data: feedComments }, { data: ownDeviationHistories }] = await Promise.all([
     topicIds.length > 0 ? supabase.from("topic_answers").select("id, topic_id").in("topic_id", topicIds) : Promise.resolve({ data: [] as Pick<TopicAnswer, "id" | "topic_id">[] }),
     topicIds.length > 0 ? supabase.from("comments").select("topic_answer_id, topic_answers!inner(topic_id)").in("topic_answers.topic_id", topicIds) : Promise.resolve({ data: [] as unknown[] }),
     answerIds.length > 0 ? supabase.from("likes").select("topic_answer_id").in("topic_answer_id", answerIds) : Promise.resolve({ data: [] as Pick<Like, "topic_answer_id">[] }),
     answerIds.length > 0 ? supabase.from("comments").select("topic_answer_id").in("topic_answer_id", answerIds) : Promise.resolve({ data: [] as Pick<Comment, "topic_answer_id">[] }),
+    user ? competitionClient.from("thinking_deviation_histories").select("source_type, deviation, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(80) : Promise.resolve({ data: [] as { source_type: string; deviation: number; created_at: string }[] }),
   ]);
 
   const answerCountsByTopic = new Map<string, number>();
   for (const row of topicAnswerCounts ?? []) answerCountsByTopic.set(row.topic_id, (answerCountsByTopic.get(row.topic_id) ?? 0) + 1);
+
+  const ownDeviationRows = ownDeviationHistories ?? [];
+  const ownWeeklyDeviations = ownDeviationRows.filter((row) => row.source_type === "weekly");
+  const ownLatestWeekly = ownWeeklyDeviations[0]?.deviation ?? null;
+  const ownPreviousWeekly = ownWeeklyDeviations[1]?.deviation ?? null;
+  const ownHighestWeekly = ownWeeklyDeviations.length > 0 ? Math.max(...ownWeeklyDeviations.map((row) => Number(row.deviation))) : null;
+  const ownSeasonAverage = ownDeviationRows.find((row) => row.source_type === "season")?.deviation ?? null;
+  const ownSelectedDeviationType = resolveDisplayDeviationType(profile?.display_deviation_type);
+  const ownSelectedDeviation = ownSelectedDeviationType === "latest_weekly" ? ownLatestWeekly : ownSelectedDeviationType === "highest_weekly" ? ownHighestWeekly : ownSelectedDeviationType === "season_average" ? ownSeasonAverage : profile?.predicted_deviation ?? null;
+  const ownWeeklyTrend = ownLatestWeekly != null && ownPreviousWeekly != null ? Number((Number(ownLatestWeekly) - Number(ownPreviousWeekly)).toFixed(1)) : null;
+  const ownNextGoal = getDeviationGoalText(ownLatestWeekly, ownHighestWeekly, ownSeasonAverage);
 
   const commentCountsByTopic = new Map<string, number>();
   for (const row of (topicComments ?? []) as { topic_answers?: { topic_id?: string | null } | { topic_id?: string | null }[] | null }[]) {
@@ -201,7 +214,16 @@ export default async function HomePage() {
               <p className="truncate text-xs text-league-muted">@{profile.username}</p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="mt-4 rounded-2xl border border-amber-300/25 bg-amber-300/10 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">表示中の思考偏差値</p>
+            <p className="mt-2 text-3xl font-black text-white">{formatDeviation(ownSelectedDeviation)}</p>
+            <p className="mt-1 text-xs text-league-muted">AI推定思考偏差値 · {deviationTypeLabel(ownSelectedDeviationType)}</p>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Weekly trend</p><p className={`mt-1 font-black ${ownWeeklyTrend == null ? "text-white" : ownWeeklyTrend >= 0 ? "text-emerald-200" : "text-red-200"}`}>{ownWeeklyTrend == null ? "—" : `${ownWeeklyTrend >= 0 ? "+" : ""}${ownWeeklyTrend.toFixed(1)}`}</p></div>
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Next goal</p><p className="mt-1 text-xs font-black text-white">{ownNextGoal}</p></div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3"><p className="text-xs text-league-muted">Rank</p><p className="mt-1 font-black text-league-gold">{profile.rank}</p></div>
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">Rating</p><p className="mt-1 font-black">{profile.rating}</p></div>
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-xs text-league-muted">回答</p><p className="mt-1 font-black">{answerCount ?? 0}</p></div>

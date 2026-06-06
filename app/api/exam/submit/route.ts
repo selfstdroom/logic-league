@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { gradeExamAnswer } from "@/lib/openai";
 import { buildExamResult, MIN_EXAM_ANSWER_LENGTH } from "@/lib/scoring";
+import { recordCertificationDeviation } from "@/lib/thinkingDeviation";
 import { createClient } from "@/lib/supabase/server";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -73,22 +74,38 @@ export async function POST(request: Request) {
   try {
     await ensureProfile(supabase, user);
 
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("predicted_deviation, qualified, rating, rank, archetype")
+      .eq("id", user.id)
+      .maybeSingle();
+    const hasCertification = currentProfile?.predicted_deviation != null;
+
     const evaluation = await gradeExamAnswer(answer);
     const result = buildExamResult(evaluation);
 
-    const { error: insertError } = await supabase.from("exam_answers").insert({
+    const { data: examAnswer, error: insertError } = await supabase.from("exam_answers").insert({
       user_id: user.id,
       answer,
       ...result,
-    });
+    }).select("id").single();
     if (insertError) throw insertError;
 
+    if (!hasCertification) {
+      await recordCertificationDeviation({
+        userId: user.id,
+        examAnswerId: examAnswer.id,
+        deviation: result.predicted_deviation,
+        score: result.total_score,
+      });
+    }
+
     const { error: profileError } = await supabase.from("profiles").update({
-      predicted_deviation: result.predicted_deviation,
-      qualified: result.qualified,
-      rating: result.rating,
-      rank: result.rank,
-      archetype: result.archetype,
+      predicted_deviation: hasCertification ? currentProfile.predicted_deviation : result.predicted_deviation,
+      qualified: currentProfile?.qualified || result.qualified,
+      rating: hasCertification ? currentProfile.rating : result.rating,
+      rank: hasCertification ? currentProfile.rank : result.rank,
+      archetype: hasCertification ? currentProfile.archetype : result.archetype,
       updated_at: new Date().toISOString(),
     }).eq("id", user.id);
     if (profileError) throw profileError;

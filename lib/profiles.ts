@@ -53,6 +53,8 @@ export async function getOrCreateOwnProfile(supabase: SupabaseClient<Database>, 
       x_url: null,
       youtube_url: null,
       github_url: null,
+      display_deviation_type: "certification",
+      display_title: null,
       created_at: now,
       updated_at: now,
     })
