@@ -32,6 +32,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
+ADMIN_EMAIL=
+MOCK_AI_SCORING=
 ```
 
 ## Supabase SQL の実行方法
@@ -90,13 +92,17 @@ Phase 2 では Daily Topics の閲覧・回答・コメント・Like、および
 
 ### ADMIN_EMAIL configuration
 
-Daily Topic 管理画面は `ADMIN_EMAIL` 環境変数で制御します。ログイン中ユーザーの `user.email` と完全一致した場合のみ管理者として扱います。`admin_users` テーブルは使用しません。
+Daily Topic 管理画面は `ADMIN_EMAIL` 環境変数で制御します。ログイン中ユーザーの `user.email` と `ADMIN_EMAIL` を前後空白除去・小文字化して照合し、一致した場合のみ管理者として扱います。`admin_users` テーブルは使用しません。
 
 ```env
 ADMIN_EMAIL=your@email.com
 ```
 
 管理画面では Supabase service role key をサーバーサイドでのみ利用します。`SUPABASE_SERVICE_ROLE_KEY` や `OPENAI_API_KEY` を client code に露出しないでください。
+
+### MOCK_AI_SCORING configuration
+
+OpenAI API を呼び出さずに認定試験の採点フローを確認したいローカル環境では、`MOCK_AI_SCORING=true` を設定できます。本番環境では未設定または `false` にしてください。
 
 ### Admin topic management
 
