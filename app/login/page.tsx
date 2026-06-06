@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -40,9 +41,19 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="mx-auto flex min-h-[76vh] max-w-xl items-center px-5 py-12 sm:px-6">
       <Card className="w-full border-amber-300/20 p-6 sm:p-8">
         <div className="text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/35 bg-amber-300/10 text-sm font-black tracking-[0.2em] text-league-gold shadow-glow">LL</div>
-          <PremiumBadge tone="gold">LOGIC LEAGUE</PremiumBadge>
-          <h1 className="mt-4 text-3xl font-black">ログイン</h1>
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-amber-300/20 bg-black/25 shadow-[0_22px_70px_rgba(0,0,0,0.35),0_0_42px_rgba(215,180,106,0.16)] sm:h-28 sm:w-28">
+            <Image
+              src="/logo.png"
+              alt="Logic League"
+              width={88}
+              height={88}
+              className="h-20 w-20 object-contain sm:h-24 sm:w-24"
+              priority
+            />
+          </div>
+          <PremiumBadge tone="gold">思考のリーグ</PremiumBadge>
+          <p className="mt-4 text-base font-black tracking-[0.08em] text-league-gold sm:text-lg">知識ではなく、思考で競え</p>
+          <h1 className="mt-6 text-3xl font-black">ログイン</h1>
           <p className="mt-4 text-league-silver">メールアドレスとパスワードでログインしてください。</p>
         </div>
         {message ? (
