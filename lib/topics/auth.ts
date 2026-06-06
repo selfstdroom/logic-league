@@ -1,6 +1,11 @@
 import type { User } from "@supabase/supabase-js";
 
+function normalizeEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
 export function isAdminUser(user: User | null) {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  return Boolean(user?.email && adminEmail && user.email === adminEmail);
+  const userEmail = normalizeEmail(user?.email);
+  const adminEmail = normalizeEmail(process.env.ADMIN_EMAIL);
+  return Boolean(userEmail && adminEmail && userEmail === adminEmail);
 }
