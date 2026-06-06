@@ -33,9 +33,9 @@ export default async function HallOfFamePage() {
       <HeroPanel eyebrow="Hall of Fame" title="Weekly League勝者の殿堂">
         各Weekly Leagueの1位回答を保存し、勝者・Rank・最終スコア・回答Previewを公開します。
       </HeroPanel>
-      <section className="mt-10">
+      <section className="mt-6 lg:mt-10">
         <SectionHeader eyebrow="Winners" title="歴代勝者" />
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {rows.map((row) => {
             const topic = first(row.topics);
             const profile = first(row.profiles);
@@ -43,10 +43,10 @@ export default async function HallOfFamePage() {
             return (
               <Link key={row.id} href={`/hall-of-fame/${row.id}`} className="block">
                 <Card className="h-full border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(255,215,128,0.18),transparent_34%),linear-gradient(145deg,rgba(215,180,106,0.16),rgba(255,255,255,0.045))] p-0 transition hover:-translate-y-1 hover:border-amber-300/55">
-                  <div className="relative overflow-hidden p-5 sm:p-6">
+                  <div className="relative overflow-hidden p-4 sm:p-6">
                     <div className="pointer-events-none absolute right-5 top-5 rounded-full border border-amber-200/25 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.24em] text-amber-100/70">Champion</div>
                     <p className="text-xs font-black uppercase tracking-[0.26em] text-league-gold">Week · {formatDateTime(topic?.publish_at ?? row.created_at)}</p>
-                    <h2 className="mt-3 pr-20 text-2xl font-black text-white sm:text-3xl">{topic?.title ?? "Weekly League"}</h2>
+                    <h2 className="mt-3 pr-16 text-xl font-black leading-tight text-white sm:pr-20 sm:text-3xl">{topic?.title ?? "Weekly League"}</h2>
                     <div className="mt-6 rounded-[1.5rem] border border-amber-300/25 bg-black/25 p-4">
                       <div className="flex items-center gap-3">
                         <RankBadge rank={profile?.rank} size="md" />
@@ -54,7 +54,7 @@ export default async function HallOfFamePage() {
                         <div className="ml-auto text-right"><p className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-league-muted">Final</p><p className="text-3xl font-black text-league-gold">{row.final_score ?? "—"}</p></div>
                       </div>
                     </div>
-                    <div className="mt-5 grid grid-cols-3 gap-3 text-center text-sm">
+                    <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs sm:mt-5 sm:gap-3 sm:text-sm">
                       <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3"><p className="font-black text-white">{row.final_score ?? "—"}</p><p className="text-xs text-league-muted">Final Score</p></div>
                       <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.ai_total_score ?? "—"}</p><p className="text-xs text-league-muted">AI Score</p></div>
                       <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="font-black text-white">{row.vote_count ?? 0}</p><p className="text-xs text-league-muted">得票</p></div>

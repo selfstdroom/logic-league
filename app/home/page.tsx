@@ -192,13 +192,13 @@ export default async function HomePage() {
   const newAnswers = [...feedAnswers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:py-12">
-      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr] lg:gap-6">
+    <main className="mx-auto max-w-7xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-12">
+      <section className="grid gap-3.5 lg:grid-cols-[1.35fr_0.65fr] lg:gap-6">
         <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.16),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.76))] p-5 sm:p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.34em] text-league-gold">議論コマンド</p>
-              <h1 className="mt-3 max-w-4xl text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">今、どの議論に参加するか</h1>
+              <h1 className="mt-2 max-w-4xl text-[1.75rem] font-black leading-tight sm:mt-3 sm:text-4xl lg:text-5xl">今、どの議論に参加するか</h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">公開中の議論から論点を選び、回答・反論・補足で知的リーグを動かしましょう。</p>
             </div>
             <ButtonLink href={todaysTopic ? `/topics/${todaysTopic.id}` : "/topics"} className="shrink-0 px-5 py-3">議論に参加する</ButtonLink>
@@ -277,7 +277,7 @@ export default async function HomePage() {
       </section>
 
 
-      <section className="mt-5 grid gap-5 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="mt-5 grid gap-4 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
@@ -348,12 +348,12 @@ export default async function HomePage() {
           </div>
           <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">タイムラインを見る</ButtonLink>
         </div>
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {popularAnswers.map((answer) => {
             const topic = topicOf(answer);
             return (
-              <article key={answer.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
-                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
+              <article key={answer.id} className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-3.5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
+                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-3.5 transition hover:border-amber-300/30 sm:p-4">
                   <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span>{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-sky-100">公式サンプル回答</span> : null}<span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
                   <p className="mt-3 text-xs font-black uppercase tracking-[0.2em] text-league-gold">{formatTopicCategory(topic?.category)}</p>
                   <h3 className="mt-2 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
@@ -376,12 +376,12 @@ export default async function HomePage() {
           </div>
           <ButtonLink href="/timeline" className="bg-none bg-white/10 text-white shadow-none ring-1 ring-white/15 hover:bg-white/15">思考フィードを見る</ButtonLink>
         </div>
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {newAnswers.map((answer) => {
             const topic = topicOf(answer);
             return (
-              <article key={`new-${answer.id}`} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
-                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-amber-300/30">
+              <article key={`new-${answer.id}`} className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-3.5 transition duration-300 hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.07] sm:rounded-[1.5rem] sm:p-5">
+                <Link href={answerHref(answer)} className="block rounded-2xl border border-white/10 bg-black/20 p-3.5 transition hover:border-amber-300/30 sm:p-4">
                   <div className="flex flex-wrap gap-2 text-xs font-black"><span className="rounded-full border border-league-gold/20 bg-league-gold/10 px-2.5 py-1 text-league-gold">{formatDiscussionType(topic?.type)}</span>{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-sky-100">公式サンプル回答</span> : null}<span className="rounded-full border border-white/10 px-2.5 py-1 text-league-silver">{activityLabel(answer.answer_type)}</span></div>
                   <h3 className="mt-3 font-black leading-snug text-white">{topic?.title ?? "議論"}</h3>
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 170)}</p>

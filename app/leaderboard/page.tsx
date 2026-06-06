@@ -29,7 +29,7 @@ export default async function LeaderboardPage() {
       <HeroPanel eyebrow="Leaderboard" title="Global Ranking">
         現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。上位3名は特別表示されます。
       </HeroPanel>
-      <section className="mt-10">
+      <section className="mt-6 lg:mt-10">
         <SectionHeader eyebrow="Global" title="総合Leaderboard" />
         <Card className="overflow-hidden p-0">
           <div className="hidden grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:grid">
@@ -38,7 +38,7 @@ export default async function LeaderboardPage() {
           {hasSufficientRankingData ? rankingProfiles.map((profile, index) => {
             const topThreeClass = index === 0 ? "border-amber-300/35 bg-amber-300/10" : index === 1 ? "border-slate-200/25 bg-white/[0.07]" : index === 2 ? "border-orange-300/25 bg-orange-400/10" : "";
             return (
-            <div key={profile.id} className={`grid grid-cols-[3rem_1fr] items-center gap-3 border-b border-white/10 px-4 py-4 last:border-b-0 md:grid-cols-[4rem_1.5fr_1fr_1fr_1fr] md:px-5 ${topThreeClass}`}>
+            <div key={profile.id} className={`grid grid-cols-[2.5rem_1fr] items-center gap-2.5 border-b border-white/10 px-3 py-3.5 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-[4rem_1.5fr_1fr_1fr_1fr] md:px-5 ${topThreeClass}`}>
               <span className="text-2xl font-black text-league-gold">#{index + 1}</span>
               <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
                 <span className="block truncate">{profile.display_name ?? profile.username}</span>
