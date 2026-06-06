@@ -1,4 +1,5 @@
 import type { Profile, ExamAnswer, UserSettings } from "./logic-league";
+import type { DeviationSourceType } from "@/lib/thinkingDeviation";
 
 export type TopicCategory = "AI" | "Business" | "Economics" | "Society" | "Psychology" | "Science";
 export type TopicType = "daily" | "weekly";
@@ -108,6 +109,20 @@ export type UserAchievement = {
   created_at: string;
 };
 
+
+export type ThinkingDeviationHistory = {
+  id: string;
+  user_id: string;
+  source_type: DeviationSourceType;
+  topic_id: string | null;
+  exam_answer_id: string | null;
+  topic_answer_id: string | null;
+  deviation: number;
+  score: number | null;
+  label: string | null;
+  created_at: string;
+};
+
 export type SeasonSnapshot = {
   id: string;
   season_key: string;
@@ -193,6 +208,12 @@ export type Database = {
         Row: UserAchievement;
         Insert: Partial<UserAchievement> & { user_id: string; achievement_id: string };
         Update: Partial<UserAchievement>;
+        Relationships: [];
+      };
+      thinking_deviation_histories: {
+        Row: ThinkingDeviationHistory;
+        Insert: Partial<ThinkingDeviationHistory> & { user_id: string; source_type: DeviationSourceType; deviation: number };
+        Update: Partial<ThinkingDeviationHistory>;
         Relationships: [];
       };
       season_snapshots: {

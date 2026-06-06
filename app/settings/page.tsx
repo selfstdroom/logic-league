@@ -6,8 +6,10 @@ import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 import { getOrCreateOwnProfile } from "@/lib/profiles";
+import { buildEarnedTitleOptions, resolveDisplayTitle } from "@/lib/profileTitles";
+import { deviationDisplayOptions, resolveDisplayDeviationType, validDisplayDeviationTypes } from "@/lib/thinkingDeviation";
 import { createClient } from "@/lib/supabase/server";
-import type { UserSettings } from "@/types/logic-league";
+import type { DisplayDeviationType, UserSettings } from "@/types/logic-league";
 
 const usernamePattern = /^[a-z0-9_-]+$/;
 const validThemes = new Set(["dark", "light", "system"]);
@@ -30,6 +32,7 @@ type ToggleDefinition = {
 const settingsSections: SettingsSection[] = [
   { id: "account", title: "アカウント", description: "ログイン情報と基本アカウント名を管理します。", icon: "profile" },
   { id: "profile", title: "プロフィール", description: "自己紹介とSNSリンクを管理します。", icon: "settings" },
+  { id: "profile-display", title: "プロフィール表示", description: "偏差値と称号の見せ方を選びます。", icon: "profile" },
   { id: "privacy", title: "プライバシー", description: "公開プロフィールで見せる範囲を選びます。", icon: "search" },
   { id: "notifications", title: "通知", description: "受け取りたいリーグ通知を保存します。", icon: "notifications" },
   { id: "display", title: "表示", description: "テーマと表示密度の好みを保存します。", icon: "home" },
@@ -104,6 +107,7 @@ function settingErrorMessage(error?: string) {
     case "bio": return "自己紹介は300文字以内で入力してください。";
     case "url": return "SNS URLは http:// または https:// から始まる正しい形式で入力してください。";
     case "display": return "表示設定の値が正しくありません。";
+    case "profile_display": return "プロフィール表示設定の値が正しくありません。";
     case "save": return "設定を保存できませんでした。時間をおいて再度お試しください。";
     default: return null;
   }
@@ -139,12 +143,26 @@ async function saveSettings(formData: FormData) {
   const youtubeUrl = normalizeOptional(formData.get("youtube_url"));
   const theme = normalizeString(formData.get("theme"));
   const displayDensity = normalizeString(formData.get("display_density"));
+  const displayDeviationType = normalizeString(formData.get("display_deviation_type"));
+  const displayTitle = normalizeOptional(formData.get("display_title"));
 
   if (!displayName || !username) redirect("/settings?error=required");
   if (!usernamePattern.test(username)) redirect("/settings?error=username");
   if (bio && bio.length > 300) redirect("/settings?error=bio");
   if (![xUrl, githubUrl, youtubeUrl].every(isValidUrl)) redirect("/settings?error=url");
   if (!validThemes.has(theme) || !validDensities.has(displayDensity)) redirect("/settings?error=display");
+  if (!validDisplayDeviationTypes.has(displayDeviationType as DisplayDeviationType)) redirect("/settings?error=profile_display");
+
+  const { data: currentProfile } = await supabase.from("profiles").select("qualified, rank, archetype").eq("id", user.id).maybeSingle();
+  const { data: achievementRows } = await supabase.from("user_achievements").select("achievement_key, achievement_id").eq("user_id", user.id);
+  const titleOptions = buildEarnedTitleOptions({
+    qualified: Boolean(currentProfile?.qualified),
+    rank: currentProfile?.rank ?? "Visitor",
+    archetype: currentProfile?.archetype ?? null,
+    achievementKeys: new Set((achievementRows ?? []).map((row) => row.achievement_key ?? row.achievement_id).filter(Boolean) as string[]),
+  });
+  const resolvedTitle = displayTitle ? resolveDisplayTitle(displayTitle, titleOptions) : null;
+  if (displayTitle && !resolvedTitle) redirect("/settings?error=profile_display");
 
   const { data: existing } = await supabase.from("profiles").select("id").eq("username", username).neq("id", user.id).maybeSingle();
   if (existing) redirect("/settings?error=duplicate");
@@ -158,6 +176,8 @@ async function saveSettings(formData: FormData) {
       x_url: xUrl,
       github_url: githubUrl,
       youtube_url: youtubeUrl,
+      display_deviation_type: displayDeviationType as DisplayDeviationType,
+      display_title: resolvedTitle?.value ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
@@ -233,6 +253,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
     getOwnSettings(user.id),
     searchParams,
   ]);
+  const { data: achievementRows } = await supabase.from("user_achievements").select("achievement_key, achievement_id").eq("user_id", user.id);
+  const titleOptions = buildEarnedTitleOptions({
+    qualified: profile.qualified,
+    rank: profile.rank,
+    archetype: profile.archetype,
+    achievementKeys: new Set((achievementRows ?? []).map((row) => row.achievement_key ?? row.achievement_id).filter(Boolean) as string[]),
+  });
+  const selectedTitle = resolveDisplayTitle(profile.display_title, titleOptions);
   const errorMessage = settingErrorMessage(params.error);
 
   return (
@@ -310,6 +338,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               </label>
             </div>
           </div>
+        </Card>
+
+        <Card id="profile-display">
+          <SectionHeader eyebrow="Profile Display" title="プロフィール表示設定">
+            公開プロフィールに表示する「AI推定思考偏差値」と称号を選びます。称号は獲得済みのものだけ選択できます。
+          </SectionHeader>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SelectCard name="display_deviation_type" label="表示する偏差値" description="認定結果を残しつつ、WeeklyやSeason平均も表示できます。" value={resolveDisplayDeviationType(profile.display_deviation_type)} options={deviationDisplayOptions} />
+            <SelectCard name="display_title" label="表示する称号" description="自由入力ではなく、獲得済みタイトルから選択します。" value={selectedTitle?.value ?? ""} options={[{ value: "", label: "未設定" }, ...titleOptions.map((option) => ({ value: option.value, label: option.label }))]} />
+          </div>
+          {titleOptions.length === 0 ? <p className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-league-muted">認定試験やWeekly参加で称号候補が増えます。</p> : null}
         </Card>
 
         <Card id="privacy">

@@ -1,5 +1,6 @@
 import { applyRatingChange, evaluateAchievements, getRatingDelta } from "@/lib/competitive";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { recordSeasonDeviation, recordWeeklyDeviation } from "@/lib/thinkingDeviation";
 import type { Topic } from "@/types/database";
 
 export type WeeklyPhase = "upcoming" | "submission" | "voting" | "completed";
@@ -89,6 +90,9 @@ export async function finalizeWeeklyLeague(topicId: string) {
       .update({ final_score: answer.final_score, ranking_position: rankingPosition })
       .eq("id", answer.id);
     if (error) throw error;
+
+    await recordWeeklyDeviation({ userId: answer.user_id, topicId, topicAnswerId: answer.id, finalScore: answer.final_score });
+    await recordSeasonDeviation(answer.user_id, topicId);
 
     await applyRatingChange(answer.user_id, topicId, getRatingDelta(rankingPosition));
   }

@@ -19,6 +19,7 @@ export const ARCHETYPE_NAMES = [
 
 export type ArchetypeName = (typeof ARCHETYPE_NAMES)[number];
 export type RankName = "Visitor" | "Challenger" | "Analyst" | "Strategist" | "Architect" | "Mastermind" | "Oracle" | "Official";
+export type DisplayDeviationType = "certification" | "latest_weekly" | "highest_weekly" | "season_average";
 
 export type ExamScores = {
   structure_score: number;
@@ -60,6 +61,8 @@ export type Profile = {
   x_url: string | null;
   youtube_url: string | null;
   github_url: string | null;
+  display_deviation_type?: DisplayDeviationType | null;
+  display_title?: string | null;
   show_thought_log_public?: boolean | null;
   show_exam_result_public?: boolean | null;
   show_competitive_history_public?: boolean | null;

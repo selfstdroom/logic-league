@@ -7,11 +7,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
 import { getRankByRating } from "@/lib/rank";
 import { buildAiScoreSummary, finalizeWeeklyLeague } from "@/lib/weekly";
+import { calculateWeeklyDeviation, formatDeviation } from "@/lib/thinkingDeviation";
 import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
 
 type RatingHistoryRow = { user_id: string; old_rating: number | null; new_rating: number | null; delta: number | null };
+type DeviationHistoryRow = { user_id: string; topic_answer_id: string | null; deviation: number; created_at: string };
 
 type ResultAnswer = {
   id: string;
@@ -72,14 +74,25 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
 
   const rows = (answers ?? []) as ResultAnswer[];
   const userIds = Array.from(new Set(rows.map((answer) => answer.user_id)));
-  const [{ data: profiles }, { data: ratingHistories }] = userIds.length > 0
+  const [{ data: profiles }, { data: ratingHistories }, { data: deviationHistories }] = userIds.length > 0
     ? await Promise.all([
       admin.from("profiles").select("id, display_name, username, rank, rating, qualified").in("id", userIds),
       admin.from("rating_histories").select("user_id, old_rating, new_rating, delta").eq("topic_id", id).eq("reason", "weekly_result").in("user_id", userIds),
+      admin.from("thinking_deviation_histories").select("user_id, topic_answer_id, deviation, created_at").eq("source_type", "weekly").in("user_id", userIds).order("created_at", { ascending: false }),
     ])
-    : [{ data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "rating" | "qualified">[] }, { data: [] as RatingHistoryRow[] }];
+    : [{ data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "rating" | "qualified">[] }, { data: [] as RatingHistoryRow[] }, { data: [] as DeviationHistoryRow[] }];
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
   const ratingHistoryByUserId = new Map(((ratingHistories ?? []) as RatingHistoryRow[]).map((history) => [history.user_id, history]));
+  const deviationRows = (deviationHistories ?? []) as DeviationHistoryRow[];
+  const previousDeviationByAnswerId = new Map<string, number | null>();
+  const isHighestWeeklyByAnswerId = new Map<string, boolean>();
+  for (const answer of rows) {
+    const current = deviationRows.find((row) => row.topic_answer_id === answer.id)?.deviation ?? calculateWeeklyDeviation(answer.final_score);
+    const previous = deviationRows.find((row) => row.user_id === answer.user_id && row.topic_answer_id !== answer.id)?.deviation ?? null;
+    const highest = Math.max(current, ...deviationRows.filter((row) => row.user_id === answer.user_id).map((row) => Number(row.deviation)));
+    previousDeviationByAnswerId.set(answer.id, previous);
+    isHighestWeeklyByAnswerId.set(answer.id, current >= highest);
+  }
   const topAnswers = rows.slice(0, 3);
 
   return (
@@ -101,6 +114,10 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
         <div className="grid gap-5 lg:grid-cols-3">
           {topAnswers.map((answer) => {
             const profile = profilesById.get(answer.user_id);
+            const currentDeviation = calculateWeeklyDeviation(answer.final_score);
+            const previousDeviation = previousDeviationByAnswerId.get(answer.id);
+            const deviationDiff = previousDeviation == null ? null : Number((currentDeviation - previousDeviation).toFixed(1));
+            const isNewBest = isHighestWeeklyByAnswerId.get(answer.id);
             return (
               <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
@@ -115,6 +132,13 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
                 <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-league-silver">
                   <p className="font-bold text-white">AIスコア内訳</p>
                   <p className="mt-2 leading-6">{buildAiScoreSummary(answer)}</p>
+                </div>
+                <div className="mt-4 rounded-2xl border border-amber-300/25 bg-black/25 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-league-gold">今回のWeekly思考偏差値</p>
+                  <p className="mt-2 text-2xl font-black text-white">AI推定思考偏差値：{formatDeviation(currentDeviation)}</p>
+                  <p className={`mt-1 text-sm font-black ${deviationDiff == null ? "text-league-muted" : deviationDiff >= 0 ? "text-emerald-200" : "text-red-200"}`}>前回比: {deviationDiff == null ? "—" : `${deviationDiff >= 0 ? "+" : ""}${deviationDiff.toFixed(1)}`}</p>
+                  {isNewBest ? <p className="mt-2 inline-flex rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-100">最高記録更新</p> : null}
+                  <p className="mt-3 text-xs leading-5 text-league-muted">本結果はAIによる推定であり、正式なIQ検査・心理検査ではありません。</p>
                 </div>
               </Card>
             );
@@ -134,6 +158,10 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
           const oldRank = history?.old_rating == null ? null : getRankByRating(history.old_rating, profile?.qualified ?? true);
           const newRank = profile?.rank ?? (history?.new_rating == null ? null : getRankByRating(history.new_rating, profile?.qualified ?? true));
           const promoted = oldRank && newRank && oldRank !== newRank;
+          const currentDeviation = calculateWeeklyDeviation(answer.final_score);
+          const previousDeviation = previousDeviationByAnswerId.get(answer.id);
+          const deviationDiff = previousDeviation == null ? null : Number((currentDeviation - previousDeviation).toFixed(1));
+          const isNewBest = isHighestWeeklyByAnswerId.get(answer.id);
           return (
             <Card key={answer.id} className="hover:border-amber-300/35 hover:bg-white/[0.06]">
               <div className="grid gap-4 md:grid-cols-[0.45fr_1.25fr_0.75fr_0.75fr_0.65fr_0.9fr] md:items-center">
@@ -154,6 +182,11 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
                   <p className="mt-1 text-2xl font-black text-emerald-200">+{history?.delta ?? 0}</p>
                   {promoted ? <p className="mt-1 text-xs font-bold text-league-gold">昇格: {oldRank} → {newRank}</p> : <p className="mt-1 text-xs text-league-muted">現在Rank: {newRank ?? profile?.rank ?? "—"}</p>}
                 </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-league-gold">今回のWeekly思考偏差値</p>
+                <p className="mt-2 text-xl font-black text-white">AI推定思考偏差値：{formatDeviation(currentDeviation)}</p>
+                <p className="mt-1 text-xs text-league-muted">前回比: {deviationDiff == null ? "—" : `${deviationDiff >= 0 ? "+" : ""}${deviationDiff.toFixed(1)}`} {isNewBest ? " · 最高記録更新" : ""}</p>
               </div>
               <details className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
                 <summary className="cursor-pointer text-sm font-bold text-league-gold">回答全文を見る</summary>

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AchievementBadge } from "@/components/ui/AchievementBadge";
 import { achievementDefinitions } from "@/lib/achievements";
 import { archetypes } from "@/lib/archetypes";
+import { buildEarnedTitleOptions, resolveDisplayTitle } from "@/lib/profileTitles";
+import { deviationTypeLabel, formatDeviation, getDeviationGoalText, resolveDisplayDeviationType } from "@/lib/thinkingDeviation";
 import { getRankByRating } from "@/lib/rank";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
@@ -11,7 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatReplyType } from "@/lib/topics/format";
-import type { DebateReplyType, TopicAnswerType } from "@/types/database";
+import type { DebateReplyType, ThinkingDeviationHistory, TopicAnswerType } from "@/types/database";
 import type { ArchetypeName, Profile } from "@/types/logic-league";
 
 type ProfileVisibilityKey =
@@ -48,6 +50,7 @@ type DebateReplyHistoryRow = {
 };
 type AchievementRow = { achievement_key: string | null; achievement_id: string | null; unlocked_at: string | null; created_at: string; achievements?: { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null } | { title?: string | null; description?: string | null; icon?: string | null; badge_icon?: string | null; key?: string | null }[] | null };
 type RatingHistoryRow = { old_rating: number | null; new_rating: number | null; delta: number | null; created_at: string; topics?: { title?: string | null } | { title?: string | null }[] | null };
+type DeviationHistoryRow = ThinkingDeviationHistory & { topics?: { title?: string | null } | { title?: string | null }[] | null };
 
 type TopicActivityItem = {
   id: string;
@@ -173,7 +176,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
   const showCompetitive = profileVisible(profile, "show_competitive_history_public", isOwnProfile);
   const showAchievements = profileVisible(profile, "show_achievements_public", isOwnProfile);
 
-  const [{ count: totalAnswerCount }, { count: hallOfFameCount }, { count: competitiveCount }, { count: top10Count }, { count: winCount }, { data: achievements }, { data: ratingHistories }, { data: examAnswers }, { data: topicAnswers }, { data: debateReplies }] = await Promise.all([
+  const [{ count: totalAnswerCount }, { count: hallOfFameCount }, { count: competitiveCount }, { count: top10Count }, { count: winCount }, { data: achievements }, { data: ratingHistories }, { data: examAnswers }, { data: topicAnswers }, { data: debateReplies }, { data: deviationHistories }] = await Promise.all([
     readClient.from("topic_answers").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
     profileClient.from("hall_of_fame").select("id", { count: "exact", head: true }).eq("winner_user_id", profile.id),
     profileClient.from("topic_answers").select("id, topics!inner(type)", { count: "exact", head: true }).eq("user_id", profile.id).eq("topics.type", "weekly"),
@@ -184,6 +187,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
     profileClient.from("exam_answers").select("id, answer, created_at, predicted_deviation, archetype, total_score, structure_score, hypothesis_score, originality_score, feasibility_score, risk_score, summary, strength, weakness, upper_gap").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(showExam ? 10 : 1),
     readClient.from("topic_answers").select("id, topic_id, answer_type, content, is_anonymous, ai_total_score, final_score, vote_count, ranking_position, created_at, topics!inner(id, type, category, title)").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(80),
     readClient.from("comments").select("id, topic_answer_id, parent_reply_id, reply_type, content, created_at, topic_answers!inner(id, topic_id, topics!inner(id, type, category, title))").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(80),
+    profileClient.from("thinking_deviation_histories").select("id, user_id, source_type, topic_id, exam_answer_id, topic_answer_id, deviation, score, label, created_at, topics(title)").eq("user_id", profile.id).order("created_at", { ascending: false }).limit(120),
   ]);
 
   const topicAnswerRows = ((topicAnswers ?? []) as TopicAnswerHistoryRow[]).filter((answer) => isOwnProfile || !answer.is_anonymous);
@@ -256,8 +260,32 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
   }));
   const lockedAchievements = achievementDefinitions.filter((definition) => !earnedAchievementKeys.has(definition.key));
   const recentAchievements = unlockedAchievements.slice(0, 4);
+  const earnedTitleOptions = buildEarnedTitleOptions({ qualified: profile.qualified, rank: profile.rank, archetype: profile.archetype, achievementKeys: earnedAchievementKeys });
+  const selectedTitle = resolveDisplayTitle(profile.display_title, earnedTitleOptions);
 
   const ratingRows = (ratingHistories ?? []) as RatingHistoryRow[];
+  const deviationRows = (deviationHistories ?? []) as DeviationHistoryRow[];
+  const certificationDeviation = profile.predicted_deviation != null ? Number(profile.predicted_deviation) : deviationRows.find((row) => row.source_type === "certification")?.deviation ?? null;
+  const weeklyDeviationRows = deviationRows.filter((row) => row.source_type === "weekly");
+  const latestWeeklyRow = weeklyDeviationRows[0] ?? null;
+  const highestWeeklyRow = weeklyDeviationRows.slice().sort((a, b) => Number(b.deviation) - Number(a.deviation))[0] ?? null;
+  const latestSeasonRow = deviationRows.find((row) => row.source_type === "season") ?? null;
+  const selectedDeviationType = resolveDisplayDeviationType(profile.display_deviation_type);
+  const selectedDeviation = selectedDeviationType === "latest_weekly"
+    ? latestWeeklyRow?.deviation ?? null
+    : selectedDeviationType === "highest_weekly"
+      ? highestWeeklyRow?.deviation ?? null
+      : selectedDeviationType === "season_average"
+        ? latestSeasonRow?.deviation ?? null
+        : certificationDeviation;
+  const selectedDeviationTopic = first((selectedDeviationType === "highest_weekly" ? highestWeeklyRow : selectedDeviationType === "season_average" ? latestSeasonRow : latestWeeklyRow)?.topics);
+  const deviationSourceLabel = selectedDeviationType === "certification"
+    ? "初回認定試験より"
+    : selectedDeviationTopic?.title
+      ? `${selectedDeviationTopic.title}より`
+      : deviationTypeLabel(selectedDeviationType);
+  const weeklyTrend = weeklyDeviationRows.length >= 2 ? Number((Number(weeklyDeviationRows[0].deviation) - Number(weeklyDeviationRows[1].deviation)).toFixed(1)) : null;
+  const nextDeviationGoal = getDeviationGoalText(latestWeeklyRow?.deviation ?? null, highestWeeklyRow?.deviation ?? null, latestSeasonRow?.deviation ?? null);
   const highestRating = Math.max(profile.rating, 0, ...ratingRows.flatMap((row) => [row.old_rating ?? 0, row.new_rating ?? 0]));
   const highestRank = getRankByRating(highestRating, true);
   const latestExam = (examAnswers ?? [])[0] as { summary?: string | null; strength?: string | null; weakness?: string | null; upper_gap?: string | null; archetype?: ArchetypeName | null } | undefined;
@@ -298,7 +326,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
                 </div>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-league-silver sm:text-base">{profile.bio ?? "自己紹介はまだありません。"}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <PremiumBadge>{profile.archetype ? `${archetype?.ja ?? profile.archetype} / ${profile.archetype}` : "未分類"}</PremiumBadge>
+                  <PremiumBadge>{selectedTitle?.label ?? (profile.archetype ? `${archetype?.ja ?? profile.archetype} / ${profile.archetype}` : "未分類")}</PremiumBadge>
                   <PremiumBadge tone="silver">Rating {profile.rating}</PremiumBadge>
                   <PremiumBadge tone={profile.qualified ? "emerald" : "silver"}>Competitive {competitiveCount ?? 0}回</PremiumBadge>
                 </div>
@@ -309,10 +337,33 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
               {isOwnProfile ? (
                 <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
                   <Link href="/profile/edit" className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-bold text-league-gold transition hover:bg-amber-300/20 hover:text-white">プロフィールを編集</Link>
-                  <Link href="/settings" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/30 hover:bg-white/[0.1]">設定</Link>
+                  <Link href="/settings#profile-display" className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:border-amber-300/30 hover:bg-white/[0.1]">プロフィール表示を変更</Link>
                 </div>
               ) : null}
             </div>
+          </div>
+
+          <div className="relative mt-6 rounded-[1.6rem] border border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.15),transparent_38%),rgba(215,180,106,0.08)] p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">表示中の思考偏差値</p>
+                <p className="mt-2 text-5xl font-black text-white">{formatDeviation(selectedDeviation)}</p>
+                <p className="mt-2 text-sm font-black text-league-gold">AI推定思考偏差値 · {deviationTypeLabel(selectedDeviationType)}</p>
+                <p className="mt-1 text-xs leading-5 text-league-muted">{deviationSourceLabel}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 lg:min-w-56">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-league-muted">選択中の称号</p>
+                <p className="mt-2 text-xl font-black text-white">{selectedTitle?.label ?? "未設定"}</p>
+                <p className="mt-1 text-xs text-league-muted">{selectedTitle?.source ?? "獲得済み称号から選択できます"}</p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="認定偏差値" value={formatDeviation(certificationDeviation)} tone="gold" />
+              <StatCard label="最新Weekly偏差値" value={formatDeviation(latestWeeklyRow?.deviation ?? null)} />
+              <StatCard label="最高Weekly偏差値" value={formatDeviation(highestWeeklyRow?.deviation ?? null)} tone="emerald" />
+              <StatCard label="Season平均偏差値" value={formatDeviation(latestSeasonRow?.deviation ?? null)} />
+            </div>
+            <p className="mt-4 text-xs leading-5 text-league-muted">本結果はAIによる推定であり、正式なIQ検査・心理検査ではありません。</p>
           </div>
 
           <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
@@ -337,6 +388,23 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
         <section className="mt-5">
           <Card>
             <SectionHeader eyebrow="My Page" title="マイページ" />
+            <div className="mt-4 grid gap-3 lg:grid-cols-3">
+              <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-league-gold">Current Deviation</p>
+                <p className="mt-2 text-3xl font-black text-white">{formatDeviation(selectedDeviation)}</p>
+                <p className="mt-1 text-xs text-league-muted">{deviationTypeLabel(selectedDeviationType)}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-league-muted">Weekly trend</p>
+                <p className={`mt-2 text-3xl font-black ${weeklyTrend == null ? "text-white" : weeklyTrend >= 0 ? "text-emerald-200" : "text-red-200"}`}>{weeklyTrend == null ? "—" : `${weeklyTrend >= 0 ? "+" : ""}${weeklyTrend.toFixed(1)}`}</p>
+                <p className="mt-1 text-xs text-league-muted">前回Weekly比</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-league-muted">Next goal</p>
+                <p className="mt-2 text-lg font-black text-white">{nextDeviationGoal}</p>
+                <p className="mt-1 text-xs text-league-muted">次のCompetitive Discussionで更新</p>
+              </div>
+            </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {[
                 { href: "/profile", label: "プロフィール", description: "個人ページ" },
@@ -525,7 +593,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
             <ProfileField label="bio" value={profile.bio ?? "自己紹介はまだありません。"} />
             <ProfileField label="rank" value={profile.rank} />
             <ProfileField label="rating" value={profile.rating} />
-            {showExam ? <ProfileField label="predicted_deviation" value={profile.predicted_deviation ?? "未受験"} /> : null}
+            {showExam ? <ProfileField label="認定偏差値" value={formatDeviation(certificationDeviation)} /> : null}
           </dl>
           {availableSnsLinks.length > 0 ? (
             <div className="mt-5 flex flex-wrap gap-3">
