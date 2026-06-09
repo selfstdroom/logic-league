@@ -72,7 +72,7 @@ export function ResponsiveNavigation({ items, sidebarItems = items }: Responsive
       </aside>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.08] bg-[#05070d]/92 px-2 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-14px_42px_rgba(0,0,0,0.46)] backdrop-blur-2xl sm:px-4 lg:hidden" aria-label="モバイルナビゲーション">
-        <div className="mx-auto grid w-full max-w-4xl grid-cols-5 gap-1 [grid-template-columns:repeat(5,minmax(0,1fr))]">
+        <div className="mx-auto grid w-full max-w-4xl gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(items.length, 3), 5)}, minmax(0, 1fr))` }}>
           {items.map((item) => {
             const active = isActivePath(pathname, item.href);
             return (

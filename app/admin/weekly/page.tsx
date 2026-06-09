@@ -1,11 +1,10 @@
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminUser } from "@/lib/topics/auth";
+import { requireAdmin } from "@/lib/admin";
 import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { TopicCategory } from "@/types/database";
 
@@ -22,11 +21,6 @@ type WeeklyTopicFormPayload = {
   status: "published" | "draft";
 };
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!isAdminUser(user)) redirect("/home");
-}
 
 function parseDateTime(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -137,7 +131,7 @@ export default async function AdminWeeklyPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <PageShell className="max-w-6xl">
+    <PageShell className="max-w-7xl"><AdminShell>
       <HeroPanel eyebrow="管理" title="Weekly League管理">
         Weekly League用のTopicを作成・編集・削除できます。Topic種別は常にweeklyです。
       </HeroPanel>
@@ -176,6 +170,6 @@ export default async function AdminWeeklyPage() {
           </Card>
         ))}
       </section>
-    </PageShell>
+    </AdminShell></PageShell>
   );
 }

@@ -1,11 +1,10 @@
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell } from "@/components/ui/DesignSystem";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminUser } from "@/lib/topics/auth";
+import { requireAdmin } from "@/lib/admin";
 import { formatDateTime, formatTopicCategory } from "@/lib/topics/format";
 import type { TopicCategory } from "@/types/database";
 
@@ -19,11 +18,6 @@ type TopicFormPayload = {
   status: "published" | "draft";
 };
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!isAdminUser(user)) redirect("/home");
-}
 
 function parseTopicForm(formData: FormData): TopicFormPayload {
   const category = formData.get("category");
@@ -111,7 +105,7 @@ export default async function AdminTopicsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <PageShell className="max-w-6xl">
+    <PageShell className="max-w-7xl"><AdminShell>
       <HeroPanel eyebrow="管理" title="Daily Topic管理">
         ADMIN_EMAILに一致する管理者だけがDaily Topicを作成・編集・削除できます。
       </HeroPanel>
@@ -160,7 +154,7 @@ export default async function AdminTopicsPage() {
           </Card>
         ))}
       </section>
-    </PageShell>
+    </AdminShell></PageShell>
   );
 }
 
