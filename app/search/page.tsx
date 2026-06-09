@@ -3,6 +3,7 @@ import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPreview, formatDateTime, formatDiscussionType, formatTopicCategory } from "@/lib/topics/format";
 
@@ -99,6 +100,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <PageShell>
+      <OnboardingHint storageKey="logic-league:onboarding:search" title="検索の使い方" className="mb-5">
+        議論・回答・ユーザーを検索できます。キーワードを短くすると、関連する思考資産を見つけやすくなります。
+      </OnboardingHint>
       <HeroPanel eyebrow="検索" title="Logic Leagueを検索">
         議論、回答、ユーザーを横断して探せます。タイトル・本文・カテゴリ・ユーザー名から、次に読むべき議論へ移動できます。
         <form action="/search" className="mt-6 flex flex-col gap-3 sm:flex-row">

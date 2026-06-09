@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { RankBadge } from "@/components/rank/RankBadge";
+import { FeatureExplanation } from "@/components/ui/FeatureExplanation";
+import { RankShowcase } from "@/components/rank/RankShowcase";
 
-const ranks = ["Challenger", "Analyst", "Strategist", "Architect", "Mastermind", "Oracle"] as const;
 const discussionExamples = [
   { label: "都市", title: "生成AI時代の公共教育をどう再設計するか" },
   { label: "事業", title: "高齢化地域で持続する小規模モビリティの条件" },
@@ -41,23 +41,7 @@ export default function Page() {
         </div>
 
         <div className="grid gap-4 lg:gap-5">
-          <section className="rounded-[2rem] border border-amber-300/18 bg-[#080c14]/90 p-5 shadow-[0_24px_90px_rgba(0,0,0,0.38)] sm:p-6">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.28em] text-league-gold">Rank Evolution</p>
-                <h2 className="mt-2 text-2xl font-black text-white">思考の階層を上がる</h2>
-              </div>
-              <Link href="/ranks" className="hidden rounded-full border border-white/10 bg-white/[0.055] px-4 py-2 text-xs font-black text-league-silver transition hover:border-amber-300/30 hover:text-white sm:inline-flex">全Rank</Link>
-            </div>
-            <div className="mt-5 -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 lg:mx-0 lg:grid lg:grid-cols-6 lg:overflow-visible lg:px-0 lg:pb-0">
-              {ranks.map((rank, index) => (
-                <div key={rank} className="relative min-w-[8.6rem] snap-center rounded-3xl border border-white/10 bg-white/[0.035] p-4 text-center lg:min-w-0">
-                  <RankBadge rank={rank} size="md" showLabel labelPlacement="bottom" />
-                  {index < ranks.length - 1 ? <span className="absolute -right-2 top-1/2 hidden -translate-y-1/2 text-league-gold/70 lg:block">→</span> : null}
-                </div>
-              ))}
-            </div>
-          </section>
+          <RankShowcase title="思考の階層を上がる" />
 
           <section className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-[2rem] border border-white/[0.08] bg-white/[0.035] p-5 sm:p-6">
@@ -85,6 +69,10 @@ export default function Page() {
             </div>
           </section>
         </div>
+      </section>
+
+      <section className="relative mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-10 lg:pb-16">
+        <FeatureExplanation intro="初めてでも、認定試験から議論、ランキング、プロフィールまでの流れが分かるように主要機能を整理しました。" />
       </section>
     </main>
   );

@@ -11,6 +11,7 @@ import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatReplyType } from "@/lib/topics/format";
 import type { DebateReplyType, ThinkingDeviationHistory, TopicAnswerType } from "@/types/database";
@@ -326,6 +327,9 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10">
+      <OnboardingHint storageKey="logic-league:onboarding:profile" title="プロフィールの見方" className="mb-5">
+        あなたの思考実績、ランク、Rating、代表回答を確認できます。公開設定に応じて思考ログや戦績もポートフォリオ化されます。
+      </OnboardingHint>
       <section id="overview" className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr] lg:items-start lg:gap-6">
         <div className="space-y-4 lg:sticky lg:top-24">
           <Card className="p-0">

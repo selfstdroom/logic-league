@@ -59,7 +59,7 @@ export function ThoughtFeed({ items, initialCount = 14, canInteract, blockedReas
 
   return (
     <div>
-      <section className="-mx-4 border-x border-white/10 sm:-mx-5" aria-label="思考フィード">
+      <section className="border-x border-white/10" aria-label="思考フィード">
         {visibleItems.map((item) => <ThoughtCard key={item.id} item={item} canInteract={canInteract} blockedReason={blockedReason} />)}
         {items.length === 0 ? <p className="py-8 text-center text-sm font-bold text-league-muted">まだ回答はありません</p> : null}
       </section>
@@ -162,7 +162,7 @@ function ThoughtCard({ item, canInteract, blockedReason }: { item: ThoughtFeedIt
   const composerLabel = composerMode === "comment" ? "コメント" : composerMode ? formatReplyType(composerMode) : "";
 
   return (
-    <article id={`feed-${item.id}`} className="border-b border-white/10 bg-white/[0.018] px-4 py-4 transition hover:bg-white/[0.045] sm:px-5 sm:py-5">
+    <article id={`feed-${item.id}`} className="border-b border-white/10 bg-white/[0.018] px-5 py-5 transition hover:bg-white/[0.045] sm:px-6 sm:py-6">
       <Link href={item.href} className="block rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-300/35" aria-label={`${item.discussionTitle}の議論を見る`}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-league-gold/25 bg-league-gold/10 px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-league-gold">{formatDiscussionType(item.discussionType)}</span>
