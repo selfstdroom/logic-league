@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { RankBadge } from "@/components/rank/RankBadge";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, MetricBar, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
@@ -35,6 +36,9 @@ export default async function ResultPage() {
           <div className="my-4 text-8xl font-black text-league-gold">{result.predicted_deviation}</div>
           <p className="text-league-silver">上位目安：{getUpperPercentile(result.predicted_deviation)}</p>
           <PremiumBadge tone={result.qualified ? "emerald" : "silver"} className="mt-4">参加資格：{result.qualified ? "獲得" : "未獲得"}</PremiumBadge>
+          <div className="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-amber-300/20 bg-black/20 p-4">
+            <RankBadge rank={result.rank} size="medium" showLabel labelPlacement="bottom" />
+          </div>
           <p className="mt-6 text-2xl font-bold text-white">{result.headline}</p>
         </Card>
         <Card>

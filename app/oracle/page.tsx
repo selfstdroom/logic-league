@@ -31,7 +31,7 @@ export default async function OraclePage() {
           {((profiles ?? []) as OracleProfile[]).map((profile) => (
             <Card key={profile.id} className="border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.18),transparent_30%),rgba(255,255,255,0.045)]">
               <div className="flex items-center gap-4">
-                <RankBadge rank="Oracle" size="md" />
+                <RankBadge rank="Oracle" size="large" />
                 <div className="min-w-0">
                   <Link href={`/profile/${profile.username}`} className="truncate text-2xl font-black text-white hover:text-league-gold">{profile.display_name ?? profile.username}</Link>
                   <p className="mt-1 truncate text-sm text-league-muted">@{profile.username}</p>

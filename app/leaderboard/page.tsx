@@ -44,7 +44,7 @@ export default async function LeaderboardPage() {
                 <span className="block truncate">{profile.display_name ?? profile.username}</span>
                 <span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span>
               </Link>
-              <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:col-span-1 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="xs" showLabel /></div>
+              <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:col-span-1 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="small" showLabel /></div>
               <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rating</span>{profile.rating}</span>
               <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">勝利数</span>{winCounts.get(profile.id) ?? 0}</span>
               <div className="col-span-full md:col-start-2 md:col-span-4">

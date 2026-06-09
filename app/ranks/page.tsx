@@ -17,7 +17,7 @@ export default function RanksPage() {
           {RANK_DEFINITIONS.map((rank) => (
             <Card key={rank.name} className="group hover:-translate-y-1 hover:border-amber-300/35 hover:bg-white/[0.06]">
               <div className="flex items-center gap-4">
-                <RankBadge rank={rank.name} size="sm" />
+                <RankBadge rank={rank.name} size="medium" />
                 <div>
                   <h2 className="text-2xl font-black text-white">{rank.name}</h2>
                   <p className="mt-1 text-sm font-bold text-league-gold">Rating {rank.range}</p>

@@ -122,7 +122,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
               <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 <div className="mt-3 flex items-center gap-3">
-                  <RankBadge rank={profile?.rank} size="xs" />
+                  <RankBadge rank={profile?.rank} size="small" />
                   <div className="min-w-0">
                     <p className="truncate font-black text-white">{displayName(profile)}</p>
                     <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · {profile?.rank ?? "Rank"} · Rating {profile?.rating ?? "—"}</p>

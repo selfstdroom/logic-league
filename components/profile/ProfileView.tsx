@@ -374,7 +374,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
           <Card className="text-center">
             <p className="text-[0.65rem] font-black uppercase tracking-[0.28em] text-league-gold">Rank Showcase</p>
             <div className="mt-3 flex justify-center">
-              <RankBadge rank={profile.rank} size="lg" showLabel labelPlacement="bottom" />
+              <RankBadge rank={profile.rank} size="profile" showLabel labelPlacement="bottom" />
             </div>
             <div className="mt-4 rounded-[1.25rem] border border-amber-300/20 bg-black/25 p-4 text-left">
               <RankProgress rating={profile.rating} qualified={profile.qualified} compact className="relative" />

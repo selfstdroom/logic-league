@@ -54,7 +54,7 @@ export default async function HallOfFameDetailPage({ params }: { params: Promise
     <PageShell>
       <HeroPanel eyebrow="Hall of Fame" title={topic?.title ?? "勝利回答"}>
         <div className="flex items-center gap-3">
-          <RankBadge rank={profile?.rank} size="sm" />
+          <RankBadge rank={profile?.rank} size="medium" />
           <span className="font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</span>
           <span className="text-league-muted">@{profile?.username ?? "unknown"}</span>
         </div>

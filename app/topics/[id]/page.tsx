@@ -51,7 +51,7 @@ function DebateReplyNode({ reply, answerId, canReply, blockedReason, depth = 0 }
       </div>
       <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-league-silver">{reply.content}</p>
       <Link href={profileHref(reply.profile)} className="mt-3 inline-flex min-w-0 items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
-        <RankBadge rank={reply.profile?.rank} size="xs" />
+        <RankBadge rank={reply.profile?.rank} size="small" />
         <span className="truncate">{reply.is_sample ? "Logic League運営" : displayName(reply.profile)}</span>
         <span className="truncate font-normal text-league-muted">@{reply.profile?.username ?? reply.user_id}</span>
       </Link>
@@ -78,7 +78,7 @@ function AnswerCard({ answer, canInteract, blockedReason, idPrefix = "answer" }:
       <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
-        <RankBadge rank={answer.profile?.rank} size="xs" />
+        <RankBadge rank={answer.profile?.rank} size="small" />
         <Link href={profileHref(answer.profile)} className="truncate font-black text-white transition hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link>
         <span className="truncate">@{answer.profile?.username ?? answer.user_id}</span>
       </div>

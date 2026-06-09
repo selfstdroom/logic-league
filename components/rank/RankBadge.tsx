@@ -1,151 +1,78 @@
-import { useId } from "react";
+import Image from "next/image";
 import type { RankName } from "@/types/logic-league";
 
-const rankThemes: Record<RankName, { metal: string; glow: string; crown?: boolean; points: string; label: string; rim: string; core: string; accent: string; mark: string }> = {
-  Visitor: {
-    metal: "from-slate-700 via-slate-400 to-slate-900",
-    glow: "shadow-slate-400/20",
-    points: "42,6 76,18 86,52 64,86 22,86 0,52 10,18",
-    label: "Visitor",
-    mark: "V",
-    rim: "#94a3b8",
-    core: "#1e293b",
-    accent: "#cbd5e1",
-  },
-  Challenger: {
-    metal: "from-amber-900 via-orange-300 to-stone-900",
-    glow: "shadow-orange-400/25",
-    points: "42,5 73,17 84,48 61,84 25,84 2,48 13,17",
-    label: "Challenger",
-    mark: "C",
-    rim: "#b45309",
-    core: "#431407",
-    accent: "#f59e0b",
-  },
-  Analyst: {
-    metal: "from-zinc-700 via-white to-zinc-900",
-    glow: "shadow-white/20",
-    points: "42,4 76,18 84,52 61,86 23,86 0,52 8,18",
-    label: "Analyst",
-    mark: "A",
-    rim: "#e5e7eb",
-    core: "#27272a",
-    accent: "#f8fafc",
-  },
-  Strategist: {
-    metal: "from-blue-950 via-slate-100 to-blue-700",
-    glow: "shadow-blue-300/25",
-    points: "42,3 79,17 88,50 64,88 22,88 -4,50 5,17",
-    label: "Strategist",
-    mark: "S",
-    rim: "#93c5fd",
-    core: "#0f172a",
-    accent: "#60a5fa",
-  },
-  Architect: {
-    metal: "from-slate-500 via-white to-cyan-100",
-    glow: "shadow-cyan-100/25",
-    points: "42,2 80,16 90,49 67,90 19,90 -6,49 4,16",
-    label: "Architect",
-    mark: "AR",
-    rim: "#f8fafc",
-    core: "#164e63",
-    accent: "#bae6fd",
-  },
-  Mastermind: {
-    metal: "from-yellow-700 via-amber-200 to-zinc-100",
-    glow: "shadow-amber-300/30",
-    points: "42,1 82,15 92,48 68,91 18,91 -8,48 2,15",
-    label: "Mastermind",
-    mark: "M",
-    rim: "#fde68a",
-    core: "#422006",
-    accent: "#d7b46a",
-  },
-  Oracle: {
-    metal: "from-yellow-800 via-amber-100 to-yellow-500",
-    glow: "shadow-amber-200/40",
-    crown: true,
-    points: "42,0 83,14 94,48 70,92 16,92 -10,48 1,14",
-    label: "Oracle",
-    mark: "O",
-    rim: "#fef3c7",
-    core: "#451a03",
-    accent: "#facc15",
-  },
-  Official: {
-    metal: "from-amber-200 via-white to-yellow-500",
-    glow: "shadow-amber-200/45",
-    crown: true,
-    points: "42,0 83,14 94,48 70,92 16,92 -10,48 1,14",
-    label: "Official",
-    mark: "LL",
-    rim: "#fef3c7",
-    core: "#2a1800",
-    accent: "#d7b46a",
-  },
-};
+const rankBadgeImages = {
+  Challenger: "/ranks/challenger.png",
+  Analyst: "/ranks/analyst.png",
+  Strategist: "/ranks/strategist.png",
+  Architect: "/ranks/architect.png",
+  Mastermind: "/ranks/mastermind.png",
+  Oracle: "/ranks/oracle.png",
+} as const;
+
+type BadgeRankName = keyof typeof rankBadgeImages;
+type RankBadgeSize = "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large" | "profile";
 
 type RankBadgeProps = {
   rank?: RankName | string | null;
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: RankBadgeSize;
   showLabel?: boolean;
   labelPlacement?: "side" | "bottom";
   className?: string;
 };
 
-function normalizeRank(rank?: RankName | string | null): RankName {
-  if (rank && rank in rankThemes) return rank as RankName;
-  return "Challenger";
-}
-
-const sizes = {
-  xs: { box: "h-10 w-10", text: "text-[0.65rem]", label: "text-[0.62rem]" },
-  sm: { box: "h-12 w-12", text: "text-xs", label: "text-xs" },
-  md: { box: "h-20 w-20", text: "text-sm", label: "text-sm" },
-  lg: { box: "h-28 w-28", text: "text-base", label: "text-base" },
+const sizes: Record<RankBadgeSize, { pixels: number; box: string; label: string; detail: string }> = {
+  xs: { pixels: 32, box: "h-8 w-8", label: "text-[0.62rem]", detail: "text-[0.55rem]" },
+  small: { pixels: 32, box: "h-8 w-8", label: "text-[0.62rem]", detail: "text-[0.55rem]" },
+  sm: { pixels: 48, box: "h-12 w-12", label: "text-xs", detail: "text-[0.6rem]" },
+  medium: { pixels: 48, box: "h-12 w-12", label: "text-xs", detail: "text-[0.6rem]" },
+  md: { pixels: 96, box: "h-24 w-24", label: "text-sm", detail: "text-xs" },
+  large: { pixels: 96, box: "h-24 w-24", label: "text-sm", detail: "text-xs" },
+  lg: { pixels: 140, box: "h-28 w-28 max-w-full sm:h-[140px] sm:w-[140px]", label: "text-base", detail: "text-xs" },
+  profile: { pixels: 140, box: "h-28 w-28 max-w-full sm:h-[140px] sm:w-[140px]", label: "text-base", detail: "text-xs" },
 };
 
-export function RankBadge({ rank, size = "md", showLabel = false, labelPlacement = "side", className = "" }: RankBadgeProps) {
-  const safeRank = normalizeRank(rank);
-  const theme = rankThemes[safeRank];
-  const id = `${useId().replace(/:/g, "")}-rank-${safeRank.toLowerCase()}`;
-  const sizeClasses = sizes[size];
+function hasBadgeImage(rank?: RankName | string | null): rank is BadgeRankName {
+  return Boolean(rank && rank in rankBadgeImages);
+}
 
+function displayRank(rank?: RankName | string | null) {
+  return rank?.trim() || "Visitor";
+}
+
+export function RankBadge({ rank, size = "medium", showLabel = false, labelPlacement = "side", className = "" }: RankBadgeProps) {
+  const label = displayRank(rank);
+  const sizeClasses = sizes[size];
   const isBottomLabel = labelPlacement === "bottom";
 
+  if (!hasBadgeImage(rank)) {
+    return showLabel ? (
+      <div className={`inline-flex ${isBottomLabel ? "flex-col items-center gap-1" : "items-center gap-2"} ${className}`}>
+        <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-xs font-black text-league-silver">{label}</span>
+        {isBottomLabel ? <span className={`${sizeClasses.detail} uppercase tracking-[0.2em] text-league-muted`}>Rank区分</span> : null}
+      </div>
+    ) : null;
+  }
+
+  const src = rankBadgeImages[rank];
+
   return (
-    <div className={`inline-flex ${isBottomLabel ? "flex-col items-center gap-1.5" : "items-center gap-3"} ${className}`}>
-      <div className={`relative ${sizeClasses.box} drop-shadow-2xl`} aria-label={`${theme.label} rank badge`}>
-        <svg viewBox="-12 -12 104 116" role="img" className="h-full w-full">
-          <defs>
-            <linearGradient id={`${id}-metal`} x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor={theme.rim} />
-              <stop offset="35%" stopColor="#fff8dc" />
-              <stop offset="68%" stopColor={theme.accent} />
-              <stop offset="100%" stopColor={theme.core} />
-            </linearGradient>
-            <radialGradient id={`${id}-core`} cx="50%" cy="38%" r="64%">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-              <stop offset="45%" stopColor={theme.accent} stopOpacity="0.5" />
-              <stop offset="100%" stopColor={theme.core} stopOpacity="0.96" />
-            </radialGradient>
-          </defs>
-          <path d="M-2 80 C9 95 27 101 42 101 C57 101 75 95 86 80" fill="none" stroke={theme.rim} strokeOpacity="0.35" strokeWidth="3" strokeLinecap="round" />
-          {theme.crown ? <path d="M14 10 L28 -5 L42 12 L56 -5 L70 10 L66 25 L18 25 Z" fill="#d7b46a" stroke="#fff4c4" strokeWidth="2" /> : null}
-          <polygon points={theme.points} fill={`url(#${id}-core)`} stroke={`url(#${id}-metal)`} strokeOpacity="0.95" strokeWidth="3" />
-          <polygon points="42,14 68,25 75,50 58,76 26,76 9,50 16,25" fill="none" stroke={theme.accent} strokeOpacity="0.9" strokeWidth="2" />
-          <path d="M18 34 H66 M19 60 H65" stroke="#f8fafc" strokeOpacity="0.22" strokeWidth="2" strokeLinecap="round" />
-          <path d="M25 52 L42 24 L59 52 L42 69 Z" fill="rgba(5,7,13,0.32)" stroke="#f8fafc" strokeOpacity="0.72" strokeWidth="3" strokeLinejoin="round" />
-          <text x="42" y="56" textAnchor="middle" className="fill-white text-[17px] font-black tracking-widest" style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>{theme.mark}</text>
-          <path d="M21 83 H63" stroke="#f8fafc" strokeOpacity="0.55" strokeWidth="3" strokeLinecap="round" />
-        </svg>
-        <div className={`absolute inset-2 rounded-full bg-gradient-to-br ${theme.metal} opacity-20 blur-xl ${theme.glow}`} />
+    <div className={`inline-flex min-w-0 ${isBottomLabel ? "flex-col items-center gap-1.5" : "items-center gap-3"} ${className}`}>
+      <div className={`relative shrink-0 overflow-visible ${sizeClasses.box}`}>
+        <Image
+          src={src}
+          alt={`${label} rank badge`}
+          width={sizeClasses.pixels}
+          height={sizeClasses.pixels}
+          sizes={`${sizeClasses.pixels}px`}
+          className="h-full w-full object-contain"
+          priority={size === "profile" || size === "lg"}
+        />
       </div>
       {showLabel ? (
-        <div className={isBottomLabel ? "text-center" : ""}>
-          <p className={`${sizeClasses.label} font-black uppercase tracking-[0.24em] text-league-gold`}>{theme.label}</p>
-          <p className={`${isBottomLabel ? "mt-0.5 text-[0.55rem]" : "mt-1 text-xs"} uppercase tracking-[0.2em] text-league-muted`}>Rank区分</p>
+        <div className={isBottomLabel ? "min-w-0 text-center" : "min-w-0"}>
+          <p className={`${sizeClasses.label} font-black tracking-[0.18em] text-league-gold`}>{label}</p>
+          <p className={`${isBottomLabel ? `mt-0.5 ${sizeClasses.detail}` : "mt-1 text-xs"} uppercase tracking-[0.2em] text-league-muted`}>Rank区分</p>
         </div>
       ) : null}
     </div>
