@@ -48,17 +48,12 @@ export function ResponsiveNavigation({ items, sidebarItems = items }: Responsive
   return (
     <>
       <aside className="fixed left-0 top-0 z-50 hidden h-screen w-[17.5rem] border-r border-white/[0.08] bg-[#05070d]/90 px-4 py-5 shadow-[18px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl lg:block" aria-label="デスクトップナビゲーション">
-        <Link href="/" className="group flex items-center gap-3 rounded-[1.35rem] border border-white/[0.08] bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.018))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_44px_rgba(0,0,0,0.24)] transition hover:border-amber-200/24" aria-label="Logic League ホームへ">
-          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-amber-100/20 bg-[radial-gradient(circle_at_30%_20%,rgba(215,180,106,0.28),transparent_42%),linear-gradient(145deg,#0c1019,#020204)]">
-            <Image src="/logo.png" alt="" width={56} height={56} className="h-full w-full scale-[1.18] rounded-full object-cover drop-shadow-[0_0_14px_rgba(215,180,106,0.22)]" priority />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-base font-black uppercase tracking-[0.22em] text-white">Logic League</span>
-            <span className="mt-1 block text-xs font-bold text-league-muted">思考で競うリーグ</span>
-          </span>
+        <Link href="/" className="group flex items-center gap-3 px-1 py-1 transition focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
+          <Image src="/icon.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-[0_0_22px_rgba(255,255,255,0.08)] transition group-hover:brightness-110" priority />
+          <span className="min-w-0 truncate text-base font-black uppercase tracking-[0.24em] text-white [text-shadow:0_0_16px_rgba(255,255,255,0.12)]">Logic League</span>
         </Link>
 
-        <nav className="mt-6 space-y-1.5">
+        <nav className="mt-5 space-y-1.5">
           {sidebarItems.map((item) => {
             const active = isActivePath(pathname, item.href);
             return (
