@@ -24,34 +24,65 @@ export default async function LeaderboardPage() {
   const rankingProfiles = (profiles ?? []) as LeaderProfile[];
   const hasSufficientRankingData = rankingProfiles.length >= 3;
 
+  const podium = hasSufficientRankingData ? rankingProfiles.slice(0, 3) : [];
+  const rest = hasSufficientRankingData ? rankingProfiles.slice(3) : [];
+
   return (
     <PageShell className="max-w-7xl">
-      <HeroPanel eyebrow="Leaderboard" title="Global Ranking">
-        現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。上位3名は特別表示されます。
+      <HeroPanel eyebrow="Leaderboard" title="Global Ranking" className="lg:grid lg:grid-cols-[1fr_0.55fr] lg:items-end lg:gap-8">
+        <div>
+          現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。上位者のRank Badgeと戦績がひと目で伝わるランキングです。
+        </div>
       </HeroPanel>
+
+      {hasSufficientRankingData ? (
+        <section className="mt-6 lg:mt-10">
+          <SectionHeader eyebrow="Podium" title="上位ランカー" />
+          <div className="grid gap-4 lg:grid-cols-3 lg:items-end">
+            {podium.map((profile, index) => {
+              const rankLabel = index + 1;
+              const podiumClass = index === 0 ? "lg:order-2 border-amber-300/35 bg-amber-300/10 lg:scale-[1.04]" : index === 1 ? "lg:order-1 border-slate-200/25 bg-white/[0.06]" : "lg:order-3 border-orange-300/25 bg-orange-400/10";
+              return (
+                <Card key={profile.id} className={`text-center ${podiumClass}`}>
+                  <p className="text-xs font-black uppercase tracking-[0.26em] text-league-gold">Rank #{rankLabel}</p>
+                  <div className="mt-4 flex justify-center"><RankBadge rank={profile.rank} size={index === 0 ? "lg" : "md"} showLabel labelPlacement="bottom" /></div>
+                  <Link href={`/profile/${profile.username}`} className="mt-4 block text-2xl font-black text-white hover:text-league-gold">{profile.display_name ?? profile.username}</Link>
+                  <p className="mt-1 text-sm font-bold text-league-muted">@{profile.username}</p>
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-league-muted">Rating</p><p className="mt-1 text-2xl font-black text-white">{profile.rating}</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3"><p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-league-muted">Wins</p><p className="mt-1 text-2xl font-black text-white">{winCounts.get(profile.id) ?? 0}</p></div>
+                  </div>
+                  <div className="mt-4"><RankProgress rating={profile.rating} compact /></div>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <section className="mt-6 lg:mt-10">
         <SectionHeader eyebrow="Global" title="総合Leaderboard" />
         <Card className="overflow-hidden p-0">
-          <div className="hidden grid-cols-[4rem_1.5fr_1fr_1fr_1fr] gap-3 border-b border-white/10 px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:grid">
-            <span>順位</span><span>ユーザー</span><span>Rank</span><span>Rating</span><span>勝利数</span>
-          </div>
-          {hasSufficientRankingData ? rankingProfiles.map((profile, index) => {
-            const topThreeClass = index === 0 ? "border-amber-300/35 bg-amber-300/10" : index === 1 ? "border-slate-200/25 bg-white/[0.07]" : index === 2 ? "border-orange-300/25 bg-orange-400/10" : "";
-            return (
-            <div key={profile.id} className={`grid grid-cols-[2.5rem_1fr] items-center gap-2.5 border-b border-white/10 px-3 py-3.5 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-3 sm:px-4 sm:py-4 md:grid-cols-[4rem_1.5fr_1fr_1fr_1fr] md:px-5 ${topThreeClass}`}>
-              <span className="text-2xl font-black text-league-gold">#{index + 1}</span>
-              <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
-                <span className="block truncate">{profile.display_name ?? profile.username}</span>
-                <span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span>
-              </Link>
-              <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:col-span-1 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="small" showLabel /></div>
-              <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rating</span>{profile.rating}</span>
-              <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">勝利数</span>{winCounts.get(profile.id) ?? 0}</span>
-              <div className="col-span-full md:col-start-2 md:col-span-4">
-                <RankProgress rating={profile.rating} compact />
-              </div>
+          {hasSufficientRankingData ? (
+            <div className="divide-y divide-white/10">
+              {rest.map((profile, index) => {
+                const position = index + 4;
+                return (
+                  <div key={profile.id} className="grid gap-3 px-4 py-4 transition hover:bg-white/[0.035] md:grid-cols-[4rem_1.6fr_1fr_0.8fr_0.8fr] md:items-center md:px-5">
+                    <span className="text-2xl font-black text-league-gold">#{position}</span>
+                    <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
+                      <span className="block truncate text-lg">{profile.display_name ?? profile.username}</span>
+                      <span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span>
+                    </Link>
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="sm" showLabel /></div>
+                    <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rating</span>{profile.rating}</span>
+                    <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">勝利数</span>{winCounts.get(profile.id) ?? 0}</span>
+                    <div className="md:col-start-2 md:col-span-4"><RankProgress rating={profile.rating} compact /></div>
+                  </div>
+                );
+              })}
             </div>
-          );}) : (
+          ) : (
             <div className="p-5 sm:p-6">
               <EmptyState kind="achievements" title="ランキングは参加者が増えると表示されます">
                 Ratingは認定試験で現在地を記録し、Competitive Discussionの結果で更新されます。十分な実参加者が集まるまでは順位を作らず、実データだけを表示します。

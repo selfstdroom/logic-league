@@ -16,7 +16,7 @@ export function PremiumCard({ children, className = "" }: { children: ReactNode;
 }
 
 export function PageShell({ children, className = "max-w-6xl" }: { children: ReactNode; className?: string }) {
-  return <main className={`mx-auto w-full px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-7 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10 ${className}`}>{children}</main>;
+  return <main className={`mx-auto w-full px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-7 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10 lg:pb-10 ${className}`}>{children}</main>;
 }
 
 export function HeroPanel({ eyebrow, title, children, actions, className = "" }: { eyebrow: string; title: ReactNode; children?: ReactNode; actions?: ReactNode; className?: string }) {
