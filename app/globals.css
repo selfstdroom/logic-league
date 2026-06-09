@@ -48,6 +48,13 @@ body {
   padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
 }
 
+@media (min-width: 1024px) {
+  body {
+    padding-bottom: 0;
+    padding-left: 17.5rem;
+  }
+}
+
 @layer components {
   .premium-input {
     @apply w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none transition placeholder:text-league-muted focus:border-amber-300/50 focus:ring-2 focus:ring-amber-300/20;

@@ -326,7 +326,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
 
   return (
     <main className="mx-auto max-w-6xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-10">
-      <section id="overview" className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr] lg:items-start lg:gap-5">
+      <section id="overview" className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr] lg:items-start lg:gap-6">
         <div className="space-y-4 lg:sticky lg:top-24">
           <Card className="p-0">
             <div className="relative overflow-hidden p-4 sm:p-6 lg:p-7">
@@ -357,7 +357,10 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
               <div className="relative mt-4 grid grid-cols-2 gap-2.5">
                 <div className="rounded-2xl border border-amber-300/25 bg-black/25 px-3 py-3">
                   <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">Current Rank</p>
-                  <p className="mt-1 text-lg font-black text-league-gold">{profile.rank}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <RankBadge rank={profile.rank} size="xs" />
+                    <p className="text-lg font-black text-league-gold">{profile.rank}</p>
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-amber-300/20 bg-black/25 px-3 py-3">
                   <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-league-muted">Rating</p>
