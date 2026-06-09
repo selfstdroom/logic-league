@@ -323,6 +323,7 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
     { href: "#thought-log", label: "思考ログ" },
     { href: "#competitive", label: "戦績" },
     { href: "#achievements", label: "実績" },
+    { href: isOwnProfile ? "/profile/collection" : `/profile/${profile.username}/collection`, label: "コレクション" },
   ];
 
   return (
@@ -386,6 +387,10 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
             <div className="mt-4 rounded-[1.25rem] border border-amber-300/20 bg-black/25 p-4 text-left">
               <RankProgress rating={profile.rating} qualified={profile.qualified} compact className="relative" />
             </div>
+            <Link href={isOwnProfile ? "/profile/collection" : `/profile/${profile.username}/collection`} className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-amber-200/45 bg-[linear-gradient(180deg,#f0d184_0%,#b98728_100%)] px-5 py-2 text-sm font-black text-[#171107] shadow-[0_16px_44px_rgba(185,135,40,0.22),inset_0_1px_0_rgba(255,255,255,0.55)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-amber-200/45">
+              コレクションルームを見る
+            </Link>
+            <p className="mt-2 text-[0.68rem] font-black uppercase tracking-[0.2em] text-league-muted">Collection Room</p>
           </Card>
         </div>
 
@@ -415,6 +420,11 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
                 <p className="text-right text-xs leading-5 text-league-muted">{deviationSourceLabel}</p>
               </div>
             </div>
+            <Link href={isOwnProfile ? "/profile/collection" : `/profile/${profile.username}/collection`} className="mt-4 block rounded-[1.25rem] border border-amber-300/28 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.18),transparent_44%),rgba(215,180,106,0.08)] p-4 transition hover:border-amber-300/45 hover:bg-amber-300/12">
+              <span className="block text-[0.65rem] font-black uppercase tracking-[0.24em] text-league-gold">Collection Room</span>
+              <span className="mt-1 block text-lg font-black text-white">コレクションルームを見る</span>
+              <span className="mt-1 block text-xs leading-5 text-league-silver">Rank Badge、実績、殿堂入り記録を飾るトロフィールームへ。</span>
+            </Link>
           </Card>
 
           <Card>
@@ -467,9 +477,10 @@ export async function ProfileView({ profile: rawProfile, viewerId, saved }: { pr
                 <p className="mt-1 text-xs text-league-muted">次のCompetitive Discussionで更新</p>
               </div>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               {[
                 { href: "/profile", label: "プロフィール", description: "個人ページ" },
+                { href: "/profile/collection", label: "コレクション", description: "トロフィールーム" },
                 { href: "/achievements", label: "実績", description: "獲得バッジ" },
                 { href: "/bookmarks", label: "ブックマーク", description: "保存項目" },
                 { href: "/notifications", label: "通知", description: "更新確認" },
