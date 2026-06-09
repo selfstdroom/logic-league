@@ -26,7 +26,7 @@ export function Header() {
     <>
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#05070d]/72 backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex h-11 max-w-7xl items-center px-4 sm:h-12 sm:px-6">
-          <Link href="/" className="group inline-flex min-w-0 items-center gap-2.5 transition focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
+          <Link href="/home" className="group inline-flex min-w-0 items-center gap-2.5 transition focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
             <Image src="/icon.png" alt="" width={32} height={32} className="h-7 w-7 shrink-0 rounded-lg object-cover shadow-[0_0_18px_rgba(255,255,255,0.08)] transition group-hover:brightness-110 sm:h-8 sm:w-8" priority />
             <span className="truncate text-[0.78rem] font-black uppercase tracking-[0.24em] text-white [text-shadow:0_0_16px_rgba(255,255,255,0.12)] sm:text-sm sm:tracking-[0.26em]">Logic League</span>
           </Link>

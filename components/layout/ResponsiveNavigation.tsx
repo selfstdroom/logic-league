@@ -48,7 +48,7 @@ export function ResponsiveNavigation({ items, sidebarItems = items }: Responsive
   return (
     <>
       <aside className="fixed left-0 top-0 z-50 hidden h-screen w-[17.5rem] border-r border-white/[0.08] bg-[#05070d]/90 px-4 py-5 shadow-[18px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl lg:block" aria-label="デスクトップナビゲーション">
-        <Link href="/" className="group flex items-center gap-3 px-1 py-1 transition focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
+        <Link href="/home" className="group flex items-center gap-3 px-1 py-1 transition focus:outline-none focus:ring-2 focus:ring-amber-200/35" aria-label="Logic League ホームへ">
           <Image src="/icon.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-[0_0_22px_rgba(255,255,255,0.08)] transition group-hover:brightness-110" priority />
           <span className="min-w-0 truncate text-base font-black uppercase tracking-[0.24em] text-white [text-shadow:0_0_16px_rgba(255,255,255,0.12)]">Logic League</span>
         </Link>
