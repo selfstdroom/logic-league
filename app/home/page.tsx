@@ -208,7 +208,7 @@ export default async function HomePage() {
         <Card className="p-4 sm:p-5">
           {profile ? (<>
           <div className="flex items-center gap-3">
-            <RankBadge rank={profile.rank} size="sm" />
+            <RankBadge rank={profile.rank} size="medium" />
             <div className="min-w-0">
               <p className="truncate text-sm font-black text-white">{profile.display_name ?? profile.username}</p>
               <p className="truncate text-xs text-league-muted">@{profile.username}</p>
@@ -250,7 +250,7 @@ export default async function HomePage() {
             {((leaderProfiles ?? []) as LeaderWidgetProfile[]).length < 3 ? <p className="text-sm leading-6 text-league-muted">ランキングは参加者が増えると表示されます。Ratingは認定試験と競技議論の結果から更新されます。</p> : ((leaderProfiles ?? []) as LeaderWidgetProfile[]).map((leader, index) => (
               <Link key={leader.id} href={`/profile/${leader.username}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/35">
                 <span className="w-7 text-lg font-black text-league-gold">#{index + 1}</span>
-                <RankBadge rank={leader.rank} size="xs" />
+                <RankBadge rank={leader.rank} size="small" />
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{leader.display_name ?? leader.username}</span><span className="block text-xs text-league-muted">Rating {leader.rating}</span></span>
               </Link>
             ))}
@@ -360,7 +360,7 @@ export default async function HomePage() {
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="small" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link></div>
               </article>
             );
           })}
@@ -387,7 +387,7 @@ export default async function HomePage() {
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 170)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="xs" /><span className="truncate font-black text-white">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</span></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="small" /><span className="truncate font-black text-white">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</span></div>
               </article>
             );
           })}

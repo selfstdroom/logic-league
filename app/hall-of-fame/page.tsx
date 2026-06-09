@@ -49,7 +49,7 @@ export default async function HallOfFamePage() {
                     <h2 className="mt-3 pr-16 text-xl font-black leading-tight text-white sm:pr-20 sm:text-3xl">{topic?.title ?? "Weekly League"}</h2>
                     <div className="mt-6 rounded-[1.5rem] border border-amber-300/25 bg-black/25 p-4">
                       <div className="flex items-center gap-3">
-                        <RankBadge rank={profile?.rank} size="md" />
+                        <RankBadge rank={profile?.rank} size="medium" />
                         <div className="min-w-0"><p className="truncate text-lg font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</p><p className="text-sm text-league-muted">@{profile?.username ?? "unknown"}</p></div>
                         <div className="ml-auto text-right"><p className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-league-muted">Final</p><p className="text-3xl font-black text-league-gold">{row.final_score ?? "—"}</p></div>
                       </div>

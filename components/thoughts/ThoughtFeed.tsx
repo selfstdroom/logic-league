@@ -177,7 +177,7 @@ function ThoughtCard({ item, canInteract, blockedReason }: { item: ThoughtFeedIt
       </Link>
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
-        <RankBadge rank={item.author.rank} size="xs" />
+        <RankBadge rank={item.author.rank} size="small" />
         <Link href={item.author.href} className="truncate font-black text-white transition hover:text-league-gold">{item.isSample ? "Logic League運営" : item.author.displayName}</Link>
         {item.author.username ? <span className="truncate">@{item.author.username}</span> : null}
         <span>·</span>

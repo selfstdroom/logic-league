@@ -144,7 +144,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   <div className="flex items-start gap-4">
                     <Avatar user={user} />
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2"><RankBadge rank={user.rank} size="sm" /><span className="font-black text-white">{user.display_name ?? user.username}</span></div>
+                      <div className="flex flex-wrap items-center gap-2"><RankBadge rank={user.rank} size="medium" /><span className="font-black text-white">{user.display_name ?? user.username}</span></div>
                       <p className="mt-1 truncate text-sm text-league-muted">@{user.username}</p>
                       <p className="mt-2 text-sm text-league-silver">Rank {user.rank ?? "Visitor"} · Rating {user.rating ?? 0} · {user.archetype ?? "未分類"}</p>
                       <p className="mt-1 text-xs text-league-muted">作成日: {formatDateTime(user.created_at)}</p>
@@ -171,7 +171,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                       </div>
                       <Link href={topicHref({ id: answer.topic_id, type: topic?.type })} className="rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-2 text-sm font-black text-league-gold transition hover:bg-amber-300/20 hover:text-white">回答を見る</Link>
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-league-silver"><RankBadge rank={profile?.rank} size="sm" />{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-xs font-black text-sky-100">公式サンプル回答</span> : null}<span>{answer.is_sample ? "Logic League運営" : profile?.display_name ?? profile?.username ?? "ユーザー"}</span>{profile?.username ? <span className="text-league-muted">@{profile.username}</span> : null}</div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-league-silver"><RankBadge rank={profile?.rank} size="medium" />{answer.is_sample || topic?.is_sample ? <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-1 text-xs font-black text-sky-100">公式サンプル回答</span> : null}<span>{answer.is_sample ? "Logic League運営" : profile?.display_name ?? profile?.username ?? "ユーザー"}</span>{profile?.username ? <span className="text-league-muted">@{profile.username}</span> : null}</div>
                     <p className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-league-silver">{createPreview(answer.content, 240)}</p>
                   </Card>
                 );
