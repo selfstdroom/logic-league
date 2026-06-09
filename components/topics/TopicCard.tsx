@@ -19,7 +19,7 @@ type TopicCardProps = {
 export function TopicCard({ topic, featured = false }: TopicCardProps) {
   return (
     <Link href={`/topics/${topic.id}`} className="group block h-full">
-      <article className={`relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(7,12,23,0.72))] p-5 shadow-2xl transition duration-300 hover:-translate-y-1 hover:border-amber-300/45 hover:shadow-[0_24px_80px_rgba(215,180,106,0.16)] ${featured ? "md:p-7" : ""}`}>
+      <article className={`relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(7,12,23,0.72))] p-5 shadow-2xl sm:p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-300/45 hover:shadow-[0_24px_80px_rgba(215,180,106,0.16)] ${featured ? "md:p-7" : ""}`}>
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-200/10 blur-3xl transition group-hover:bg-amber-200/20" />
         <div className="relative flex items-start justify-between gap-4">
@@ -35,7 +35,7 @@ export function TopicCard({ topic, featured = false }: TopicCardProps) {
           {topic.title}
         </h2>
         {topic.is_sample ? <p className="relative mt-3 rounded-2xl border border-sky-300/20 bg-sky-300/10 px-3 py-2 text-xs font-bold text-sky-100">これはLogic League運営によるサンプル議論です</p> : null}
-        <p className="relative mt-4 flex-1 text-sm leading-6 text-league-silver">{createPreview(topic.content, featured ? 150 : 105)}</p>
+        <p className="relative mt-4 flex-1 text-sm leading-7 text-league-silver">{createPreview(topic.content, featured ? 150 : 105)}</p>
         <div className="relative mt-4 flex flex-wrap gap-2 text-xs font-bold text-league-muted">
           <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1">{formatTopicCategory(topic.category)}</span>
           {typeof topic.answerCount === "number" ? <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1">回答 {topic.answerCount}</span> : null}

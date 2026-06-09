@@ -3,6 +3,7 @@ import { RankBadge } from "@/components/rank/RankBadge";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPreview, formatDateTime } from "@/lib/topics/format";
 
@@ -30,6 +31,9 @@ export default async function HallOfFamePage() {
 
   return (
     <PageShell className="max-w-7xl">
+      <OnboardingHint storageKey="logic-league:onboarding:hall-of-fame" title="Hall of Fameとは" className="mb-5">
+        優れた回答が保存される殿堂です。勝者の回答、評価、議題を振り返り、強い思考の型を学べます。
+      </OnboardingHint>
       <HeroPanel eyebrow="Hall of Fame" title="Weekly League勝者の殿堂">
         各Weekly Leagueの1位回答を保存し、勝者・Rank・最終スコア・回答Previewを公開します。
       </HeroPanel>

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { RankShowcase } from "@/components/rank/RankShowcase";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { TopicCard } from "@/components/topics/TopicCard";
 import { ButtonLink } from "@/components/ui/Button";
+import { FeatureExplanation } from "@/components/ui/FeatureExplanation";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { Card } from "@/components/ui/Card";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -193,6 +196,9 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto max-w-7xl px-3 py-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-8 sm:pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:py-12">
+      <OnboardingHint storageKey="logic-league:onboarding:home" title="ホームは活動の入口です。" className="mb-5">
+        今日の議題、Competitive Discussion、思考偏差値、ランキング導線をまとめて確認できます。まずは認定試験かDaily Discussionから始めましょう。
+      </OnboardingHint>
       <section className="grid gap-3.5 lg:grid-cols-[1.35fr_0.65fr] lg:gap-6">
         <Card className="overflow-hidden border-amber-300/20 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.16),transparent_30%),linear-gradient(145deg,rgba(255,255,255,0.07),rgba(8,13,26,0.76))] p-5 sm:p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -393,6 +399,10 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      <RankShowcase title="現在地から次のRankへ" className="mt-6" />
+
+      <FeatureExplanation className="mt-6" compact intro="各機能の役割を確認し、今やるべきアクションに迷わないためのガイドです。" />
     </main>
   );
 }

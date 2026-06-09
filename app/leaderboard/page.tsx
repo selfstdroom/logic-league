@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
 import { RankProgress } from "@/components/rank/RankProgress";
+import { RankShowcase } from "@/components/rank/RankShowcase";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { getSeasonInfo } from "@/lib/competitive";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/types/logic-league";
@@ -29,11 +31,16 @@ export default async function LeaderboardPage() {
 
   return (
     <PageShell className="max-w-7xl">
+      <OnboardingHint storageKey="logic-league:onboarding:leaderboard" title="Leaderboardの見方" className="mb-5">
+        競技議論の成績やRatingによるランキングを確認できます。Rank Badge、勝利数、Rating推移を合わせて見ましょう。
+      </OnboardingHint>
       <HeroPanel eyebrow="Leaderboard" title="Global Ranking" className="lg:grid lg:grid-cols-[1fr_0.55fr] lg:items-end lg:gap-8">
         <div>
           現在のSeasonは<PremiumBadge tone="gold" className="mx-2">{season.label}</PremiumBadge>です。Rating順にLogic League全体の順位を表示します。上位者のRank Badgeと戦績がひと目で伝わるランキングです。
         </div>
       </HeroPanel>
+
+      <RankShowcase title="全Rankの進行" className="mt-6" />
 
       {hasSufficientRankingData ? (
         <section className="mt-6 lg:mt-10">

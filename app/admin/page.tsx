@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { FeatureExplanation } from "@/components/ui/FeatureExplanation";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader, StatCard } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminUser } from "@/lib/topics/auth";
@@ -56,6 +58,9 @@ export default async function AdminPage() {
 
   return (
     <PageShell className="max-w-7xl">
+      <OnboardingHint storageKey="logic-league:onboarding:admin" title="Admin Command Center" className="mb-5">
+        議題、回答、ユーザー、競技進行を管理します。管理者のみが見える運用ダッシュボードです。
+      </OnboardingHint>
       <HeroPanel eyebrow="Admin Command Center" title="運営ダッシュボード">
         Logic Leagueの議論・回答・ユーザー・競技・実績を段階的に拡張するための管理ホームです。現時点では既存機能への導線と運用指標を整理しています。
       </HeroPanel>
@@ -63,6 +68,8 @@ export default async function AdminPage() {
       <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {metrics.map((metric, index) => <StatCard key={metric.label} label={metric.label} value={metric.value} description={metric.description} tone={index === 0 || index === 5 ? "gold" : "silver"} />)}
       </section>
+
+      <FeatureExplanation className="mt-8" compact showAdmin intro="ユーザー向け機能と管理者向け機能の役割を同じ地図で確認できます。" />
 
       <section className="mt-8 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <Card>

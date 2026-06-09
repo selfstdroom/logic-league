@@ -80,3 +80,26 @@ body {
     transform: scale(1);
   }
 }
+
+
+@keyframes onboardingSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingShimmer {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translateX(-45%) scaleX(0.35);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(45%) scaleX(1);
+  }
+}

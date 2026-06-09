@@ -1,4 +1,5 @@
 import { PageShell } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { ThoughtFeed, type ThoughtFeedItem } from "@/components/thoughts/ThoughtFeed";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -204,6 +205,9 @@ export default async function TimelinePage() {
 
   return (
     <PageShell className="max-w-7xl pb-32">
+      <OnboardingHint storageKey="logic-league:onboarding:timeline" title="ここは思考フィードです。" className="mb-5">
+        議題・回答・反論・補足・質問が流れます。人ではなく、議論に投げ込まれたアイデアを追うためのページです。
+      </OnboardingHint>
       <div className="grid gap-5 lg:grid-cols-[17rem_minmax(0,1fr)_19rem] lg:items-start">
         <aside className="hidden space-y-3 lg:sticky lg:top-8 lg:block">
           <div className="rounded-[1.5rem] border border-amber-300/18 bg-[radial-gradient(circle_at_top,rgba(215,180,106,0.12),transparent_55%),rgba(255,255,255,0.035)] p-4">

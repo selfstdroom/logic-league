@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ExamForm } from "@/components/exam/ExamForm";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell, StatCard } from "@/components/ui/DesignSystem";
+import { OnboardingHint } from "@/components/ui/OnboardingHint";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ExamPage() {
@@ -11,6 +12,9 @@ export default async function ExamPage() {
 
   return (
     <PageShell className="max-w-5xl">
+      <OnboardingHint storageKey="logic-league:onboarding:exam" title="認定試験の目的" className="mb-5">
+        認定試験は参加資格、初期Rating、思考タイプを決める入口です。問題定義・原因分析・施策・リスクまで構造化して回答します。
+      </OnboardingHint>
       <HeroPanel eyebrow="第1段階 認定" title="第1回 認定試験">
         <div className="grid gap-3 sm:grid-cols-3">
           <StatCard label="所要時間" value="30分" />
