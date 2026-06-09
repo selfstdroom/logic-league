@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Card } from "@/components/ui/Card";
 import { HeroPanel, PageShell, SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -13,7 +14,7 @@ type FameDetail = {
   ai_total_score: number | null;
   vote_count: number | null;
   topics?: { title?: string | null; content?: string | null } | { title?: string | null; content?: string | null }[] | null;
-  profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null;
+  profiles?: { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null }[] | null;
   topic_answers?: {
     content?: string | null;
     ai_structure_score?: number | null;
@@ -41,7 +42,7 @@ export default async function HallOfFameDetailPage({ params }: { params: Promise
   const admin = createAdminClient();
   const { data } = await admin
     .from("hall_of_fame")
-    .select("id, final_score, ai_total_score, vote_count, topics(title, content), profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, rank), topic_answers:topic_answers!hall_of_fame_winner_answer_id_fkey(content, ai_structure_score, ai_logic_score, ai_originality_score, ai_feasibility_score, ai_risk_score, ai_total_score, vote_count)")
+    .select("id, final_score, ai_total_score, vote_count, topics(title, content), profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, avatar_url, rank), topic_answers:topic_answers!hall_of_fame_winner_answer_id_fkey(content, ai_structure_score, ai_logic_score, ai_originality_score, ai_feasibility_score, ai_risk_score, ai_total_score, vote_count)")
     .eq("id", id)
     .maybeSingle();
   if (!data) notFound();
@@ -54,6 +55,7 @@ export default async function HallOfFameDetailPage({ params }: { params: Promise
     <PageShell>
       <HeroPanel eyebrow="Hall of Fame" title={topic?.title ?? "勝利回答"}>
         <div className="flex items-center gap-3">
+          <PremiumAvatar avatarUrl={profile?.avatar_url} displayName={profile?.display_name} username={profile?.username} rank={profile?.rank} size="medium" />
           <RankBadge rank={profile?.rank} size="medium" />
           <span className="font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</span>
           <span className="text-league-muted">@{profile?.username ?? "unknown"}</span>

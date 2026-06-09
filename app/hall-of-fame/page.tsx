@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
@@ -16,7 +17,7 @@ type FameRow = {
   vote_count: number | null;
   created_at: string;
   topics?: { title?: string | null; publish_at?: string | null } | { title?: string | null; publish_at?: string | null }[] | null;
-  profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null;
+  profiles?: { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null }[] | null;
   topic_answers?: { content?: string | null } | { content?: string | null }[] | null;
 };
 function first<T>(value: T | T[] | null | undefined) { return Array.isArray(value) ? value[0] : value; }
@@ -25,7 +26,7 @@ export default async function HallOfFamePage() {
   const admin = createAdminClient();
   const { data } = await admin
     .from("hall_of_fame")
-    .select("id, final_score, ai_total_score, vote_count, created_at, topics(title, publish_at), profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, rank), topic_answers:topic_answers!hall_of_fame_winner_answer_id_fkey(content)")
+    .select("id, final_score, ai_total_score, vote_count, created_at, topics(title, publish_at), profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, avatar_url, rank), topic_answers:topic_answers!hall_of_fame_winner_answer_id_fkey(content)")
     .order("created_at", { ascending: false });
   const rows = (data ?? []) as FameRow[];
 
@@ -53,6 +54,7 @@ export default async function HallOfFamePage() {
                     <h2 className="mt-3 pr-16 text-xl font-black leading-tight text-white sm:pr-20 sm:text-3xl">{topic?.title ?? "Weekly League"}</h2>
                     <div className="mt-6 rounded-[1.5rem] border border-amber-300/25 bg-black/25 p-4">
                       <div className="flex items-center gap-3">
+                        <PremiumAvatar avatarUrl={profile?.avatar_url} displayName={profile?.display_name} username={profile?.username} rank={profile?.rank} size="medium" />
                         <RankBadge rank={profile?.rank} size="medium" />
                         <div className="min-w-0"><p className="truncate text-lg font-black text-white">{profile?.display_name ?? profile?.username ?? "Winner"}</p><p className="text-sm text-league-muted">@{profile?.username ?? "unknown"}</p></div>
                         <div className="ml-auto text-right"><p className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-league-muted">Final</p><p className="text-3xl font-black text-league-gold">{row.final_score ?? "—"}</p></div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { RankShowcase } from "@/components/rank/RankShowcase";
 import { Card } from "@/components/ui/Card";
@@ -12,13 +13,13 @@ import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
 
-type LeaderProfile = Pick<Profile, "id" | "username" | "display_name" | "rank" | "rating"> & { archetype?: string | null };
+type LeaderProfile = Pick<Profile, "id" | "username" | "display_name" | "avatar_url" | "rank" | "rating"> & { archetype?: string | null };
 
 export default async function LeaderboardPage() {
   const admin = createAdminClient();
   const season = getSeasonInfo();
   const [{ data: profiles }, { data: wins }] = await Promise.all([
-    admin.from("profiles").select("id, username, display_name, rank, rating, archetype").neq("rank", "Official").order("rating", { ascending: false }).limit(100),
+    admin.from("profiles").select("id, username, display_name, avatar_url, rank, rating, archetype").neq("rank", "Official").order("rating", { ascending: false }).limit(100),
     admin.from("hall_of_fame").select("winner_user_id"),
   ]);
   const winCounts = new Map<string, number>();
@@ -52,7 +53,7 @@ export default async function LeaderboardPage() {
               return (
                 <Card key={profile.id} className={`text-center ${podiumClass}`}>
                   <p className="text-xs font-black uppercase tracking-[0.26em] text-league-gold">Rank #{rankLabel}</p>
-                  <div className="mt-4 flex justify-center"><RankBadge rank={profile.rank} size={index === 0 ? "lg" : "md"} showLabel labelPlacement="bottom" /></div>
+                  <div className="mt-4 flex flex-col items-center gap-3"><PremiumAvatar avatarUrl={profile.avatar_url} displayName={profile.display_name} username={profile.username} rank={profile.rank} size="large" /><RankBadge rank={profile.rank} size={index === 0 ? "lg" : "md"} showLabel labelPlacement="bottom" /></div>
                   <Link href={`/profile/${profile.username}`} className="mt-4 block text-2xl font-black text-white hover:text-league-gold">{profile.display_name ?? profile.username}</Link>
                   <p className="mt-1 text-sm font-bold text-league-muted">@{profile.username}</p>
                   <div className="mt-5 grid grid-cols-2 gap-3">
@@ -77,9 +78,9 @@ export default async function LeaderboardPage() {
                 return (
                   <div key={profile.id} className="grid gap-3 px-4 py-4 transition hover:bg-white/[0.035] md:grid-cols-[4rem_1.6fr_1fr_0.8fr_0.8fr] md:items-center md:px-5">
                     <span className="text-2xl font-black text-league-gold">#{position}</span>
-                    <Link href={`/profile/${profile.username}`} className="min-w-0 font-black text-white hover:text-league-gold">
-                      <span className="block truncate text-lg">{profile.display_name ?? profile.username}</span>
-                      <span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span>
+                    <Link href={`/profile/${profile.username}`} className="flex min-w-0 items-center gap-3 font-black text-white hover:text-league-gold">
+                      <PremiumAvatar avatarUrl={profile.avatar_url} displayName={profile.display_name} username={profile.username} rank={profile.rank} size="small" />
+                      <span className="min-w-0"><span className="block truncate text-lg">{profile.display_name ?? profile.username}</span><span className="block truncate text-xs font-bold text-league-muted">@{profile.username}</span></span>
                     </Link>
                     <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 md:block md:border-0 md:bg-transparent md:p-0"><span className="text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rank</span><RankBadge rank={profile.rank} size="sm" showLabel /></div>
                     <span className="font-black text-white"><span className="mr-2 text-xs font-black uppercase tracking-[0.18em] text-league-muted md:hidden">Rating</span>{profile.rating}</span>

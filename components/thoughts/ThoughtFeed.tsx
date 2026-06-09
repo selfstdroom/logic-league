@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Button } from "@/components/ui/Button";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
 import { createPreview, formatDateTime, formatDiscussionType, formatReplyType } from "@/lib/topics/format";
@@ -34,6 +35,7 @@ export type ThoughtFeedItem = {
     displayName: string;
     username?: string | null;
     rank?: string | null;
+    avatarUrl?: string | null;
     href: string;
   };
 };
@@ -177,6 +179,7 @@ function ThoughtCard({ item, canInteract, blockedReason }: { item: ThoughtFeedIt
       </Link>
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
+        <PremiumAvatar avatarUrl={item.author.avatarUrl} displayName={item.author.displayName} username={item.author.username} rank={item.author.rank} size="small" />
         <RankBadge rank={item.author.rank} size="small" />
         <Link href={item.author.href} className="truncate font-black text-white transition hover:text-league-gold">{item.isSample ? "Logic League運営" : item.author.displayName}</Link>
         {item.author.username ? <span className="truncate">@{item.author.username}</span> : null}

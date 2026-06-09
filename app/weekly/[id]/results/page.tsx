@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -76,11 +77,11 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
   const userIds = Array.from(new Set(rows.map((answer) => answer.user_id)));
   const [{ data: profiles }, { data: ratingHistories }, { data: deviationHistories }] = userIds.length > 0
     ? await Promise.all([
-      admin.from("profiles").select("id, display_name, username, rank, rating, qualified").in("id", userIds),
+      admin.from("profiles").select("id, display_name, username, avatar_url, rank, rating, qualified").in("id", userIds),
       admin.from("rating_histories").select("user_id, old_rating, new_rating, delta").eq("topic_id", id).eq("reason", "weekly_result").in("user_id", userIds),
       admin.from("thinking_deviation_histories").select("user_id, topic_answer_id, deviation, created_at").eq("source_type", "weekly").in("user_id", userIds).order("created_at", { ascending: false }),
     ])
-    : [{ data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "rating" | "qualified">[] }, { data: [] as RatingHistoryRow[] }, { data: [] as DeviationHistoryRow[] }];
+    : [{ data: [] as Pick<Profile, "id" | "display_name" | "username" | "avatar_url" | "rank" | "rating" | "qualified">[] }, { data: [] as RatingHistoryRow[] }, { data: [] as DeviationHistoryRow[] }];
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
   const ratingHistoryByUserId = new Map(((ratingHistories ?? []) as RatingHistoryRow[]).map((history) => [history.user_id, history]));
   const deviationRows = (deviationHistories ?? []) as DeviationHistoryRow[];
@@ -122,6 +123,7 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
               <Card key={answer.id} className="border-amber-300/20 bg-[linear-gradient(145deg,rgba(215,180,106,0.1),rgba(255,255,255,0.04))]">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 <div className="mt-3 flex items-center gap-3">
+                  <PremiumAvatar avatarUrl={profile?.avatar_url} displayName={profile?.display_name} username={profile?.username} rank={profile?.rank} size="small" />
                   <RankBadge rank={profile?.rank} size="small" />
                   <div className="min-w-0">
                     <p className="truncate font-black text-white">{displayName(profile)}</p>
@@ -169,10 +171,11 @@ export default async function WeeklyResultsPage({ params }: { params: Promise<{ 
                   <p className="text-xs uppercase tracking-[0.18em] text-league-muted">順位</p>
                   <p className="mt-1 text-4xl font-black text-league-gold">#{answer.ranking_position ?? "-"}</p>
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <PremiumAvatar avatarUrl={profile?.avatar_url} displayName={profile?.display_name} username={profile?.username} rank={profile?.rank} size="small" />
+                  <div className="min-w-0"><p className="truncate text-lg font-black text-white">{displayName(profile)}</p>
                   <p className="truncate text-sm text-league-muted">@{profile?.username ?? "unknown"} · {profile?.rank ?? "Rank"} · Rating {profile?.rating ?? "—"}</p>
-                  <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p>
+                  <p className="mt-2 text-sm leading-6 text-league-silver">{createPreview(answer.content, 120)}</p></div>
                 </div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">最終スコア</p><p className="mt-1 text-2xl font-black">{answer.final_score ?? 0}</p></div>
                 <div><p className="text-xs uppercase tracking-[0.18em] text-league-muted">AIスコア</p><p className="mt-1 text-2xl font-black">{answer.ai_total_score ?? 0}</p></div>

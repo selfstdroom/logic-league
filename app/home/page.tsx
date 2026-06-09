@@ -6,6 +6,7 @@ import { TopicCard } from "@/components/topics/TopicCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { FeatureExplanation } from "@/components/ui/FeatureExplanation";
 import { OnboardingHint } from "@/components/ui/OnboardingHint";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Card } from "@/components/ui/Card";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -27,12 +28,12 @@ type HomeTopic = {
   is_sample?: boolean | null;
 };
 
-type LeaderWidgetProfile = Pick<Profile, "id" | "username" | "display_name" | "rank" | "rating">;
-type LatestFameWidget = { id: string; final_score: number | null; profiles?: { username?: string | null; display_name?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; rank?: string | null }[] | null; topics?: { title?: string | null } | { title?: string | null }[] | null };
+type LeaderWidgetProfile = Pick<Profile, "id" | "username" | "display_name" | "avatar_url" | "rank" | "rating">;
+type LatestFameWidget = { id: string; final_score: number | null; profiles?: { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null } | { username?: string | null; display_name?: string | null; avatar_url?: string | null; rank?: string | null }[] | null; topics?: { title?: string | null } | { title?: string | null }[] | null };
 
 type FeedAnswer = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at" | "is_sample"> & {
   topics?: { category?: string | null; title?: string | null; type?: string | null; is_sample?: boolean | null } | { category?: string | null; title?: string | null; type?: string | null; is_sample?: boolean | null }[] | null;
-  profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">;
+  profile?: Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">;
   likeCount: number;
   commentCount: number;
   is_sample?: boolean | null;
@@ -110,7 +111,7 @@ export default async function HomePage() {
       .eq("user_id", user?.id ?? ""),
     competitionClient
       .from("profiles")
-      .select("id, username, display_name, rank, rating")
+      .select("id, username, display_name, avatar_url, rank, rating")
       .neq("rank", "Official")
       .order("rating", { ascending: false })
       .limit(3),
@@ -120,7 +121,7 @@ export default async function HomePage() {
       .eq("rank", "Oracle"),
     competitionClient
       .from("hall_of_fame")
-      .select("id, final_score, profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, rank), topics(title)")
+      .select("id, final_score, profiles:profiles!hall_of_fame_winner_user_id_fkey(username, display_name, avatar_url, rank), topics(title)")
       .order("created_at", { ascending: false })
       .limit(1),
   ]);
@@ -166,8 +167,8 @@ export default async function HomePage() {
   const userIds = Array.from(new Set(answerRows.map((answer) => answer.user_id)));
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const { data: answerProfiles } = userIds.length > 0
-    ? await profileClient.from("profiles").select("id, display_name, username, rank").in("id", userIds)
-    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank">[] };
+    ? await profileClient.from("profiles").select("id, display_name, username, rank, avatar_url").in("id", userIds)
+    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">[] };
   const profilesById = new Map((answerProfiles ?? []).map((answerProfile) => [answerProfile.id, answerProfile]));
 
   const topics: HomeTopic[] = topicRows.map((topic) => ({
@@ -256,6 +257,7 @@ export default async function HomePage() {
             {((leaderProfiles ?? []) as LeaderWidgetProfile[]).length < 3 ? <p className="text-sm leading-6 text-league-muted">ランキングは参加者が増えると表示されます。Ratingは認定試験と競技議論の結果から更新されます。</p> : ((leaderProfiles ?? []) as LeaderWidgetProfile[]).map((leader, index) => (
               <Link key={leader.id} href={`/profile/${leader.username}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 transition hover:border-amber-300/35">
                 <span className="w-7 text-lg font-black text-league-gold">#{index + 1}</span>
+                <PremiumAvatar avatarUrl={leader.avatar_url} displayName={leader.display_name} username={leader.username} rank={leader.rank} size="small" />
                 <RankBadge rank={leader.rank} size="small" />
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-white">{leader.display_name ?? leader.username}</span><span className="block text-xs text-league-muted">Rating {leader.rating}</span></span>
               </Link>
@@ -274,8 +276,7 @@ export default async function HomePage() {
           <h2 className="mt-1 text-xl font-black">最新の勝者</h2>
           {latestFameRow ? (
             <Link href={`/hall-of-fame/${latestFameRow.id}`} className="mt-4 block rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4 transition hover:border-amber-300/45">
-              <p className="text-sm font-black text-white">{latestFameProfile?.display_name ?? latestFameProfile?.username ?? "Winner"}</p>
-              <p className="mt-1 text-xs text-league-muted">{latestFameTopic?.title ?? "競技議論"}</p>
+              <div className="flex items-center gap-3"><PremiumAvatar avatarUrl={latestFameProfile?.avatar_url} displayName={latestFameProfile?.display_name} username={latestFameProfile?.username} rank={latestFameProfile?.rank} size="small" /><div className="min-w-0"><p className="truncate text-sm font-black text-white">{latestFameProfile?.display_name ?? latestFameProfile?.username ?? "Winner"}</p><p className="mt-1 truncate text-xs text-league-muted">{latestFameTopic?.title ?? "競技議論"}</p></div></div>
               <p className="mt-3 text-2xl font-black text-league-gold">{latestFameRow.final_score ?? "—"}</p>
             </Link>
           ) : <p className="mt-4 text-sm leading-6 text-league-muted">最初の競技議論勝者を待っています。</p>}
@@ -366,7 +367,7 @@ export default async function HomePage() {
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 160)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="small" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><PremiumAvatar avatarUrl={answer.profile?.avatar_url} displayName={answer.profile?.display_name} username={answer.profile?.username} rank={answer.profile?.rank} size="small" /><RankBadge rank={answer.profile?.rank} size="small" /><Link href={profileHref(answer.profile)} className="truncate font-black text-white hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link></div>
               </article>
             );
           })}
@@ -393,7 +394,7 @@ export default async function HomePage() {
                   <p className="mt-3 text-sm leading-7 text-league-silver">{createPreview(answer.content, 170)}</p>
                   <p className="mt-3 text-xs text-league-muted">👍 {answer.likeCount} · 💬 {answer.commentCount} · {formatDateTime(answer.created_at)}</p>
                 </Link>
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><RankBadge rank={answer.profile?.rank} size="small" /><span className="truncate font-black text-white">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</span></div>
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-league-muted"><PremiumAvatar avatarUrl={answer.profile?.avatar_url} displayName={answer.profile?.display_name} username={answer.profile?.username} rank={answer.profile?.rank} size="small" /><RankBadge rank={answer.profile?.rank} size="small" /><span className="truncate font-black text-white">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</span></div>
               </article>
             );
           })}

@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { OnboardingHint } from "@/components/ui/OnboardingHint";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { createClient } from "@/lib/supabase/server";
 import { createPreview, formatDateTime, formatDiscussionType, formatReplyType } from "@/lib/topics/format";
 import type { DebateReplyType, ThinkingDeviationHistory, TopicAnswerType } from "@/types/database";
@@ -145,15 +146,7 @@ function ProfileField({ label, value, href }: { label: string; value: string | n
 }
 
 function Avatar({ profile }: { profile: ProfileWithVisibility }) {
-  if (profile.avatar_url) {
-    return <div className="h-20 w-20 shrink-0 rounded-[1.45rem] border border-amber-300/35 bg-cover bg-center shadow-[0_0_50px_rgba(215,180,106,0.18)] sm:h-24 sm:w-24" style={{ backgroundImage: `url(${profile.avatar_url})` }} aria-label={`${profile.display_name ?? profile.username} avatar`} />;
-  }
-
-  return (
-    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.45rem] border border-amber-300/35 bg-gradient-to-br from-league-gold via-white to-slate-500 text-3xl font-black text-black shadow-[0_0_50px_rgba(215,180,106,0.18)] sm:h-24 sm:w-24">
-      {(profile.display_name?.[0] ?? profile.username[0]).toUpperCase()}
-    </div>
-  );
+  return <PremiumAvatar avatarUrl={profile.avatar_url} displayName={profile.display_name} username={profile.username} rank={profile.rank} size="profile" />;
 }
 
 function PremiumBadge({ children, tone = "gold" }: { children: ReactNode; tone?: "gold" | "silver" | "emerald" }) {

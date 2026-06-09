@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AnswerForm, DebateReplyComposer, LikeButton } from "@/components/topics/TopicForms";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
@@ -11,9 +12,9 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/logic-league";
 import type { Comment, DebateReplyType, Like, TopicAnswer } from "@/types/database";
 
-type CommentWithProfile = Comment & { profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">; children: CommentWithProfile[] };
+type CommentWithProfile = Comment & { profile?: Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">; children: CommentWithProfile[] };
 type AnswerView = TopicAnswer & {
-  profile?: Pick<Profile, "id" | "display_name" | "username" | "rank">;
+  profile?: Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">;
   comments: CommentWithProfile[];
   likeCount: number;
   likedByCurrentUser: boolean;
@@ -51,6 +52,7 @@ function DebateReplyNode({ reply, answerId, canReply, blockedReason, depth = 0 }
       </div>
       <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-league-silver">{reply.content}</p>
       <Link href={profileHref(reply.profile)} className="mt-3 inline-flex min-w-0 items-center gap-2 text-xs font-bold text-white transition hover:text-league-gold">
+        <PremiumAvatar avatarUrl={reply.profile?.avatar_url} displayName={reply.profile?.display_name} username={reply.profile?.username} rank={reply.profile?.rank} size="small" />
         <RankBadge rank={reply.profile?.rank} size="small" />
         <span className="truncate">{reply.is_sample ? "Logic League運営" : displayName(reply.profile)}</span>
         <span className="truncate font-normal text-league-muted">@{reply.profile?.username ?? reply.user_id}</span>
@@ -78,6 +80,7 @@ function AnswerCard({ answer, canInteract, blockedReason, idPrefix = "answer" }:
       <p className="mt-5 whitespace-pre-wrap rounded-[1.25rem] border border-white/10 bg-black/20 p-5 leading-7 text-league-silver">{answer.content}</p>
 
       <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-league-muted">
+        <PremiumAvatar avatarUrl={answer.profile?.avatar_url} displayName={answer.profile?.display_name} username={answer.profile?.username} rank={answer.profile?.rank} size="small" />
         <RankBadge rank={answer.profile?.rank} size="small" />
         <Link href={profileHref(answer.profile)} className="truncate font-black text-white transition hover:text-league-gold">{answer.is_sample ? "Logic League運営" : displayName(answer.profile)}</Link>
         <span className="truncate">@{answer.profile?.username ?? answer.user_id}</span>
@@ -132,8 +135,8 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   const profileClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
   const { data: profiles } = userIds.size > 0
-    ? await profileClient.from("profiles").select("id, display_name, username, rank").in("id", Array.from(userIds))
-    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank">[] };
+    ? await profileClient.from("profiles").select("id, display_name, username, rank, avatar_url").in("id", Array.from(userIds))
+    : { data: [] as Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">[] };
 
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
   const commentsById = new Map<string, CommentWithProfile>();
