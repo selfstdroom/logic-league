@@ -1,10 +1,11 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
+import { HeroPanel, PageShell, SectionHeader } from "@/components/ui/DesignSystem";
 import { LeagueIcon, type LeagueIconName } from "@/components/ui/LeagueIcon";
+import { ClearLocalSettingsButton, LocalDisplayControls, LocalPreferenceGroup, NavigationSummary } from "@/components/settings/LocalPreferenceControls";
 import { getOrCreateOwnProfile } from "@/lib/profiles";
 import { buildEarnedTitleOptions, resolveDisplayTitle } from "@/lib/profileTitles";
 import { deviationDisplayOptions, resolveDisplayDeviationType, validDisplayDeviationTypes } from "@/lib/thinkingDeviation";
@@ -30,14 +31,16 @@ type ToggleDefinition = {
 };
 
 const settingsSections: SettingsSection[] = [
-  { id: "account", title: "アカウント", description: "ログイン情報と基本アカウント名を管理します。", icon: "profile" },
-  { id: "profile", title: "プロフィール", description: "自己紹介とSNSリンクを管理します。", icon: "settings" },
+  { id: "account", title: "アカウント設定", description: "ログイン情報と作成日を確認します。", icon: "profile" },
+  { id: "profile", title: "プロフィール設定", description: "公開プロフィールを編集します。", icon: "settings" },
   { id: "profile-display", title: "プロフィール表示", description: "偏差値と称号の見せ方を選びます。", icon: "profile" },
-  { id: "privacy", title: "プライバシー", description: "公開プロフィールで見せる範囲を選びます。", icon: "search" },
-  { id: "notifications", title: "通知", description: "受け取りたいリーグ通知を保存します。", icon: "notifications" },
-  { id: "display", title: "表示", description: "テーマと表示密度の好みを保存します。", icon: "home" },
-  { id: "navigation", title: "ナビゲーション", description: "現在の下部ナビと候補を確認します。", icon: "timeline" },
-  { id: "management", title: "アカウント管理", description: "ログアウトと削除前の安全確認を行います。", icon: "settings" },
+  { id: "privacy", title: "プライバシー設定", description: "公開範囲を選びます。", icon: "search" },
+  { id: "notifications", title: "通知設定", description: "通知の種類を選びます。", icon: "notifications" },
+  { id: "display", title: "表示設定", description: "テーマ・動き・密度を保存します。", icon: "home" },
+  { id: "navigation", title: "ナビゲーション設定", description: "メニューの選択と並び替え。", icon: "timeline" },
+  { id: "competition", title: "競技設定", description: "競技議論の好み。", icon: "weeklyLeague" },
+  { id: "data", title: "データ管理", description: "エクスポートとローカル設定。", icon: "bookmarks" },
+  { id: "management", title: "危険な操作", description: "ログアウトと削除前の安全確認。", icon: "settings" },
 ];
 
 const privacyToggles: ToggleDefinition[] = [
@@ -57,8 +60,6 @@ const notificationToggles: ToggleDefinition[] = [
   { name: "notify_hall_of_fame", label: "Hall of Fame通知", description: "Hall of Fameに関連する更新を受け取ります。" },
 ];
 
-const currentNavigation = ["ホーム", "タイムライン", "検索", "マイページ", "設定"];
-const availableNavigation = ["ホーム", "タイムライン", "検索", "マイページ", "議論", "Leaderboard", "Hall of Fame", "実績", "通知", "設定"];
 
 const defaultSettings: Omit<UserSettings, "user_id" | "created_at" | "updated_at"> = {
   privacy_profile_public: true,
@@ -294,12 +295,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
       <form action={saveSettings} className="mt-8 space-y-8">
         <Card id="account">
           <SectionHeader eyebrow="Account" title="アカウント">
-            メールアドレスはログイン情報として表示のみです。ユーザー名と表示名は公開プロフィールにも反映されます。
+            メールアドレスと作成日は読み取り専用です。ユーザー名と表示名は公開プロフィールにも反映されます。
           </SectionHeader>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-4">
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">メールアドレス</span>
               <input value={profile.email ?? user.email ?? "未設定"} readOnly className="premium-input mt-2 opacity-70" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">作成日</span>
+              <input value={profile.created_at ? new Date(profile.created_at).toLocaleDateString("ja-JP") : "未取得"} readOnly className="premium-input mt-2 opacity-70" />
             </label>
             <label className="block">
               <span className="text-xs font-black uppercase tracking-[0.22em] text-league-muted">ユーザー名</span>
@@ -352,56 +357,58 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
         </Card>
 
         <Card id="privacy">
-          <SectionHeader eyebrow="Privacy" title="プライバシー">
-            初期値はすべてONです。OFFにした項目は将来の公開制御にも利用できるよう保存します。
+          <SectionHeader eyebrow="Privacy" title="プライバシー設定">
+            プロフィール公開、回答履歴、Rating、アーキタイプ、コレクションの公開範囲を保存します。既存のSupabase設定に加え、未実装項目はlocalStorageで保持します。
           </SectionHeader>
           <div className="grid gap-3 lg:grid-cols-2">
             {privacyToggles.map((item) => <ToggleRow key={item.name} item={item} checked={Boolean(settings[item.name])} />)}
           </div>
+          <div className="mt-4"><LocalPreferenceGroup type="privacy" /></div>
         </Card>
 
         <Card id="notifications">
-          <SectionHeader eyebrow="Notifications" title="通知">
-            現在の通知センターと将来のメール・プッシュ通知連携のために、受け取りたい通知だけを保存します。
+          <SectionHeader eyebrow="Notifications" title="通知設定">
+            返信、反論、投票結果、競技開始、Hall of Fame掲載、Rank変動の通知設定を保存します。
           </SectionHeader>
           <div className="grid gap-3 lg:grid-cols-2">
             {notificationToggles.map((item) => <ToggleRow key={item.name} item={item} checked={Boolean(settings[item.name])} />)}
           </div>
+          <div className="mt-4"><LocalPreferenceGroup type="notifications" /></div>
         </Card>
 
         <Card id="display">
-          <SectionHeader eyebrow="Display" title="表示">
-            Darkは引き続き標準です。Lightとシステム連動はMVPでは好みとして保存し、将来のテーマ拡張に利用します。
+          <SectionHeader eyebrow="Display" title="表示設定">
+            テーマ、Motion、Densityを保存します。Supabaseに存在するtheme / display_densityは保存フォームへ、MotionはlocalStorageへ即時保存します。
           </SectionHeader>
           <div className="grid gap-4 md:grid-cols-2">
-            <SelectCard name="theme" label="テーマ" description="画面全体のテーマ設定です。" value={settings.theme} options={[{ value: "dark", label: "ダーク" }, { value: "light", label: "ライト" }, { value: "system", label: "システム" }]} />
-            <SelectCard name="display_density" label="表示密度" description="カードやリストの余白感の好みです。" value={settings.display_density} options={[{ value: "standard", label: "標準" }, { value: "compact", label: "コンパクト" }]} />
+            <SelectCard name="theme" label="テーマ（Supabase保存）" description="画面全体のテーマ設定です。" value={settings.theme === "light" ? "dark" : settings.theme} options={[{ value: "dark", label: "ダーク" }, { value: "system", label: "システム" }]} />
+            <SelectCard name="display_density" label="表示密度（Supabase保存）" description="カードやリストの余白感の好みです。" value={settings.display_density} options={[{ value: "standard", label: "標準" }, { value: "compact", label: "コンパクト" }]} />
           </div>
+          <div className="mt-4"><LocalDisplayControls initialTheme={settings.theme} initialDensity={settings.display_density} /></div>
         </Card>
 
         <Card id="navigation">
-          <SectionHeader eyebrow="Navigation" title="ナビゲーション">
-            下部ナビゲーションの基本構成は、ホーム・タイムライン・検索・マイページ・設定です。ここでは現在の構成と追加候補を確認できます。
+          <SectionHeader eyebrow="Navigation" title="ナビゲーション設定" action={<ButtonLink href="/settings/navigation" className="px-5 py-2.5">詳しく設定</ButtonLink>}>
+            現在選択中のメニューを確認し、専用画面でON/OFFと並び替えを行います。
           </SectionHeader>
-          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-4">
-              <p className="text-sm font-black text-league-gold">現在の下部ナビ</p>
-              <div className="mt-4 grid grid-cols-5 gap-2 sm:gap-3">
-                {currentNavigation.map((item, index) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-black/25 p-3 text-center">
-                    <span className="block text-xs font-black text-league-muted">{index + 1}</span>
-                    <span className="mt-1 block font-black text-white">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm font-black text-white">利用可能な項目</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {availableNavigation.map((item) => <PremiumBadge key={item} tone={currentNavigation.includes(item) ? "gold" : "silver"}>{item}</PremiumBadge>)}
-              </div>
-              <p className="mt-4 text-xs leading-5 text-league-muted">ドラッグ＆ドロップによる入れ替えは今後の拡張として扱い、MVPでは構成の見える化を優先しています。</p>
-            </div>
+          <NavigationSummary />
+        </Card>
+
+        <Card id="competition">
+          <SectionHeader eyebrow="Competition" title="競技設定">
+            Competitive Discussion reminders、匿名表示、回答の既定公開設定を管理します。バックエンド未実装項目はlocalStorage保存です。
+          </SectionHeader>
+          <LocalPreferenceGroup type="competition" />
+        </Card>
+
+        <Card id="data">
+          <SectionHeader eyebrow="Data" title="データ管理">
+            プロフィールデータと回答データのエクスポート導線を準備しています。実データ出力APIは未接続のため、ボタンはプレースホルダーです。
+          </SectionHeader>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" disabled className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-league-silver opacity-60">プロフィールデータを書き出し（準備中）</button>
+            <button type="button" disabled className="rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-black text-league-silver opacity-60">回答データを書き出し（準備中）</button>
+            <ClearLocalSettingsButton />
           </div>
         </Card>
 

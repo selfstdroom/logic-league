@@ -1,29 +1,23 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { FeatureExplanation } from "@/components/ui/FeatureExplanation";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { OnboardingHint } from "@/components/ui/OnboardingHint";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminUser } from "@/lib/topics/auth";
+import { requireAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 
 const adminSections = [
-  { title: "Discussion Management", href: "/admin/topics", items: ["Daily creation", "Competitive creation", "Deadlines", "Featured discussions", "Visibility controls"] },
-  { title: "Answer Management", href: "/admin#answers", items: ["View answers", "Hall of Fame selection", "Hide answer", "Report handling"] },
-  { title: "User Management", href: "/admin#users", items: ["Search users", "Rank", "Rating", "Restrictions", "Permissions"] },
-  { title: "Competition Management", href: "/admin/weekly", items: ["Anonymous reveal", "Voting period", "Result finalization", "Rating updates"] },
-  { title: "Achievement Management", href: "/admin#achievements", items: ["Achievement list", "Conditions", "Manual grants"] },
-  { title: "Operations Notes", href: "/admin#operations", items: ["Weekly improvements", "Bugs", "Future discussion ideas"] },
+  { title: "議論管理", href: "/admin/topics", items: ["Daily議論を作成", "Special管理", "締切", "Feature", "Archive"] },
+  { title: "競技議論管理", href: "/admin/weekly", items: ["回答受付", "匿名公開", "投票期間", "結果確定", "Rating更新導線"] },
+  { title: "回答管理", href: "/admin/answers", items: ["回答一覧", "非表示", "Featured", "Hall of Fame候補", "通報確認"] },
+  { title: "ユーザー管理", href: "/admin/users", items: ["ユーザー検索", "Rank", "Rating", "制限", "権限確認"] },
+  { title: "通報・殿堂・実績", href: "/admin/reports", items: ["通報を見る", "Hall of Fame候補", "実績", "手動付与準備"] },
+  { title: "サイト設定・運用ノート", href: "/admin/settings", items: ["告知", "メンテ表示", "運用メモ", "Launch checklist"] },
 ];
 
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!isAdminUser(user)) redirect("/home");
-}
 
 function todayRange() {
   const start = new Date();
@@ -38,26 +32,30 @@ export default async function AdminPage() {
   const admin = createAdminClient();
   const { start, end } = todayRange();
 
-  const [todayPosts, answers, activeUsers, votes, reports, pendingTopics] = await Promise.all([
+  const [todayPosts, answers, activeUsers, votes, reports, pendingTopics, activeWeekly, hallOfFameCandidates] = await Promise.all([
     admin.from("topics").select("id", { count: "exact", head: true }).gte("created_at", start).lt("created_at", end),
-    admin.from("topic_answers").select("id", { count: "exact", head: true }),
-    admin.from("profiles").select("id", { count: "exact", head: true }),
+    admin.from("topic_answers").select("id", { count: "exact", head: true }).gte("created_at", start).lt("created_at", end),
+    admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", start).lt("created_at", end),
     admin.from("likes").select("id", { count: "exact", head: true }),
     admin.from("comments").select("id", { count: "exact", head: true }).gte("created_at", start).lt("created_at", end),
     admin.from("topics").select("id", { count: "exact", head: true }).eq("status", "draft"),
+    admin.from("topics").select("id", { count: "exact", head: true }).eq("type", "weekly").eq("status", "published"),
+    admin.from("topic_answers").select("id", { count: "exact", head: true }).not("final_score", "is", null),
   ]);
 
   const metrics = [
-    { label: "Today's posts", value: todayPosts.count ?? 0, description: "本日作成されたTopic" },
-    { label: "Answers", value: answers.count ?? 0, description: "累計回答数" },
-    { label: "Active users", value: activeUsers.count ?? 0, description: "登録プロフィール" },
-    { label: "Votes", value: votes.count ?? 0, description: "累計いいね / 投票" },
-    { label: "Reports", value: reports.count ?? 0, description: "本日の確認対象コメント" },
-    { label: "Pending actions", value: pendingTopics.count ?? 0, description: "下書き / 公開待ち" },
+    { label: "今日の投稿数", value: todayPosts.count ?? 0, description: "本日作成されたTopic" },
+    { label: "今日の回答数", value: answers.count ?? 0, description: "回答数（現行は累計）" },
+    { label: "新規ユーザー数", value: activeUsers.count ?? 0, description: "登録プロフィール（現行は累計）" },
+    { label: "投票数", value: votes.count ?? 0, description: "累計いいね / 投票" },
+    { label: "未処理通報数", value: reports.count ?? 0, description: "reports未実装のためコメント参考値" },
+    { label: "開催中の競技議論", value: activeWeekly.count ?? 0, description: "公開中Weekly" },
+    { label: "締切済み未集計", value: pendingTopics.count ?? 0, description: "下書き / 公開待ち参考値" },
+    { label: "Hall of Fame候補数", value: hallOfFameCandidates.count ?? 0, description: "score付き回答参考値" },
   ];
 
   return (
-    <PageShell className="max-w-7xl">
+    <PageShell className="max-w-7xl"><AdminShell>
       <OnboardingHint storageKey="logic-league:onboarding:admin" title="Admin Command Center" className="mb-5">
         議題、回答、ユーザー、競技進行を管理します。管理者のみが見える運用ダッシュボードです。
       </OnboardingHint>
@@ -65,7 +63,7 @@ export default async function AdminPage() {
         Logic Leagueの議論・回答・ユーザー・競技・実績を段階的に拡張するための管理ホームです。現時点では既存機能への導線と運用指標を整理しています。
       </HeroPanel>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric, index) => <StatCard key={metric.label} label={metric.label} value={metric.value} description={metric.description} tone={index === 0 || index === 5 ? "gold" : "silver"} />)}
       </section>
 
@@ -100,6 +98,6 @@ export default async function AdminPage() {
           </div>
         </Card>
       </section>
-    </PageShell>
+    </AdminShell></PageShell>
   );
 }
