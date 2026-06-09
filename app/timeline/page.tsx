@@ -8,7 +8,7 @@ import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
 
-type ProfileLite = Pick<Profile, "id" | "display_name" | "username" | "rank">;
+type ProfileLite = Pick<Profile, "id" | "display_name" | "username" | "rank" | "avatar_url">;
 type CurrentProfile = Pick<Profile, "qualified">;
 type TopicLite = { id?: string | null; type?: string | null; category?: string | null; title?: string | null; status?: string | null; reveal_at?: string | null; is_sample?: boolean | null };
 type AnswerRow = Pick<TopicAnswer, "id" | "topic_id" | "user_id" | "answer_type" | "content" | "created_at" | "is_sample"> & { topics?: TopicLite | TopicLite[] | null };
@@ -126,7 +126,7 @@ export default async function TimelinePage() {
 
   const userIds = Array.from(new Set([...answerRows.map((answer) => answer.user_id), ...replyRows.map((reply) => reply.user_id)]));
   const { data: profiles } = userIds.length > 0
-    ? await readClient.from("profiles").select("id, display_name, username, rank").in("id", userIds)
+    ? await readClient.from("profiles").select("id, display_name, username, rank, avatar_url").in("id", userIds)
     : { data: [] as ProfileLite[] };
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
@@ -152,6 +152,7 @@ export default async function TimelinePage() {
         displayName: displayName(profile),
         username: profile?.username,
         rank: profile?.rank,
+        avatarUrl: profile?.avatar_url,
         href: profileHref(profile),
       },
     };
@@ -183,6 +184,7 @@ export default async function TimelinePage() {
         displayName: displayName(profile),
         username: profile?.username,
         rank: profile?.rank,
+        avatarUrl: profile?.avatar_url,
         href: profileHref(profile),
       },
     };

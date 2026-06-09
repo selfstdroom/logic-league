@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader } from "@/components/ui/DesignSystem";
@@ -36,11 +37,7 @@ function topicHref(topic: Pick<TopicResult, "id" | "type"> | { id?: string; type
 }
 
 function Avatar({ user }: { user: UserResult }) {
-  if (user.avatar_url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={user.avatar_url} alt="" className="h-12 w-12 rounded-2xl border border-white/10 object-cover" />;
-  }
-  return <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/25 bg-amber-300/10 text-lg font-black text-league-gold">{(user.display_name ?? user.username).slice(0, 1).toUpperCase()}</div>;
+  return <PremiumAvatar avatarUrl={user.avatar_url} displayName={user.display_name} username={user.username} rank={user.rank} size="medium" />;
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

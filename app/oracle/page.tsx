@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RankBadge } from "@/components/rank/RankBadge";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { RankProgress } from "@/components/rank/RankProgress";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,12 +10,12 @@ import type { Profile } from "@/types/logic-league";
 
 export const dynamic = "force-dynamic";
 
-type OracleProfile = Pick<Profile, "id" | "username" | "display_name" | "rank" | "rating" | "archetype">;
+type OracleProfile = Pick<Profile, "id" | "username" | "display_name" | "avatar_url" | "rank" | "rating" | "archetype">;
 
 export default async function OraclePage() {
   const admin = createAdminClient();
   const [{ data: profiles }, { data: wins }] = await Promise.all([
-    admin.from("profiles").select("id, username, display_name, rank, rating, archetype").eq("rank", "Oracle").order("rating", { ascending: false }),
+    admin.from("profiles").select("id, username, display_name, avatar_url, rank, rating, archetype").eq("rank", "Oracle").order("rating", { ascending: false }),
     admin.from("hall_of_fame").select("winner_user_id"),
   ]);
   const winCounts = new Map<string, number>();
@@ -31,6 +32,7 @@ export default async function OraclePage() {
           {((profiles ?? []) as OracleProfile[]).map((profile) => (
             <Card key={profile.id} className="border-amber-300/25 bg-[radial-gradient(circle_at_top_right,rgba(215,180,106,0.18),transparent_30%),rgba(255,255,255,0.045)]">
               <div className="flex items-center gap-4">
+                <PremiumAvatar avatarUrl={profile.avatar_url} displayName={profile.display_name} username={profile.username} rank="Oracle" size="large" />
                 <RankBadge rank="Oracle" size="large" />
                 <div className="min-w-0">
                   <Link href={`/profile/${profile.username}`} className="truncate text-2xl font-black text-white hover:text-league-gold">{profile.display_name ?? profile.username}</Link>

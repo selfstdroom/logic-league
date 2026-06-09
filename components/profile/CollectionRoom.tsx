@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PremiumAvatar } from "@/components/ui/PremiumAvatar";
 import { HeroPanel, PageShell, PremiumBadge, SectionHeader, StatCard } from "@/components/ui/DesignSystem";
 import { achievementDefinitions } from "@/lib/achievements";
 import { RANK_DEFINITIONS, getRankByRating } from "@/lib/rank";
@@ -123,7 +124,14 @@ export async function CollectionRoom({ profile: rawProfile, viewerId }: { profil
           </>
         }
       >
-        Rank Badge、実績、Hall of Fame、称号を飾るトロフィールームです。解放済みは金と銀の輝きで、未解放は次の目標として展示されます。
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <PremiumAvatar avatarUrl={profile.avatar_url} displayName={profile.display_name} username={profile.username} rank={profile.rank} size="medium" />
+          <div>
+            <p className="font-black text-white">{profile.display_name ?? profile.username}</p>
+            <p className="text-sm text-league-muted">@{profile.username}</p>
+            <p className="mt-2">Rank Badge、実績、Hall of Fame、称号を飾るトロフィールームです。解放済みは金と銀の輝きで、未解放は次の目標として展示されます。</p>
+          </div>
+        </div>
       </HeroPanel>
 
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:mt-8 lg:grid-cols-4">
